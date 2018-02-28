@@ -1,6 +1,8 @@
 import unittest
 from random import randint
 from SudokuBoard import SudokuBoard
+from itertools import product
+
 
 class SudokuBoardTestCase(unittest.TestCase):
     """tests for SudokuBoard.py"""
@@ -26,12 +28,18 @@ class SudokuBoardTestCase(unittest.TestCase):
         self.assertEqual(self.test_board.get(i, j), self.test_board.board[i][j])
 
     def test_row(self):
+        i = randint(0, 8)
+        self.assertEqual(self.test_board.row(i), self.test_board.board[i])
 
+    def test_column(self):
+        j = randint(0, 8)
+        correct = [row[j] for row in self.test_board.board]
+        self.assertEqual(self.test_board.column(j), correct)
 
-
-
+    def test_sector(self):
+        s = randint(0, 8)
+        correct = [self.test_board.board[i][j] for i, j in product(range(9), range(9)) if SudokuBoard.sector_lookup(i, j) == s]
+        self.assertEqual(self.test_board.sector(s), correct)
 
 
 unittest.main()
-
-
