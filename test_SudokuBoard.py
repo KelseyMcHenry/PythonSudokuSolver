@@ -38,7 +38,7 @@ class SudokuBoardTestCase(unittest.TestCase):
 
     def test_sector(self):
         s = randint(0, 8)
-        correct = [self.test_board.board[i][j] for i, j in product(range(9), range(9)) if SudokuBoard.sector_lookup(i, j) == s]
+        correct = [self.test_board.board[i][j] for i, j in product(range(9), range(9)) if self.sector_lookup(i, j) == s]
         self.assertEqual(self.test_board.sector(s), correct)
 
 
