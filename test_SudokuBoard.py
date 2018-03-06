@@ -7,6 +7,8 @@ from itertools import product
 class SudokuBoardTestCase(unittest.TestCase):
     """tests for SudokuBoard.py"""
 
+    # TODO - write better tests
+
     def setUp(self):
         """Creates a test board we will work with"""
         test_data = [randint(1, 9) for _ in range(81)]
