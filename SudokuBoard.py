@@ -369,6 +369,7 @@ class SudokuBoard:
         Picks sets of 4 cells, where the cells form the corners of a rectangle and eliminates any possibilities shared
         between all 4 from the remaining cells in the 4 corners' sectors.
         """
+        # TODO eliminate from column, row, sector
         success = 0
         # if coordinates_to_check is not initialized...
         if len(self.coordinates_to_check) == 0:
