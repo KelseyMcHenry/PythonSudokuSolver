@@ -46,6 +46,8 @@ class SudokuBoard:
         for i, j in product(range(9), range(9)):
             if other.board[i][j] != self.board[i][j]:
                 return False
+        if self.possible_values != other.possible_values:
+            return False
         return True
     # ------------------------------------------- Getters / Setters -------------------------------------------------
 
@@ -157,6 +159,9 @@ class SudokuBoard:
             if x == i or y == j or self.sector_lookup(x, y) == self.sector_lookup(i, j):
                 if value in self.possible_values[(x, y)]:
                     self.possible_values[(x, y)].remove(value)
+        for x, y in product(range(9), range(9)):
+            if self.board[x][y] == 0 and len(self.get_possibilities(x, y)) == 0:
+                raise ValueError('Invalid cell set at ' + str((x, y)))
 
     # -------------------------------------- Solving Helper Functions -----------------------------------------------
     # https://www.kristanix.com/sudokuepic/sudoku-solving-techniques.php
@@ -174,17 +179,22 @@ class SudokuBoard:
         """
         Solves the values of all cells that only have one possibility
         """
+        success = 0
         for coordinate, possibilities in self.possible_values.items():
             if len(possibilities) == 1:
+                success = 1
                 value = possibilities.pop()
                 self.set(coordinate[0], coordinate[1], value)
                 self.print_reason_to_file('Cell ' + str(coordinate) + ' set to ' + str(value) +
                                           ' because it was the only possibility remaining for that cell.')
 
+        return success
+
     def unique_candidate_rows(self):
         """
         Solves the values of all cells where one of the cell's possibilities is unique to its row
         """
+        success = 0
         for i in range(9):
             # accumulate all of the possibilities for all cells in row i
             row_i_total_poss = list(chain.from_iterable(self.get_row_possibilities(i).values()))
@@ -194,14 +204,17 @@ class SudokuBoard:
             for value in unique_values_in_row_i:
                 for key, poss_list in self.get_row_possibilities(i).items():
                     if value in poss_list:
+                        success = 1
                         self.set(key[0], key[1], value)
                         self.print_reason_to_file('Cell ' + str(key) + ' set to ' + str(value) +
                                                   ' because the possibility was unique to row ' + str(i) + '.')
+        return success
 
     def unique_candidate_columns(self):
         """
         Solves the values of all cells where one of the cell's possibilities is unique to its column
         """
+        success = 0
         for j in range(9):
             # accumulate all of the possibilities for all cells in col j
             col_j_total_poss = list(chain.from_iterable(self.get_col_possibilities(j).values()))
@@ -211,14 +224,17 @@ class SudokuBoard:
             for value in unique_values_in_col_j:
                 for key, poss_list in self.get_col_possibilities(j).items():
                     if value in poss_list:
+                        success = 1
                         self.set(key[0], key[1], value)
                         self.print_reason_to_file('Cell ' + str(key) + ' set to ' + str(value) +
                                                   ' because the possibility was unique to column ' + str(j) + '.')
+        return success
 
     def unique_candidate_sectors(self):
         """
         Solves the values of all cells where one of the cell's possibilities is unique to its sector
         """
+        success = 0
         for s in range(9):
             # accumulate all of the possibilities for all cells in sector s
             sector_s_total_poss = list(chain.from_iterable(self.get_sector_possibilities(s).values()))
@@ -228,9 +244,11 @@ class SudokuBoard:
             for value in unique_values_in_sector_s:
                 for key, poss_list in self.get_sector_possibilities(s).items():
                     if value in poss_list:
+                        success = 1
                         self.set(key[0], key[1], value)
                         self.print_reason_to_file('Cell ' + str(key) + ' set to ' + str(value) +
                                                   ' because the possibility was unique to sector ' + str(s) + '.')
+        return success
 
     # --------------------------------- Possibility Eliminating Functions -----------------------------------------
     # https://www.kristanix.com/sudokuepic/sudoku-solving-techniques.php
@@ -239,6 +257,7 @@ class SudokuBoard:
         """
         Eliminates possibilities within a row outside of a sector if a possibility is unique to row within said sector
         """
+        success = 0
         for sector in range(9):
             row_indices_in_sector = []
             for i, j in product(range(9), range(9)):
@@ -254,15 +273,18 @@ class SudokuBoard:
                 if unique_index >= 0:
                     for i, j in product(range(9), range(9)):
                         if i == row_indices_in_sector[unique_index] and self.sector_lookup(i, j) != sector:
+                            success = 1
                             self.possible_values[(i, j)].remove(n)
                             self.print_reason_to_file('Cell (' + str(i) + ', ' + str(j) + ') had possibility value of '
                                                       + str(n) + ' removed because sector '
                                                       + str(sector) + ' must contain it via a row interaction.')
+        return success
 
     def sector_column_interaction(self):
         """
         Eliminates possibilities within a column outside of a sector if a possibility is unique to column within said sector
         """
+        success = 0
         for sector in range(9):
             column_indices_in_sector = []
             for i, j in product(range(9), range(9)):
@@ -278,33 +300,39 @@ class SudokuBoard:
                 if unique_index >= 0:
                     for i, j in product(range(9), range(9)):
                         if j == column_indices_in_sector[unique_index] and self.sector_lookup(i, j) != sector:
+                            success = 1
                             self.possible_values[(i, j)].remove(n)
                             self.print_reason_to_file('Cell (' + str(i) + ', ' + str(j) + ') had possibility value of '
                                                       + str(n) + ' removed because sector '
                                                       + str(sector) + ' must contain it via a column interaction.')
+        return success
 
     def naked_subset(self):
         # TODO - generalize to subsets of 3,4,5,6,7,8
         # TODO - make method iterate over 1, ... ,8
         # TODO - make method take get_row_possibilities and get_column_possibilities as parameters to avoid code dup
+        # TODO - naked subset sector
         # subsets of size 2
+        success = 0
         for i in range(9):
             # all pairs of values
             for val_1, val_2 in [(x, y) for x, y in product(range(1, 10), range(1, 10)) if x != y]:
                 cells_that_contain_pair = []
                 for coordinate, possibilities in self.get_row_possibilities(i).items():
-                    if val_1 in possibilities and val_2 in possibilities and len(possibilities) == 2:
+                    if (val_1 in possibilities) and (val_2 in possibilities) and len(possibilities) == 2:
                         cells_that_contain_pair.append(coordinate)
                 if len(cells_that_contain_pair) == 2:
                     for coordinate, possibilities in self.get_row_possibilities(i).items():
                         if coordinate not in cells_that_contain_pair:
                             if val_1 in possibilities:
+                                success = 1
                                 possibilities.remove(val_1)
                                 self.print_reason_to_file(
                                     'Cell ' + str(coordinate) + ' had possibility value of '
                                     + str(val_1) + ' removed because there was a naked pair subset at '
                                     + str(cells_that_contain_pair))
                             if val_2 in possibilities:
+                                success = 1
                                 possibilities.remove(val_2)
                                 self.print_reason_to_file(
                                     'Cell ' + str(coordinate) + ' had possibility value of '
@@ -321,23 +349,27 @@ class SudokuBoard:
                     for coordinate, possibilities in self.get_col_possibilities(j).items():
                         if coordinate not in cells_that_contain_pair:
                             if val_1 in possibilities:
+                                success = 1
                                 possibilities.remove(val_1)
                                 self.print_reason_to_file(
                                     'Cell ' + str(coordinate) + ' had possibility value of '
                                     + str(val_1) + ' removed because there was a naked pair subset at '
                                     + str(cells_that_contain_pair))
                             if val_2 in possibilities:
+                                success = 1
                                 possibilities.remove(val_2)
                                 self.print_reason_to_file(
                                     'Cell ' + str(coordinate) + ' had possibility value of '
                                     + str(val_2) + ' removed because there was a naked pair subset at '
                                     + str(cells_that_contain_pair))
+        return success
 
     def x_wing(self):
         """
         Picks sets of 4 cells, where the cells form the corners of a rectangle and eliminates any possibilities shared
         between all 4 from the remaining cells in the 4 corners' sectors.
         """
+        success = 0
         # if coordinates_to_check is not initialized...
         if len(self.coordinates_to_check) == 0:
             # for all combinations of 4 coordinate pairs where the 4 coordinates are on matching corners ...
@@ -359,14 +391,19 @@ class SudokuBoard:
                     value_to_eliminate = intersection.pop()
                     for i, j in product(range(9), range(9)):
                         sector_i_j = self.sector_lookup(i, j)
-                        if self.sector_lookup(a, b) == sector_i_j or self.sector_lookup(c, d) == sector_i_j or \
-                                self.sector_lookup(e, f) == sector_i_j or self.sector_lookup(g, h) == sector_i_j:
+                        if (self.sector_lookup(a, b) == sector_i_j and (a, b) != (i, j)) or \
+                                (self.sector_lookup(c, d) == sector_i_j and (c, d) != (i, j)) or \
+                                (self.sector_lookup(e, f) == sector_i_j and (e, f) != (i, j)) or \
+                                (self.sector_lookup(g, h) == sector_i_j and (g, h) != (i, j)):
                                 if value_to_eliminate in self.possible_values[(i, j)]:
+                                    success = 1
                                     self.possible_values[(i, j)].remove(value_to_eliminate)
                                     self.print_reason_to_file('Cell ' + str((i, j)) + ' had possibility value of '
                                                               + str(value_to_eliminate) + ' removed because there was '
                                                               + 'an x-wing interaction between cells ' +
                                                               str([(a, b), (c, d), (e, f), (g, h)]))
+
+        return success
 
     # ------------------------------------------- Helper Functions -------------------------------------------------
 
@@ -397,6 +434,8 @@ class SudokuBoard:
 
     def print_reason_to_file(self, s):
         self.file.write(s + '\n')
+        print(s)
+        print(self)
 
     # TODO
     """"
@@ -408,16 +447,21 @@ class SudokuBoard:
     - Forcing Chain
     """
 
+    # TODO make a priority list of methods and have it only move on when the previous method is exhausted. As soon as a later method turns up a result start over at the beginning
     def solve(self):
+        print(self)
+        method_progression = [self.sole_candidates, self.unique_candidate_columns, self.unique_candidate_rows,
+                              self.unique_candidate_sectors, self.naked_subset, self.sector_column_interaction,
+                              self.sector_row_interaction, self.x_wing]
         while not self.is_solved():
-            print(self)
-            self.sole_candidates()
-            self.unique_candidate_columns()
-            self.unique_candidate_rows()
-            self.unique_candidate_sectors()
-            self.naked_subset()
-            self.sector_column_interaction()
-            self.sector_row_interaction()
-            self.x_wing()
+            index = 0
+            while index < len(method_progression):
+                print('index ' + str(index))
+                success = method_progression[index]()
+                if success == 0:
+                    index += 1
+                else:
+                    index = 0
+
 
 
