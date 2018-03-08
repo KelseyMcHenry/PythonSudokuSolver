@@ -27,18 +27,20 @@ import SudokuBoard
 #         0, 1, 9, 0, 0, 3, 0, 0, 4]
 
 # # evil
-data = [0, 9, 1, 0, 3, 0, 0, 0, 0,
-        0, 0, 0, 0, 9, 0, 0, 0, 8,
-        7, 3, 0, 0, 0, 0, 0, 5, 0,
-        3, 0, 0, 0, 0, 4, 1, 0, 0,
-        0, 2, 8, 0, 0, 0, 5, 4, 0,
-        0, 0, 7, 2, 0, 0, 0, 0, 3,
-        0, 7, 0, 0, 0, 0, 0, 9, 5,
-        2, 0, 0, 0, 6, 0, 0, 0, 0,
-        0, 0, 0, 0, 1, 0, 4, 7, 0]
-
-sudoku = SudokuBoard.SudokuBoard(values=data)
-
+# data = [0, 9, 1, 0, 3, 0, 0, 0, 0,
+#         0, 0, 0, 0, 9, 0, 0, 0, 8,
+#         7, 3, 0, 0, 0, 0, 0, 5, 0,
+#         3, 0, 0, 0, 0, 4, 1, 0, 0,
+#         0, 2, 8, 0, 0, 0, 5, 4, 0,
+#         0, 0, 7, 2, 0, 0, 0, 0, 3,
+#         0, 7, 0, 0, 0, 0, 0, 9, 5,
+#         2, 0, 0, 0, 6, 0, 0, 0, 0,
+#         0, 0, 0, 0, 1, 0, 4, 7, 0]
+#
+# sudoku = SudokuBoard.SudokuBoard(values=data)
+#
+# sudoku.solve()
+sudoku = SudokuBoard.SudokuBoard(filepath='TestCases/blockblock1.sdk')
 sudoku.solve()
 print(sudoku)
 

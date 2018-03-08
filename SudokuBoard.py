@@ -1,6 +1,5 @@
 from itertools import product
 from itertools import chain
-from copy import deepcopy
 
 
 class SudokuBoard:
@@ -10,6 +9,7 @@ class SudokuBoard:
     # TODO define product(range(9), range(9))
     # TODO use len instead of magic number 9 where possible
     # TODO make functions take functions as parameters (ie col, row, sector) to avoid repeating code
+    # TODO create eliminate_possibility_from_row
 
     # -------------------------------------- Variable initialization -----------------------------------------------
 
@@ -20,10 +20,26 @@ class SudokuBoard:
 
     # --------------------------------------------- Constructor  ---------------------------------------------------
 
-    def __init__(self, values=[0]*81):
-        """Initializes the board values and initializes the cell possible values. Default is empty board"""
+    def __init__(self, values=[0]*81, filepath=''):
+        """
+        Initializes the board values and initializes the cell possible values. Default is empty board
+        http://www.sadmansoftware.com/sudoku/faq19.php
+        """
+        if filepath != '':
+            values.clear()
+            sudoku_file = open(filepath, 'r')
+            for line in sudoku_file:
+                for character in line:
+                    if character == '.':
+                        values.append(0)
+                    elif character == '\n':
+                        pass
+                    else:
+                        values.append(int(character))
+
         for i, value in enumerate(values):
             self.board[i // 9][i % 9] = value
+
         for coordinate, possibilities in self.possible_values.items():
             for n in range(1, 10):
                 if (self.board[coordinate[0]][coordinate[1]] == 0 and
@@ -75,15 +91,6 @@ class SudokuBoard:
         :return: list of values contained in column j, empty cells are indicated by a 0
         """
         return [self.board[i][j] for i in range(9)]
-
-    @staticmethod
-    def sector_lookup(i, j):
-        """Returns sector index of a cell based on its i,j coordinates
-        :param i: x coordinate. starts at 0, which is located far left
-        :param j: y coordinate. starts at 0, which is located at the top
-        :return: sector index of cell i,j. Sector indeces start at 0 and go left to right, top to bottom.
-        """
-        return ((i // 3) * 3) + (j // 3)
 
     def sector(self, sector):
         """
@@ -163,17 +170,9 @@ class SudokuBoard:
             if self.board[x][y] == 0 and len(self.get_possibilities(x, y)) == 0:
                 raise ValueError('Invalid cell set at ' + str((x, y)))
 
-    # -------------------------------------- Solving Helper Functions -----------------------------------------------
+    # ------------------------------------------- Solving Functions -------------------------------------------------
     # https://www.kristanix.com/sudokuepic/sudoku-solving-techniques.php
-
-    def is_solved(self):
-        """
-        Returns a boolean indicating if the sudoku is solved
-        """
-        for row in self.board:
-            if 0 in row:
-                return False
-        return True
+    # http://www.sadmansoftware.com/sudoku/solvingtechniques.php
 
     def sole_candidates(self):
         """
@@ -252,6 +251,7 @@ class SudokuBoard:
 
     # --------------------------------- Possibility Eliminating Functions -----------------------------------------
     # https://www.kristanix.com/sudokuepic/sudoku-solving-techniques.php
+    # http://www.sadmansoftware.com/sudoku/solvingtechniques.php
 
     def sector_row_interaction(self):
         """
@@ -369,7 +369,6 @@ class SudokuBoard:
         Picks sets of 4 cells, where the cells form the corners of a rectangle and eliminates any possibilities shared
         between all 4 from the remaining cells in the 4 corners' sectors.
         """
-        # TODO eliminate from column, row, sector
         success = 0
         # if coordinates_to_check is not initialized...
         if len(self.coordinates_to_check) == 0:
@@ -381,28 +380,38 @@ class SudokuBoard:
                                             {self.sector_lookup(a, b), self.sector_lookup(c, d),
                                              self.sector_lookup(e, f), self.sector_lookup(g, h)})) == 4]
 
-        else:
-            for a, b, c, d, e, f, g, h in self.coordinates_to_check:
-                poss_1 = [i for i in self.get_possibilities(a, b) if i != 0]
-                poss_2 = [i for i in self.get_possibilities(c, d) if i != 0]
-                poss_3 = [i for i in self.get_possibilities(e, f) if i != 0]
-                poss_4 = [i for i in self.get_possibilities(g, h) if i != 0]
-                intersection = self.intersection(poss_1, poss_2, poss_3, poss_4)
-                if len(intersection) > 0:
-                    value_to_eliminate = intersection.pop()
-                    for i, j in product(range(9), range(9)):
-                        sector_i_j = self.sector_lookup(i, j)
-                        if (self.sector_lookup(a, b) == sector_i_j and (a, b) != (i, j)) or \
-                                (self.sector_lookup(c, d) == sector_i_j and (c, d) != (i, j)) or \
-                                (self.sector_lookup(e, f) == sector_i_j and (e, f) != (i, j)) or \
-                                (self.sector_lookup(g, h) == sector_i_j and (g, h) != (i, j)):
-                                if value_to_eliminate in self.possible_values[(i, j)]:
-                                    success = 1
-                                    self.possible_values[(i, j)].remove(value_to_eliminate)
-                                    self.print_reason_to_file('Cell ' + str((i, j)) + ' had possibility value of '
-                                                              + str(value_to_eliminate) + ' removed because there was '
-                                                              + 'an x-wing interaction between cells ' +
-                                                              str([(a, b), (c, d), (e, f), (g, h)]))
+        for a, b, c, d, e, f, g, h in self.coordinates_to_check:
+            poss_1 = [i for i in self.get_possibilities(a, b) if i != 0]
+            poss_2 = [i for i in self.get_possibilities(c, d) if i != 0]
+            poss_3 = [i for i in self.get_possibilities(e, f) if i != 0]
+            poss_4 = [i for i in self.get_possibilities(g, h) if i != 0]
+            intersection = self.intersection(poss_1, poss_2, poss_3, poss_4)
+            if len(intersection) > 0:
+                value_to_eliminate = intersection.pop()
+                # check that the value only shows up in rows/columns possibilities twice
+                # remove the value from the columns/rows
+                row_1_poss = [value for poss_list in self.get_row_possibilities(a) for value in poss_list]
+                col_1_poss = [value for poss_list in self.get_col_possibilities(b) for value in poss_list]
+                row_2_poss = [value for poss_list in self.get_row_possibilities(c) for value in poss_list]
+                col_2_poss = [value for poss_list in self.get_col_possibilities(d) for value in poss_list]
+                if row_1_poss.count(value_to_eliminate) == 2 and row_2_poss.count(value_to_eliminate) == 2:
+                    # eliminate value from columns b, d
+                    success = 1
+                    self.eliminate_possibilities_from_column(b, value_to_eliminate)
+                    self.eliminate_possibilities_from_column(d, value_to_eliminate)
+                    self.print_reason_to_file('Columns ' + str(b) + ' and ' + str(d) + ' had possibility value of '
+                                              + str(value_to_eliminate) + ' removed because there was '
+                                              + 'an x-wing interaction between cells '
+                                              + str([(a, b), (c, d), (e, f), (g, h)]))
+                elif col_1_poss.count(value_to_eliminate) == 2 and col_2_poss.count(value_to_eliminate) == 2:
+                    # eliminate value from rows a, e
+                    success = 1
+                    self.eliminate_possibilities_from_row(a, value_to_eliminate)
+                    self.eliminate_possibilities_from_row(c, value_to_eliminate)
+                    self.print_reason_to_file('Rows ' + str(a) + ' and ' + str(c) + ' had possibility value of '
+                                              + str(value_to_eliminate) + ' removed because there was '
+                                              + 'an x-wing interaction between cells '
+                                              + str([(a, b), (c, d), (e, f), (g, h)]))
 
         return success
 
@@ -431,6 +440,34 @@ class SudokuBoard:
     def intersection(list_1, list_2, list_3, list_4):
         return list(set(list_1) & set(list_2) & set(list_3) & set(list_4))
 
+    def is_solved(self):
+        """
+        Returns a boolean indicating if the sudoku is solved
+        """
+        for row in self.board:
+            if 0 in row:
+                return False
+        return True
+
+    @staticmethod
+    def sector_lookup(i, j):
+        """Returns sector index of a cell based on its i,j coordinates
+        :param i: x coordinate. starts at 0, which is located far left
+        :param j: y coordinate. starts at 0, which is located at the top
+        :return: sector index of cell i,j. Sector indices start at 0 and go left to right, top to bottom.
+        """
+        return ((i // 3) * 3) + (j // 3)
+
+    def eliminate_possibilities_from_row(self, i, value):
+        for coord, possibilities in self.possible_values.items():
+            if coord[0] == i:
+                possibilities.remove(value)
+
+    def eliminate_possibilities_from_column(self, j, value):
+        for coord, possibilities in self.possible_values.items():
+            if coord[1] == j:
+                possibilities.remove(value)
+
     # ---------------------------------------------- Utility ---------------------------------------------------------
 
     def print_reason_to_file(self, s):
@@ -446,23 +483,26 @@ class SudokuBoard:
     - hidden subset
     - "Swordfish"
     - Forcing Chain
+    - http://www.sadmansoftware.com/sudoku/solvingtechniques.php
+    - XY - Wing
+    - XYZ - Wing
+    - .sdk file interpreter
     """
 
-    # TODO make a priority list of methods and have it only move on when the previous method is exhausted. As soon as a later method turns up a result start over at the beginning
     def solve(self):
         print(self)
         method_progression = [self.sole_candidates, self.unique_candidate_columns, self.unique_candidate_rows,
                               self.unique_candidate_sectors, self.naked_subset, self.sector_column_interaction,
                               self.sector_row_interaction, self.x_wing]
-        while not self.is_solved():
-            index = 0
-            while index < len(method_progression):
-                print('index ' + str(index))
-                success = method_progression[index]()
-                if success == 0:
-                    index += 1
-                else:
-                    index = 0
+        # while not self.is_solved():
+        index = 0
+        while index < len(method_progression):
+            print('index ' + str(index))
+            success = method_progression[index]()
+            if success == 0:
+                index += 1
+            else:
+                index = 0
 
 
 
