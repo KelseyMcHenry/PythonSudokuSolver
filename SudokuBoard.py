@@ -153,6 +153,20 @@ class SudokuBoard:
         return {(row, col): sector_poss[(row, col)] for row, col in product(range(9), range(9))
                 if row == i and self.sector_lookup(row, col) == sector}
 
+    def get_sector_subcolumn_possibilities(self, sector, j):
+        """
+        Returns a subset of the possibilities equal to the intersection of sector and row i
+        :param sector: index of the sector, found using sector_lookup(i, j)
+        :param j: col index. starts at 0, which is located at the left
+        :return: dictionary of all possible values the cells in sector s AND row i could contain at time of execution
+                 Keys: Tuples (i, j) for each cell
+                 Values: Lists containing all possible values cell i,j could contain at time of execution
+        """
+        # TODO error check to make sure j is a valid input
+        sector_poss = self.get_sector_possibilities(sector)
+        return {(row, col): sector_poss[(row, col)] for row, col in product(range(9), range(9))
+                if col == j and self.sector_lookup(row, col) == sector}
+
     def set(self, i, j, value):
         """
         Sets the value at i,j and updates the possibilities dictionary
@@ -292,9 +306,9 @@ class SudokuBoard:
                     column_indices_in_sector.append(i)
             column_indices_in_sector = list(set(column_indices_in_sector))
 
-            list_1 = self.get_sector_subrow_possibilities(sector, column_indices_in_sector[0])
-            list_2 = self.get_sector_subrow_possibilities(sector, column_indices_in_sector[1])
-            list_3 = self.get_sector_subrow_possibilities(sector, column_indices_in_sector[2])
+            list_1 = self.get_sector_subcolumn_possibilities(sector, column_indices_in_sector[0])
+            list_2 = self.get_sector_subcolumn_possibilities(sector, column_indices_in_sector[1])
+            list_3 = self.get_sector_subcolumn_possibilities(sector, column_indices_in_sector[2])
             for n in range(1, 10):
                 unique_index = self.unique_to_only_one(n, list_1, list_2, list_3)
                 if unique_index >= 0:
@@ -305,6 +319,26 @@ class SudokuBoard:
                             self.print_reason_to_file('Cell (' + str(i) + ', ' + str(j) + ') had possibility value of '
                                                       + str(n) + ' removed because sector '
                                                       + str(sector) + ' must contain it via a column interaction.')
+        return success
+
+    def sector_sector_interaction(self):
+        success = 0
+        right_adjacent = [(x, x + 1) for x in range(9) if (x + 1) % 3 == 0]
+        bottom_adjacent = [(x, x + 3) for x in range(9) if (x + 3) < 9]
+        bottom_two_adjacent = [(x, x + 6) for x in range(9) if (x + 6) < 9]
+        right_two_adjacent = [(x, x + 2) for x in range(9) if (x // 3) == ((x + 2) // 3)]
+        sectors_to_check_rows = right_adjacent + right_two_adjacent
+        sectors_to_check_cols = bottom_adjacent + bottom_two_adjacent
+
+        for sector_1, sector_2 in sectors_to_check_rows:
+            for n in range(9):
+                # if possibility n is unique to the same 2 tows in sector 1 and sector 2, then remove them from all other cells in that same row outside of sector 1 and sector 2
+                if self.unique_to_two_rows(n, sector_1) == self.unique_to_two_rows(n, sector_2) and len(self.unique_to_two_rows(n, sector_2)) == 2:
+                    pass
+                    # TODO - remove values
+
+        # TODO - columns
+
         return success
 
     def naked_subset(self):
@@ -419,6 +453,7 @@ class SudokuBoard:
 
     @staticmethod
     def unique_to_only_one(n, list_1, list_2, list_3):
+        # TODO consider making more similar to unique_to_two_rows
         """
         Returns the index of the list passed in if value n is unique to said list (among the 3 lists entered)
         :param n: value to be checked for uniqueness
@@ -435,6 +470,26 @@ class SudokuBoard:
             return 2
         else:
             return -1
+
+    def unique_to_two_rows(self, n, sector):
+        row_indices_in_sector = []
+        for i, j in product(range(9), range(9)):
+            if self.sector_lookup(i, j) == sector:
+                row_indices_in_sector.append(i)
+        row_indices_in_sector = list(set(row_indices_in_sector))
+        list_1 = self.get_sector_subrow_possibilities(sector, row_indices_in_sector[0])
+        list_2 = self.get_sector_subrow_possibilities(sector, row_indices_in_sector[1])
+        list_3 = self.get_sector_subrow_possibilities(sector, row_indices_in_sector[2])
+
+        return_val = []
+        if n in list_1:
+            return_val.append(row_indices_in_sector[0])
+        if n in list_2:
+            return_val.append(row_indices_in_sector[1])
+        if n in list_3:
+            return_val.append(row_indices_in_sector[2])
+
+        return tuple(return_val)
 
     @staticmethod
     def intersection(list_1, list_2, list_3, list_4):
@@ -486,7 +541,6 @@ class SudokuBoard:
     - http://www.sadmansoftware.com/sudoku/solvingtechniques.php
     - XY - Wing
     - XYZ - Wing
-    - .sdk file interpreter
     """
 
     def solve(self):
