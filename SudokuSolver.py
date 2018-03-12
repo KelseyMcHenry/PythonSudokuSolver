@@ -15,6 +15,7 @@ import SudokuBoard
 #         0, 7, 0, 0, 0, 0, 8, 0, 0,
 #         0, 5, 8, 0, 0, 0, 0, 0, 1]
 
+
 # hard
 # data = [9, 0, 0, 3, 0, 0, 5, 8, 0,
 #         0, 8, 0, 0, 0, 0, 3, 7, 0,
@@ -40,7 +41,7 @@ import SudokuBoard
 # sudoku = SudokuBoard.SudokuBoard(values=data)
 #
 # sudoku.solve()
-sudoku = SudokuBoard.SudokuBoard(filepath='TestCases/blockblock2.sdk')
+sudoku = SudokuBoard.SudokuBoard(filepath='TestCases/blockblock3.sdk')
 sudoku.solve()
 print(sudoku)
 
