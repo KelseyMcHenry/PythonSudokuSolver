@@ -40,7 +40,7 @@ import SudokuBoard
 # sudoku = SudokuBoard.SudokuBoard(values=data)
 #
 # sudoku.solve()
-sudoku = SudokuBoard.SudokuBoard(filepath='TestCases/blockblock1.sdk')
+sudoku = SudokuBoard.SudokuBoard(filepath='TestCases/blockblock2.sdk')
 sudoku.solve()
 print(sudoku)
 

@@ -54,8 +54,21 @@ class SudokuBoard:
         for row in self.board:
             print_value += str(row) + '\n'
         print_value += '\n'
+        max_len = 0
         for index, poss_list in self.possible_values.items():
-            print_value += str(index) + ' : ' + str(poss_list) + '\n'
+            if len(poss_list) > max_len:
+                max_len = len(poss_list)
+        for index, poss_list in self.possible_values.items():
+            if len(poss_list) > 0:
+                print_value += str(poss_list) + (' ' * ((3 * (max_len - 1) + 3) - (3 * (len(poss_list) - 1) + 3)))
+            else:
+                print_value += str(poss_list) + (' ' * (((3 * (max_len - 1) + 3) - (3 * (len(poss_list) - 1) + 3)) - 2))
+
+            if index[1] == 8:
+                print_value += '\n'
+            else:
+                print_value += ', '
+            # print_value += str(index) + ' : ' + str(poss_list) + '\n'
         return print_value
 
     def __eq__(self, other):
@@ -322,22 +335,49 @@ class SudokuBoard:
         return success
 
     def sector_sector_interaction(self):
+        # TODO - broken, check the last possibility frame on blockblock2, sectors 0,1 should eliminate 5 from sector 2.
+        # TODO - DEBUGs
         success = 0
-        right_adjacent = [(x, x + 1) for x in range(9) if (x + 1) % 3 == 0]
+        right_adjacent = [(x, x + 1) for x in range(9) if (x + 1) % 3 == 0 and (x + 1) < 9]
         bottom_adjacent = [(x, x + 3) for x in range(9) if (x + 3) < 9]
         bottom_two_adjacent = [(x, x + 6) for x in range(9) if (x + 6) < 9]
-        right_two_adjacent = [(x, x + 2) for x in range(9) if (x // 3) == ((x + 2) // 3)]
+        right_two_adjacent = [(x, x + 2) for x in range(9) if (x // 3) == ((x + 2) // 3) and (x + 2) < 9]
         sectors_to_check_rows = right_adjacent + right_two_adjacent
         sectors_to_check_cols = bottom_adjacent + bottom_two_adjacent
 
         for sector_1, sector_2 in sectors_to_check_rows:
             for n in range(9):
-                # if possibility n is unique to the same 2 tows in sector 1 and sector 2, then remove them from all other cells in that same row outside of sector 1 and sector 2
-                if self.unique_to_two_rows(n, sector_1) == self.unique_to_two_rows(n, sector_2) and len(self.unique_to_two_rows(n, sector_2)) == 2:
-                    pass
-                    # TODO - remove values
+                # if possibility n is unique to the same 2 rows in sector 1 and sector 2,
+                # then remove them from all other cells in that same row outside of sector 1 and sector 2
+                sector_1_row_indices = self.unique_to_two_rows(n, sector_1)
+                sector_2_row_indices = self.unique_to_two_rows(n, sector_2)
+                print(sector_1, sector_2, n, sector_1_row_indices, sector_2_row_indices)
+                if sector_1_row_indices == sector_2_row_indices and len(sector_1_row_indices) == 2:
+                    for i, j in product(range(9), range(9)):
+                        ij_sector = self.sector_lookup(i, j)
+                        if ij_sector != sector_1 and ij_sector != sector_2 and j in sector_1_row_indices:
+                            success = 1
+                            self.possible_values[(i, j)].remove(n)
+                            self.print_reason_to_file('Cell (' + str(i) + ', ' + str(j) + ') had possibility value of '
+                                                      + str(n) + ' removed because of a sector - sector interaction '
+                                                      + 'between ' + str(sector_1) + ' and ' + str(sector_2) + '.')
 
-        # TODO - columns
+        for sector_1, sector_2 in sectors_to_check_cols:
+            for n in range(9):
+                # if possibility n is unique to the same 2 columns in sector 1 and sector 2,
+                # then remove them from all other cells in that same column outside of sector 1 and sector 2
+                sector_1_col_indices = self.unique_to_two_cols(n, sector_1)
+                sector_2_col_indices = self.unique_to_two_cols(n, sector_2)
+                print(sector_1, sector_2, n, sector_1_col_indices, sector_2_col_indices)
+                if sector_1_col_indices == sector_2_col_indices and len(sector_1_col_indices) == 2:
+                    for i, j in product(range(9), range(9)):
+                        ij_sector = self.sector_lookup(i, j)
+                        if ij_sector != sector_1 and ij_sector != sector_2 and i in sector_1_col_indices:
+                            success = 1
+                            self.possible_values[(i, j)].remove(n)
+                            self.print_reason_to_file('Cell (' + str(i) + ', ' + str(j) + ') had possibility value of '
+                                                      + str(n) + ' removed because of a sector - sector interaction '
+                                                      + 'between ' + str(sector_1) + ' and ' + str(sector_2) + '.')
 
         return success
 
@@ -491,6 +531,26 @@ class SudokuBoard:
 
         return tuple(return_val)
 
+    def unique_to_two_cols(self, n, sector):
+        col_indices_in_sector = []
+        for i, j in product(range(9), range(9)):
+            if self.sector_lookup(i, j) == sector:
+                col_indices_in_sector.append(j)
+        col_indices_in_sector = list(set(col_indices_in_sector))
+        list_1 = self.get_sector_subcolumn_possibilities(sector, col_indices_in_sector[0])
+        list_2 = self.get_sector_subcolumn_possibilities(sector, col_indices_in_sector[1])
+        list_3 = self.get_sector_subcolumn_possibilities(sector, col_indices_in_sector[2])
+
+        return_val = []
+        if n in list_1:
+            return_val.append(col_indices_in_sector[0])
+        if n in list_2:
+            return_val.append(col_indices_in_sector[1])
+        if n in list_3:
+            return_val.append(col_indices_in_sector[2])
+
+        return tuple(return_val)
+
     @staticmethod
     def intersection(list_1, list_2, list_3, list_4):
         return list(set(list_1) & set(list_2) & set(list_3) & set(list_4))
@@ -546,8 +606,8 @@ class SudokuBoard:
     def solve(self):
         print(self)
         method_progression = [self.sole_candidates, self.unique_candidate_columns, self.unique_candidate_rows,
-                              self.unique_candidate_sectors, self.naked_subset, self.sector_column_interaction,
-                              self.sector_row_interaction, self.x_wing]
+                              self.unique_candidate_sectors, self.naked_subset, self.sector_sector_interaction,
+                              self.sector_column_interaction, self.sector_row_interaction, self.x_wing]
         # while not self.is_solved():
         index = 0
         while index < len(method_progression):
