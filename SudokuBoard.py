@@ -338,7 +338,7 @@ class SudokuBoard:
         # TODO - broken, check the last possibility frame on blockblock2, sectors 0,1 should eliminate 5 from sector 2.
         # TODO - DEBUGs
         success = 0
-        right_adjacent = [(x, x + 1) for x in range(9) if (x + 1) % 3 == 0 and (x + 1) < 9]
+        right_adjacent = [(x, x + 1) for x in range(9) if (x + 1) % 3 != 0 and (x + 1) < 9]
         bottom_adjacent = [(x, x + 3) for x in range(9) if (x + 3) < 9]
         bottom_two_adjacent = [(x, x + 6) for x in range(9) if (x + 6) < 9]
         right_two_adjacent = [(x, x + 2) for x in range(9) if (x // 3) == ((x + 2) // 3) and (x + 2) < 9]
@@ -347,6 +347,8 @@ class SudokuBoard:
 
         for sector_1, sector_2 in sectors_to_check_rows:
             for n in range(9):
+                if sector_1 == 0 and sector_2 == 1 and n == 5:
+                    print('halt')
                 # if possibility n is unique to the same 2 rows in sector 1 and sector 2,
                 # then remove them from all other cells in that same row outside of sector 1 and sector 2
                 sector_1_row_indices = self.unique_to_two_rows(n, sector_1)
@@ -355,7 +357,7 @@ class SudokuBoard:
                 if sector_1_row_indices == sector_2_row_indices and len(sector_1_row_indices) == 2:
                     for i, j in product(range(9), range(9)):
                         ij_sector = self.sector_lookup(i, j)
-                        if ij_sector != sector_1 and ij_sector != sector_2 and j in sector_1_row_indices:
+                        if ij_sector != sector_1 and ij_sector != sector_2 and i in sector_1_row_indices:
                             success = 1
                             self.possible_values[(i, j)].remove(n)
                             self.print_reason_to_file('Cell (' + str(i) + ', ' + str(j) + ') had possibility value of '
@@ -372,7 +374,7 @@ class SudokuBoard:
                 if sector_1_col_indices == sector_2_col_indices and len(sector_1_col_indices) == 2:
                     for i, j in product(range(9), range(9)):
                         ij_sector = self.sector_lookup(i, j)
-                        if ij_sector != sector_1 and ij_sector != sector_2 and i in sector_1_col_indices:
+                        if ij_sector != sector_1 and ij_sector != sector_2 and j in sector_1_col_indices:
                             success = 1
                             self.possible_values[(i, j)].remove(n)
                             self.print_reason_to_file('Cell (' + str(i) + ', ' + str(j) + ') had possibility value of '
@@ -522,14 +524,20 @@ class SudokuBoard:
         list_3 = self.get_sector_subrow_possibilities(sector, row_indices_in_sector[2])
 
         return_val = []
-        if n in list_1:
-            return_val.append(row_indices_in_sector[0])
-        if n in list_2:
-            return_val.append(row_indices_in_sector[1])
-        if n in list_3:
-            return_val.append(row_indices_in_sector[2])
+        for index, sublist in list_1:
+            if n in sublist:
+                return_val.append(row_indices_in_sector[0])
+                break
+        for index, sublist in list_2:
+            if n in sublist:
+                return_val.append(row_indices_in_sector[1])
+                break
+        for index, sublist in list_3:
+            if n in sublist:
+                return_val.append(row_indices_in_sector[2])
+                break
 
-        return tuple(return_val)
+        return tuple(sorted(return_val))
 
     def unique_to_two_cols(self, n, sector):
         col_indices_in_sector = []
@@ -542,14 +550,20 @@ class SudokuBoard:
         list_3 = self.get_sector_subcolumn_possibilities(sector, col_indices_in_sector[2])
 
         return_val = []
-        if n in list_1:
-            return_val.append(col_indices_in_sector[0])
-        if n in list_2:
-            return_val.append(col_indices_in_sector[1])
-        if n in list_3:
-            return_val.append(col_indices_in_sector[2])
+        for index, sublist in list_1:
+            if n in sublist:
+                return_val.append(col_indices_in_sector[0])
+                break
+        for index, sublist in list_2:
+            if n in sublist:
+                return_val.append(col_indices_in_sector[1])
+                break
+        for index, sublist in list_3:
+            if n in sublist:
+                return_val.append(col_indices_in_sector[2])
+                break
 
-        return tuple(return_val)
+        return tuple(sorted(return_val))
 
     @staticmethod
     def intersection(list_1, list_2, list_3, list_4):
