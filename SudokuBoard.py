@@ -361,85 +361,152 @@ class SudokuBoard:
 
         return success
 
-    def naked_subset(self):
-        # TODO - generalize to subsets of 3,4,5,6,7,8
-        # TODO - make method iterate over 1, ... ,8
-        # TODO - make method take get_row_possibilities and get_column_possibilities as parameters to avoid code dup
-        # subsets of size 2
+    def naked_subset_subarea(self, poss_func):
         success = 0
-        for i in self.INDEX_RANGE:
-            # all pairs of values
-            for val_1, val_2 in [(x, y) for x, y in product(self.VALUE_RANGE, self.VALUE_RANGE) if x != y]:
-                cells_that_contain_pair = []
-                for coordinate, possibilities in self.get_row_possibilities(i).items():
-                    if (val_1 in possibilities) and (val_2 in possibilities) and len(possibilities) == 2:
-                        cells_that_contain_pair.append(coordinate)
-                if len(cells_that_contain_pair) == 2:
-                    for coordinate, possibilities in self.get_row_possibilities(i).items():
-                        if coordinate not in cells_that_contain_pair:
-                            if val_1 in possibilities:
-                                success = 1
-                                possibilities.remove(val_1)
-                                self.print_reason_to_file(
-                                    'Cell ' + str(coordinate) + ' had possibility value of '
-                                    + str(val_1) + ' removed because there was a naked pair subset at '
-                                    + str(cells_that_contain_pair))
-                            if val_2 in possibilities:
-                                success = 1
-                                possibilities.remove(val_2)
-                                self.print_reason_to_file(
-                                    'Cell ' + str(coordinate) + ' had possibility value of '
-                                    + str(val_2) + ' removed because there was a naked pair subset at '
-                                    + str(cells_that_contain_pair))
-        for j in self.INDEX_RANGE:
-            # all pairs of values
-            for val_1, val_2 in [(x, y) for x, y in product(self.VALUE_RANGE, self.VALUE_RANGE) if x != y]:
-                cells_that_contain_pair = []
-                for coordinate, possibilities in self.get_col_possibilities(j).items():
-                    if val_1 in possibilities and val_2 in possibilities and len(possibilities) == 2:
-                        cells_that_contain_pair.append(coordinate)
-                if len(cells_that_contain_pair) == 2:
-                    for coordinate, possibilities in self.get_col_possibilities(j).items():
-                        if coordinate not in cells_that_contain_pair:
-                            if val_1 in possibilities:
-                                success = 1
-                                possibilities.remove(val_1)
-                                self.print_reason_to_file(
-                                    'Cell ' + str(coordinate) + ' had possibility value of '
-                                    + str(val_1) + ' removed because there was a naked pair subset at '
-                                    + str(cells_that_contain_pair))
-                            if val_2 in possibilities:
-                                success = 1
-                                possibilities.remove(val_2)
-                                self.print_reason_to_file(
-                                    'Cell ' + str(coordinate) + ' had possibility value of '
-                                    + str(val_2) + ' removed because there was a naked pair subset at '
-                                    + str(cells_that_contain_pair))
-        for s in self.INDEX_RANGE:
-            # all pairs of values
-            for val_1, val_2 in [(x, y) for x, y in product(self.VALUE_RANGE, self.VALUE_RANGE) if x != y]:
-                cells_that_contain_pair = []
-                for coordinate, possibilities in self.get_sector_possibilities(s).items():
-                    if val_1 in possibilities and val_2 in possibilities and len(possibilities) == 2:
-                        cells_that_contain_pair.append(coordinate)
-                if len(cells_that_contain_pair) == 2:
-                    for coordinate, possibilities in self.get_sector_possibilities(s).items():
-                        if coordinate not in cells_that_contain_pair:
-                            if val_1 in possibilities:
-                                success = 1
-                                possibilities.remove(val_1)
-                                self.print_reason_to_file(
-                                    'Cell ' + str(coordinate) + ' had possibility value of '
-                                    + str(val_1) + ' removed because there was a naked pair subset at '
-                                    + str(cells_that_contain_pair))
-                            if val_2 in possibilities:
-                                success = 1
-                                possibilities.remove(val_2)
-                                self.print_reason_to_file(
-                                    'Cell ' + str(coordinate) + ' had possibility value of '
-                                    + str(val_2) + ' removed because there was a naked pair subset at '
-                                    + str(cells_that_contain_pair))
+        # for all subset sizes from 2 ... 5
+        for subset_size in range(2, 6):
+            print(subset_size)
+            # for all row/col/sectors depending on poss_func
+            for index in self.INDEX_RANGE:
+                # for all possible combinations of 1 ... 9 of size subset_size (without repeats)
+                for values in [list(x) for x in product(self.VALUE_RANGE, repeat=subset_size) if len(set(x)) == subset_size]:
+                    cells_that_contain_subset = []
+                    # if the possibilities in cell in said row/col/sector can ONLY be that subset add it to a list
+                    for coordinate, possibilities in poss_func(index).items():
+                        if all(i in possibilities for i in values) and len(possibilities) == subset_size:
+                            cells_that_contain_subset.append(coordinate)
+                    # if only X cells can contain a certain subset of size X, remove the values in said subset from
+                    # all other members of the row/col/sector
+                    if len(cells_that_contain_subset) == subset_size:
+                        for coordinate, possibilities in poss_func(index).items():
+                            if coordinate not in cells_that_contain_subset:
+                                for value in values:
+                                    if value in possibilities:
+                                        success = 1
+                                        possibilities.remove(value)
+                                        self.print_reason_to_file(
+                                            'Cell ' + str(coordinate) + ' had possibility value of '
+                                            + str(value) + ' removed because there was a naked subset at '
+                                            + str(cells_that_contain_subset) + ' of size ' + str(subset_size))
+
+        # for index in self.INDEX_RANGE:
+        #     # all pairs of values
+        #     for val_1, val_2 in [(x, y) for x, y in product(self.VALUE_RANGE, self.VALUE_RANGE) if x != y]:
+        #         cells_that_contain_pair = []
+        #         for coordinate, possibilities in poss_func(index).items():
+        #             if (val_1 in possibilities) and (val_2 in possibilities) and len(possibilities) == 2:
+        #                 cells_that_contain_pair.append(coordinate)
+        #         if len(cells_that_contain_pair) == 2:
+        #             for coordinate, possibilities in poss_func(index).items():
+        #                 if coordinate not in cells_that_contain_pair:
+        #                     if val_1 in possibilities:
+        #                         success = 1
+        #                         possibilities.remove(val_1)
+        #                         self.print_reason_to_file(
+        #                             'Cell ' + str(coordinate) + ' had possibility value of '
+        #                             + str(val_1) + ' removed because there was a naked pair subset at '
+        #                             + str(cells_that_contain_pair))
+        #                     if val_2 in possibilities:
+        #                         success = 1
+        #                         possibilities.remove(val_2)
+        #                         self.print_reason_to_file(
+        #                             'Cell ' + str(coordinate) + ' had possibility value of '
+        #                             + str(val_2) + ' removed because there was a naked pair subset at '
+        #                             + str(cells_that_contain_pair))
         return success
+
+    def naked_subset_row(self):
+        return self.naked_subset_subarea(self.get_row_possibilities)
+
+    def naked_subset_col(self):
+        return self.naked_subset_subarea(self.get_col_possibilities)
+
+    def naked_subset_sector(self):
+        return self.naked_subset_subarea(self.get_sector_possibilities)
+
+    def naked_subset(self):
+        if not self.naked_subset_row():
+            if not self.naked_subset_col():
+                if not self.naked_subset_sector():
+                    return 0
+        return 1
+
+    # def naked_subset(self):
+    #     # subsets of size 2
+    #     success = 0
+    #     for i in self.INDEX_RANGE:
+    #         # all pairs of values
+    #         for val_1, val_2 in [(x, y) for x, y in product(self.VALUE_RANGE, self.VALUE_RANGE) if x != y]:
+    #             cells_that_contain_pair = []
+    #             for coordinate, possibilities in self.get_row_possibilities(i).items():
+    #                 if (val_1 in possibilities) and (val_2 in possibilities) and len(possibilities) == 2:
+    #                     cells_that_contain_pair.append(coordinate)
+    #             if len(cells_that_contain_pair) == 2:
+    #                 for coordinate, possibilities in self.get_row_possibilities(i).items():
+    #                     if coordinate not in cells_that_contain_pair:
+    #                         if val_1 in possibilities:
+    #                             success = 1
+    #                             possibilities.remove(val_1)
+    #                             self.print_reason_to_file(
+    #                                 'Cell ' + str(coordinate) + ' had possibility value of '
+    #                                 + str(val_1) + ' removed because there was a naked pair subset at '
+    #                                 + str(cells_that_contain_pair))
+    #                         if val_2 in possibilities:
+    #                             success = 1
+    #                             possibilities.remove(val_2)
+    #                             self.print_reason_to_file(
+    #                                 'Cell ' + str(coordinate) + ' had possibility value of '
+    #                                 + str(val_2) + ' removed because there was a naked pair subset at '
+    #                                 + str(cells_that_contain_pair))
+    #     for j in self.INDEX_RANGE:
+    #         # all pairs of values
+    #         for val_1, val_2 in [(x, y) for x, y in product(self.VALUE_RANGE, self.VALUE_RANGE) if x != y]:
+    #             cells_that_contain_pair = []
+    #             for coordinate, possibilities in self.get_col_possibilities(j).items():
+    #                 if val_1 in possibilities and val_2 in possibilities and len(possibilities) == 2:
+    #                     cells_that_contain_pair.append(coordinate)
+    #             if len(cells_that_contain_pair) == 2:
+    #                 for coordinate, possibilities in self.get_col_possibilities(j).items():
+    #                     if coordinate not in cells_that_contain_pair:
+    #                         if val_1 in possibilities:
+    #                             success = 1
+    #                             possibilities.remove(val_1)
+    #                             self.print_reason_to_file(
+    #                                 'Cell ' + str(coordinate) + ' had possibility value of '
+    #                                 + str(val_1) + ' removed because there was a naked pair subset at '
+    #                                 + str(cells_that_contain_pair))
+    #                         if val_2 in possibilities:
+    #                             success = 1
+    #                             possibilities.remove(val_2)
+    #                             self.print_reason_to_file(
+    #                                 'Cell ' + str(coordinate) + ' had possibility value of '
+    #                                 + str(val_2) + ' removed because there was a naked pair subset at '
+    #                                 + str(cells_that_contain_pair))
+    #     for s in self.INDEX_RANGE:
+    #         # all pairs of values
+    #         for val_1, val_2 in [(x, y) for x, y in product(self.VALUE_RANGE, self.VALUE_RANGE) if x != y]:
+    #             cells_that_contain_pair = []
+    #             for coordinate, possibilities in self.get_sector_possibilities(s).items():
+    #                 if val_1 in possibilities and val_2 in possibilities and len(possibilities) == 2:
+    #                     cells_that_contain_pair.append(coordinate)
+    #             if len(cells_that_contain_pair) == 2:
+    #                 for coordinate, possibilities in self.get_sector_possibilities(s).items():
+    #                     if coordinate not in cells_that_contain_pair:
+    #                         if val_1 in possibilities:
+    #                             success = 1
+    #                             possibilities.remove(val_1)
+    #                             self.print_reason_to_file(
+    #                                 'Cell ' + str(coordinate) + ' had possibility value of '
+    #                                 + str(val_1) + ' removed because there was a naked pair subset at '
+    #                                 + str(cells_that_contain_pair))
+    #                         if val_2 in possibilities:
+    #                             success = 1
+    #                             possibilities.remove(val_2)
+    #                             self.print_reason_to_file(
+    #                                 'Cell ' + str(coordinate) + ' had possibility value of '
+    #                                 + str(val_2) + ' removed because there was a naked pair subset at '
+    #                                 + str(cells_that_contain_pair))
+    #     return success
 
     def x_wing(self):
         """
