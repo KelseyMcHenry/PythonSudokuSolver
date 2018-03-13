@@ -5,29 +5,34 @@ from itertools import chain
 class SudokuBoard:
     """A data structure designed to hold sudoku data"""
 
-    # TODO define range(9)
-    # TODO define product(range(9), range(9))
-    # TODO use len instead of magic number 9 where possible
+    INDEX_RANGE = range(9)
+    VALUE_RANGE = range(1, 10)
+
     # TODO make functions take functions as parameters (ie col, row, sector) to avoid repeating code
-    # TODO create eliminate_possibility_from_row
+    # TODO document
+    # TODO error checking
 
     # -------------------------------------- Variable initialization -----------------------------------------------
 
+    # array where solved values are stored
     board = [[0 for _ in range(9)] for _ in range(9)]
+    # map where possibilities for cells are stored
     possible_values = {(i, j): [] for i, j in product(range(9), range(9))}
+    # 'cache' variable for x-wing method, which iterates over a complex set which is expensive to reproduce on every run
     coordinates_to_check = []
+    # English plaintext reasons output file
     file = open('reasons.txt', 'w')
 
     # --------------------------------------------- Constructor  ---------------------------------------------------
 
-    def __init__(self, values=[0]*81, filepath=''):
+    def __init__(self, values=[0]*81, file_path=''):
         """
         Initializes the board values and initializes the cell possible values. Default is empty board
         http://www.sadmansoftware.com/sudoku/faq19.php
         """
-        if filepath != '':
+        if file_path != '':
             values.clear()
-            sudoku_file = open(filepath, 'r')
+            sudoku_file = open(file_path, 'r')
             for line in sudoku_file:
                 for character in line:
                     if character == '.':
@@ -41,19 +46,21 @@ class SudokuBoard:
             self.board[i // 9][i % 9] = value
 
         for coordinate, possibilities in self.possible_values.items():
-            for n in range(1, 10):
+            for n in self.VALUE_RANGE:
                 if (self.board[coordinate[0]][coordinate[1]] == 0 and
                         (n not in self.board[coordinate[0]]) and
-                        (n not in [self.board[i][coordinate[1]] for i in range(9)]) and
-                        (n not in [self.board[i][j] for i, j in product(range(9), range(9))
+                        (n not in [self.board[i][coordinate[1]] for i in self.INDEX_RANGE]) and
+                        (n not in [self.board[i][j] for i, j in product(self.INDEX_RANGE, self.INDEX_RANGE)
                                    if self.sector_lookup(i, j) == self.sector_lookup(coordinate[0], coordinate[1])])):
                     self.possible_values[coordinate].append(n)
 
     def __str__(self):
         print_value = ""
+        # construct the string of the board
         for row in self.board:
             print_value += str(row) + '\n'
         print_value += '\n'
+        # construct the possibilities, printed in left justified columns
         max_len = 0
         for index, poss_list in self.possible_values.items():
             if len(poss_list) > max_len:
@@ -62,17 +69,17 @@ class SudokuBoard:
             if len(poss_list) > 0:
                 print_value += str(poss_list) + (' ' * ((3 * (max_len - 1) + 3) - (3 * (len(poss_list) - 1) + 3)))
             else:
-                print_value += str(poss_list) + (' ' * (((3 * (max_len - 1) + 3) - (3 * (len(poss_list) - 1) + 3)) - 2))
+                print_value += str(poss_list) + (' ' * ((3 * (max_len - 1) + 3) - 2))
 
             if index[1] == 8:
                 print_value += '\n'
             else:
                 print_value += ', '
-            # print_value += str(index) + ' : ' + str(poss_list) + '\n'
+
         return print_value
 
     def __eq__(self, other):
-        for i, j in product(range(9), range(9)):
+        for i, j in product(self.INDEX_RANGE, self.INDEX_RANGE):
             if other.board[i][j] != self.board[i][j]:
                 return False
         if self.possible_values != other.possible_values:
@@ -103,14 +110,15 @@ class SudokuBoard:
         :param j: column index. starts at 0, which is located at the far left
         :return: list of values contained in column j, empty cells are indicated by a 0
         """
-        return [self.board[i][j] for i in range(9)]
+        return [self.board[i][j] for i in self.INDEX_RANGE]
 
     def sector(self, sector):
         """
         :param sector: index of the sector, found using sector_lookup(i, j)
         :return list of values contained in sector, empty cells are indicated by a 0
         """
-        return [self.board[i][j] for i, j in product(range(9), range(9)) if SudokuBoard.sector_lookup(i, j) == sector]
+        return [self.board[i][j] for i, j in product(self.INDEX_RANGE, self.INDEX_RANGE)
+                if SudokuBoard.sector_lookup(i, j) == sector]
 
     def get_possibilities(self, i, j):
         """
@@ -129,7 +137,7 @@ class SudokuBoard:
                  Keys: Tuples (i, j) for each cell
                  Values: Lists containing all possible values cell i,j could contain at time of execution
         """
-        return {(i, j): self.possible_values[(i, j)] for j in range(9)}
+        return {(i, j): self.possible_values[(i, j)] for j in self.INDEX_RANGE}
 
     def get_col_possibilities(self, j):
         """
@@ -139,7 +147,7 @@ class SudokuBoard:
                  Keys: Tuples (i, j) for each cell
                  Values: Lists containing all possible values cell i,j could contain at time of execution
         """
-        return {(i, j): self.possible_values[(i, j)] for i in range(9)}
+        return {(i, j): self.possible_values[(i, j)] for i in self.INDEX_RANGE}
 
     def get_sector_possibilities(self, sector):
         """
@@ -149,7 +157,7 @@ class SudokuBoard:
                 Keys: Tuples (i, j) for each cell
                 Values: Lists containing all possible values cell i,j could contain at time of execution
         """
-        return {(i, j): self.possible_values[(i, j)] for i, j in product(range(9), range(9))
+        return {(i, j): self.possible_values[(i, j)] for i, j in product(self.INDEX_RANGE, self.INDEX_RANGE)
                 if self.sector_lookup(i, j) == sector}
 
     def get_sector_subrow_possibilities(self, sector, i):
@@ -161,9 +169,11 @@ class SudokuBoard:
                  Keys: Tuples (i, j) for each cell
                  Values: Lists containing all possible values cell i,j could contain at time of execution
         """
-        # TODO error check to make sure i is a valid input
+
+        # check which validates if i is truly in sector
+        assert i // 3 == sector // 3
         sector_poss = self.get_sector_possibilities(sector)
-        return {(row, col): sector_poss[(row, col)] for row, col in product(range(9), range(9))
+        return {(row, col): sector_poss[(row, col)] for row, col in product(self.INDEX_RANGE, self.INDEX_RANGE)
                 if row == i and self.sector_lookup(row, col) == sector}
 
     def get_sector_subcolumn_possibilities(self, sector, j):
@@ -175,9 +185,11 @@ class SudokuBoard:
                  Keys: Tuples (i, j) for each cell
                  Values: Lists containing all possible values cell i,j could contain at time of execution
         """
-        # TODO error check to make sure j is a valid input
+
+        # check which validates if j is truly within sector
+        assert ((j % 3) // 3) == ((sector % 3) // 3)
         sector_poss = self.get_sector_possibilities(sector)
-        return {(row, col): sector_poss[(row, col)] for row, col in product(range(9), range(9))
+        return {(row, col): sector_poss[(row, col)] for row, col in product(self.INDEX_RANGE, self.INDEX_RANGE)
                 if col == j and self.sector_lookup(row, col) == sector}
 
     def set(self, i, j, value):
@@ -189,11 +201,10 @@ class SudokuBoard:
         """
         self.board[i][j] = value
         self.possible_values[(i, j)] = []
-        for x, y in product(range(9), range(9)):
+        for x, y in product(self.INDEX_RANGE, self.INDEX_RANGE):
             if x == i or y == j or self.sector_lookup(x, y) == self.sector_lookup(i, j):
                 if value in self.possible_values[(x, y)]:
                     self.possible_values[(x, y)].remove(value)
-        for x, y in product(range(9), range(9)):
             if self.board[x][y] == 0 and len(self.get_possibilities(x, y)) == 0:
                 raise ValueError('Invalid cell set at ' + str((x, y)))
 
@@ -216,65 +227,44 @@ class SudokuBoard:
 
         return success
 
-    def unique_candidate_rows(self):
+    def unique_candidates(self, poss_func):
         """
-        Solves the values of all cells where one of the cell's possibilities is unique to its row
+        Solves the values of all cells where one of the cell's possibilities is unique to its row, column, or sector as
+        indicated by poss_func
         """
         success = 0
-        for i in range(9):
-            # accumulate all of the possibilities for all cells in row i
-            row_i_total_poss = list(chain.from_iterable(self.get_row_possibilities(i).values()))
+        for index in self.INDEX_RANGE:
+            # accumulate all of the possibilities for all cells in col j
+            area_total_poss = list(chain.from_iterable(poss_func(index).values()))
             # find all unique values in prior list
-            unique_values_in_row_i = [n for n in row_i_total_poss if row_i_total_poss.count(n) == 1]
+            unique_values_in_area = [n for n in area_total_poss if area_total_poss.count(n) == 1]
 
-            for value in unique_values_in_row_i:
-                for key, poss_list in self.get_row_possibilities(i).items():
+            for value in unique_values_in_area:
+                for key, poss_list in poss_func(index).items():
                     if value in poss_list:
                         success = 1
                         self.set(key[0], key[1], value)
                         self.print_reason_to_file('Cell ' + str(key) + ' set to ' + str(value) +
-                                                  ' because the possibility was unique to row ' + str(i) + '.')
+                                                  ' because the possibility was unique to column ' + str(index) + '.')
         return success
+
+    def unique_candidate_rows(self):
+        """
+        Solves the values of all cells where one of the cell's possibilities is unique to its row
+        """
+        return self.unique_candidates(self.get_row_possibilities)
 
     def unique_candidate_columns(self):
         """
         Solves the values of all cells where one of the cell's possibilities is unique to its column
         """
-        success = 0
-        for j in range(9):
-            # accumulate all of the possibilities for all cells in col j
-            col_j_total_poss = list(chain.from_iterable(self.get_col_possibilities(j).values()))
-            # find all unique values in prior list
-            unique_values_in_col_j = [n for n in col_j_total_poss if col_j_total_poss.count(n) == 1]
-
-            for value in unique_values_in_col_j:
-                for key, poss_list in self.get_col_possibilities(j).items():
-                    if value in poss_list:
-                        success = 1
-                        self.set(key[0], key[1], value)
-                        self.print_reason_to_file('Cell ' + str(key) + ' set to ' + str(value) +
-                                                  ' because the possibility was unique to column ' + str(j) + '.')
-        return success
+        return self.unique_candidates(self.get_col_possibilities)
 
     def unique_candidate_sectors(self):
         """
         Solves the values of all cells where one of the cell's possibilities is unique to its sector
         """
-        success = 0
-        for s in range(9):
-            # accumulate all of the possibilities for all cells in sector s
-            sector_s_total_poss = list(chain.from_iterable(self.get_sector_possibilities(s).values()))
-            # find all unique values in prior list
-            unique_values_in_sector_s = [n for n in sector_s_total_poss if sector_s_total_poss.count(n) == 1]
-
-            for value in unique_values_in_sector_s:
-                for key, poss_list in self.get_sector_possibilities(s).items():
-                    if value in poss_list:
-                        success = 1
-                        self.set(key[0], key[1], value)
-                        self.print_reason_to_file('Cell ' + str(key) + ' set to ' + str(value) +
-                                                  ' because the possibility was unique to sector ' + str(s) + '.')
-        return success
+        return self.unique_candidates(self.get_sector_possibilities)
 
     # --------------------------------- Possibility Eliminating Functions -----------------------------------------
     # https://www.kristanix.com/sudokuepic/sudoku-solving-techniques.php
@@ -285,20 +275,16 @@ class SudokuBoard:
         Eliminates possibilities within a row outside of a sector if a possibility is unique to row within said sector
         """
         success = 0
-        for sector in range(9):
-            row_indices_in_sector = []
-            for i, j in product(range(9), range(9)):
-                if self.sector_lookup(i, j) == sector:
-                    row_indices_in_sector.append(i)
-            row_indices_in_sector = list(set(row_indices_in_sector))
+        for sector in self.INDEX_RANGE:
+            row_indices_in_sector = self.row_indices_in_sector(sector)
 
             list_1 = self.get_sector_subrow_possibilities(sector, row_indices_in_sector[0])
             list_2 = self.get_sector_subrow_possibilities(sector, row_indices_in_sector[1])
             list_3 = self.get_sector_subrow_possibilities(sector, row_indices_in_sector[2])
-            for n in range(1, 10):
+            for n in self.VALUE_RANGE:
                 unique_index = self.unique_to_only_one(n, list_1, list_2, list_3)
                 if unique_index >= 0:
-                    for i, j in product(range(9), range(9)):
+                    for i, j in product(self.INDEX_RANGE, self.INDEX_RANGE):
                         if i == row_indices_in_sector[unique_index] and self.sector_lookup(i, j) != sector:
                             success = 1
                             self.possible_values[(i, j)].remove(n)
@@ -312,20 +298,16 @@ class SudokuBoard:
         Eliminates possibilities within a column outside of a sector if a possibility is unique to column within said sector
         """
         success = 0
-        for sector in range(9):
-            column_indices_in_sector = []
-            for i, j in product(range(9), range(9)):
-                if self.sector_lookup(i, j) == sector:
-                    column_indices_in_sector.append(i)
-            column_indices_in_sector = list(set(column_indices_in_sector))
+        for sector in self.INDEX_RANGE:
+            column_indices_in_sector = self.col_indices_in_sector(sector)
 
             list_1 = self.get_sector_subcolumn_possibilities(sector, column_indices_in_sector[0])
             list_2 = self.get_sector_subcolumn_possibilities(sector, column_indices_in_sector[1])
             list_3 = self.get_sector_subcolumn_possibilities(sector, column_indices_in_sector[2])
-            for n in range(1, 10):
+            for n in self.VALUE_RANGE:
                 unique_index = self.unique_to_only_one(n, list_1, list_2, list_3)
                 if unique_index >= 0:
-                    for i, j in product(range(9), range(9)):
+                    for i, j in product(self.INDEX_RANGE, self.INDEX_RANGE):
                         if j == column_indices_in_sector[unique_index] and self.sector_lookup(i, j) != sector:
                             success = 1
                             self.possible_values[(i, j)].remove(n)
@@ -335,48 +317,44 @@ class SudokuBoard:
         return success
 
     def sector_sector_interaction(self):
-        # TODO - broken, check the last possibility frame on blockblock2, sectors 0,1 should eliminate 5 from sector 2.
-        # TODO - DEBUGs
         success = 0
-        right_adjacent = [(x, x + 1) for x in range(9) if (x + 1) % 3 != 0 and (x + 1) < 9]
-        bottom_adjacent = [(x, x + 3) for x in range(9) if (x + 3) < 9]
-        bottom_two_adjacent = [(x, x + 6) for x in range(9) if (x + 6) < 9]
-        right_two_adjacent = [(x, x + 2) for x in range(9) if (x // 3) == ((x + 2) // 3) and (x + 2) < 9]
+        right_adjacent = [(x, x + 1) for x in self.INDEX_RANGE if (x + 1) % 3 != 0 and (x + 1) < 9]
+        bottom_adjacent = [(x, x + 3) for x in self.INDEX_RANGE if (x + 3) < 9]
+        bottom_two_adjacent = [(x, x + 6) for x in self.INDEX_RANGE if (x + 6) < 9]
+        right_two_adjacent = [(x, x + 2) for x in self.INDEX_RANGE if (x // 3) == ((x + 2) // 3) and (x + 2) < 9]
         sectors_to_check_rows = right_adjacent + right_two_adjacent
         sectors_to_check_cols = bottom_adjacent + bottom_two_adjacent
 
         for sector_1, sector_2 in sectors_to_check_rows:
-            for n in range(9):
-                if sector_1 == 0 and sector_2 == 1 and n == 5:
-                    print('halt')
+            for n in self.INDEX_RANGE:
                 # if possibility n is unique to the same 2 rows in sector 1 and sector 2,
                 # then remove them from all other cells in that same row outside of sector 1 and sector 2
                 sector_1_row_indices = self.unique_to_two_rows(n, sector_1)
                 sector_2_row_indices = self.unique_to_two_rows(n, sector_2)
-                print(sector_1, sector_2, n, sector_1_row_indices, sector_2_row_indices)
                 if sector_1_row_indices == sector_2_row_indices and len(sector_1_row_indices) == 2:
-                    for i, j in product(range(9), range(9)):
+                    for i, j in product(self.INDEX_RANGE, self.INDEX_RANGE):
                         ij_sector = self.sector_lookup(i, j)
                         if ij_sector != sector_1 and ij_sector != sector_2 and i in sector_1_row_indices:
                             success = 1
-                            self.possible_values[(i, j)].remove(n)
+                            if n in self.possible_values[(i, j)]:
+                                self.possible_values[(i, j)].remove(n)
                             self.print_reason_to_file('Cell (' + str(i) + ', ' + str(j) + ') had possibility value of '
                                                       + str(n) + ' removed because of a sector - sector interaction '
                                                       + 'between ' + str(sector_1) + ' and ' + str(sector_2) + '.')
 
         for sector_1, sector_2 in sectors_to_check_cols:
-            for n in range(9):
+            for n in self.INDEX_RANGE:
                 # if possibility n is unique to the same 2 columns in sector 1 and sector 2,
                 # then remove them from all other cells in that same column outside of sector 1 and sector 2
                 sector_1_col_indices = self.unique_to_two_cols(n, sector_1)
                 sector_2_col_indices = self.unique_to_two_cols(n, sector_2)
-                print(sector_1, sector_2, n, sector_1_col_indices, sector_2_col_indices)
                 if sector_1_col_indices == sector_2_col_indices and len(sector_1_col_indices) == 2:
-                    for i, j in product(range(9), range(9)):
+                    for i, j in product(self.INDEX_RANGE, self.INDEX_RANGE):
                         ij_sector = self.sector_lookup(i, j)
                         if ij_sector != sector_1 and ij_sector != sector_2 and j in sector_1_col_indices:
                             success = 1
-                            self.possible_values[(i, j)].remove(n)
+                            if n in self.possible_values[(i, j)]:
+                                self.possible_values[(i, j)].remove(n)
                             self.print_reason_to_file('Cell (' + str(i) + ', ' + str(j) + ') had possibility value of '
                                                       + str(n) + ' removed because of a sector - sector interaction '
                                                       + 'between ' + str(sector_1) + ' and ' + str(sector_2) + '.')
@@ -387,12 +365,11 @@ class SudokuBoard:
         # TODO - generalize to subsets of 3,4,5,6,7,8
         # TODO - make method iterate over 1, ... ,8
         # TODO - make method take get_row_possibilities and get_column_possibilities as parameters to avoid code dup
-        # TODO - naked subset sector
         # subsets of size 2
         success = 0
-        for i in range(9):
+        for i in self.INDEX_RANGE:
             # all pairs of values
-            for val_1, val_2 in [(x, y) for x, y in product(range(1, 10), range(1, 10)) if x != y]:
+            for val_1, val_2 in [(x, y) for x, y in product(self.VALUE_RANGE, self.VALUE_RANGE) if x != y]:
                 cells_that_contain_pair = []
                 for coordinate, possibilities in self.get_row_possibilities(i).items():
                     if (val_1 in possibilities) and (val_2 in possibilities) and len(possibilities) == 2:
@@ -414,15 +391,39 @@ class SudokuBoard:
                                     'Cell ' + str(coordinate) + ' had possibility value of '
                                     + str(val_2) + ' removed because there was a naked pair subset at '
                                     + str(cells_that_contain_pair))
-        for j in range(9):
+        for j in self.INDEX_RANGE:
             # all pairs of values
-            for val_1, val_2 in [(x, y) for x, y in product(range(1, 10), range(1, 10)) if x != y]:
+            for val_1, val_2 in [(x, y) for x, y in product(self.VALUE_RANGE, self.VALUE_RANGE) if x != y]:
                 cells_that_contain_pair = []
                 for coordinate, possibilities in self.get_col_possibilities(j).items():
                     if val_1 in possibilities and val_2 in possibilities and len(possibilities) == 2:
                         cells_that_contain_pair.append(coordinate)
                 if len(cells_that_contain_pair) == 2:
                     for coordinate, possibilities in self.get_col_possibilities(j).items():
+                        if coordinate not in cells_that_contain_pair:
+                            if val_1 in possibilities:
+                                success = 1
+                                possibilities.remove(val_1)
+                                self.print_reason_to_file(
+                                    'Cell ' + str(coordinate) + ' had possibility value of '
+                                    + str(val_1) + ' removed because there was a naked pair subset at '
+                                    + str(cells_that_contain_pair))
+                            if val_2 in possibilities:
+                                success = 1
+                                possibilities.remove(val_2)
+                                self.print_reason_to_file(
+                                    'Cell ' + str(coordinate) + ' had possibility value of '
+                                    + str(val_2) + ' removed because there was a naked pair subset at '
+                                    + str(cells_that_contain_pair))
+        for s in self.INDEX_RANGE:
+            # all pairs of values
+            for val_1, val_2 in [(x, y) for x, y in product(self.VALUE_RANGE, self.VALUE_RANGE) if x != y]:
+                cells_that_contain_pair = []
+                for coordinate, possibilities in self.get_sector_possibilities(s).items():
+                    if val_1 in possibilities and val_2 in possibilities and len(possibilities) == 2:
+                        cells_that_contain_pair.append(coordinate)
+                if len(cells_that_contain_pair) == 2:
+                    for coordinate, possibilities in self.get_sector_possibilities(s).items():
                         if coordinate not in cells_that_contain_pair:
                             if val_1 in possibilities:
                                 success = 1
@@ -449,9 +450,9 @@ class SudokuBoard:
         # if coordinates_to_check is not initialized...
         if len(self.coordinates_to_check) == 0:
             # for all combinations of 4 coordinate pairs where the 4 coordinates are on matching corners ...
-            # and all 4 corners are in different cells ...
+            # and all 4 corners are in different sectors ...
             self.coordinates_to_check = [(a, b, c, d, e, f, g, h) for a, b, c, d, e, f, g, h in
-                                         product(range(9), repeat=8)
+                                         product(self.INDEX_RANGE, repeat=8)
                                          if (b == d and f == h and a == e and c == g) and len(list(
                                             {self.sector_lookup(a, b), self.sector_lookup(c, d),
                                              self.sector_lookup(e, f), self.sector_lookup(g, h)})) == 4]
@@ -495,7 +496,6 @@ class SudokuBoard:
 
     @staticmethod
     def unique_to_only_one(n, list_1, list_2, list_3):
-        # TODO consider making more similar to unique_to_two_rows
         """
         Returns the index of the list passed in if value n is unique to said list (among the 3 lists entered)
         :param n: value to be checked for uniqueness
@@ -514,25 +514,22 @@ class SudokuBoard:
             return -1
 
     def unique_to_two_rows(self, n, sector):
-        row_indices_in_sector = []
-        for i, j in product(range(9), range(9)):
-            if self.sector_lookup(i, j) == sector:
-                row_indices_in_sector.append(i)
-        row_indices_in_sector = list(set(row_indices_in_sector))
+        # TODO consider making more similar to unique_to_one
+        row_indices_in_sector = self.row_indices_in_sector(sector)
         list_1 = self.get_sector_subrow_possibilities(sector, row_indices_in_sector[0])
         list_2 = self.get_sector_subrow_possibilities(sector, row_indices_in_sector[1])
         list_3 = self.get_sector_subrow_possibilities(sector, row_indices_in_sector[2])
 
         return_val = []
-        for index, sublist in list_1:
+        for index, sublist in list_1.items():
             if n in sublist:
                 return_val.append(row_indices_in_sector[0])
                 break
-        for index, sublist in list_2:
+        for index, sublist in list_2.items():
             if n in sublist:
                 return_val.append(row_indices_in_sector[1])
                 break
-        for index, sublist in list_3:
+        for index, sublist in list_3.items():
             if n in sublist:
                 return_val.append(row_indices_in_sector[2])
                 break
@@ -540,25 +537,22 @@ class SudokuBoard:
         return tuple(sorted(return_val))
 
     def unique_to_two_cols(self, n, sector):
-        col_indices_in_sector = []
-        for i, j in product(range(9), range(9)):
-            if self.sector_lookup(i, j) == sector:
-                col_indices_in_sector.append(j)
-        col_indices_in_sector = list(set(col_indices_in_sector))
+        # TODO consider making more similar to unique_to_one
+        col_indices_in_sector = self.col_indices_in_sector(sector)
         list_1 = self.get_sector_subcolumn_possibilities(sector, col_indices_in_sector[0])
         list_2 = self.get_sector_subcolumn_possibilities(sector, col_indices_in_sector[1])
         list_3 = self.get_sector_subcolumn_possibilities(sector, col_indices_in_sector[2])
 
         return_val = []
-        for index, sublist in list_1:
+        for index, sublist in list_1.items():
             if n in sublist:
                 return_val.append(col_indices_in_sector[0])
                 break
-        for index, sublist in list_2:
+        for index, sublist in list_2.items():
             if n in sublist:
                 return_val.append(col_indices_in_sector[1])
                 break
-        for index, sublist in list_3:
+        for index, sublist in list_3.items():
             if n in sublist:
                 return_val.append(col_indices_in_sector[2])
                 break
@@ -587,15 +581,26 @@ class SudokuBoard:
         """
         return ((i // 3) * 3) + (j // 3)
 
+    def row_indices_in_sector(self, sector):
+        return [i for i in self.INDEX_RANGE if i // 3 == sector // 3]
+
+    def col_indices_in_sector(self, sector):
+        return [j for j in self.INDEX_RANGE if ((j % 3) // 3) == ((sector % 3) // 3)]
+
     def eliminate_possibilities_from_row(self, i, value):
         for coord, possibilities in self.possible_values.items():
-            if coord[0] == i:
+            if coord[0] == i and value in possibilities:
                 possibilities.remove(value)
 
     def eliminate_possibilities_from_column(self, j, value):
         for coord, possibilities in self.possible_values.items():
-            if coord[1] == j:
+            if coord[1] == j and value in possibilities:
                 possibilities.remove(value)
+
+    def eliminate_possibilities_from_sector(self, sector, value):
+        for coord, possibilities in self.possible_values.items():
+                if self.sector_lookup(coord[0], coord[1]) == sector and value in possibilities:
+                    possibilities.remove(value)
 
     # ---------------------------------------------- Utility ---------------------------------------------------------
 
@@ -607,7 +612,6 @@ class SudokuBoard:
     # TODO
     """"
     - https://www.kristanix.com/sudokuepic/sudoku-solving-techniques.php
-    - block / block interaction
     - naked subset
     - hidden subset
     - "Swordfish"
@@ -622,15 +626,16 @@ class SudokuBoard:
         method_progression = [self.sole_candidates, self.unique_candidate_columns, self.unique_candidate_rows,
                               self.unique_candidate_sectors, self.naked_subset, self.sector_sector_interaction,
                               self.sector_column_interaction, self.sector_row_interaction, self.x_wing]
-        # while not self.is_solved():
         index = 0
         while index < len(method_progression):
-            print('index ' + str(index))
             success = method_progression[index]()
-            if success == 0:
-                index += 1
+            if self.is_solved():
+                break
             else:
-                index = 0
+                if success == 0:
+                    index += 1
+                else:
+                    index = 0
 
 
 
