@@ -375,6 +375,7 @@ class SudokuBoard:
                     for coordinate, possibilities in poss_func(index).items():
                         if all(i in possibilities for i in values) and len(possibilities) == subset_size:
                             cells_that_contain_subset.append(coordinate)
+                            # TODO store items, pop from items, reference that subset of items instead of the if at 383
                     # if only X cells can contain a certain subset of size X, remove the values in said subset from
                     # all other members of the row/col/sector
                     if len(cells_that_contain_subset) == subset_size:
