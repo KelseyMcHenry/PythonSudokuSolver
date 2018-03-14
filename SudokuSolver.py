@@ -41,7 +41,7 @@ import SudokuBoard
 # sudoku = SudokuBoard.SudokuBoard(values=data)
 #
 # sudoku.solve()
-sudoku = SudokuBoard.SudokuBoard(filepath='TestCases/blockblock3.sdk')
+sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/nakedtriplet1.sdk')
 sudoku.solve()
 print(sudoku)
 
