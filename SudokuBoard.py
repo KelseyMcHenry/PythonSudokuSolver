@@ -487,6 +487,24 @@ class SudokuBoard:
 
         return success
 
+    def swordfish(self):
+        success = 0
+        row_set = [(a, b, c) for a, b, c in product(self.INDEX_RANGE, repeat=3) if a != b and b != c and c != a]
+        row_set_possibilities = [[self.get_row_possibilities(rows[0]), self.get_row_possibilities(rows[1]), self.get_row_possibilities(rows[2])] for rows in row_set]
+        for coord, row_set_possibility in row_set_possibilities.items():
+            for value in self.VALUE_RANGE:
+                columns_value_in = []
+                if all(value in cell for cell in row_set_possibility):
+                    columns_value_in.append(index)
+                for column in columns_value_in:
+                    if coord, poss in self.get_col_possibilities(column):
+                        if coord[0]
+                        
+
+
+
+        return success
+
     # ------------------------------------------- Helper Functions -------------------------------------------------
 
     @staticmethod
@@ -607,8 +625,6 @@ class SudokuBoard:
     # TODO
     """"
     - https://www.kristanix.com/sudokuepic/sudoku-solving-techniques.php
-    - naked subset
-    - hidden subset
     - "Swordfish"
     - Forcing Chain
     - http://www.sadmansoftware.com/sudoku/solvingtechniques.php
