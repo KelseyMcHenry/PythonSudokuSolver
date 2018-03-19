@@ -488,20 +488,30 @@ class SudokuBoard:
         return success
 
     def swordfish(self):
+
         success = 0
         row_set = [(a, b, c) for a, b, c in product(self.INDEX_RANGE, repeat=3) if a != b and b != c and c != a]
-        row_set_possibilities = [[self.get_row_possibilities(rows[0]), self.get_row_possibilities(rows[1]), self.get_row_possibilities(rows[2])] for rows in row_set]
-        for coord, row_set_possibility in row_set_possibilities.items():
-            for value in self.VALUE_RANGE:
-                columns_value_in = []
-                if all(value in cell for cell in row_set_possibility):
-                    columns_value_in.append(index)
-                for column in columns_value_in:
-                    if coord, poss in self.get_col_possibilities(column):
-                        if coord[0]
-                        
-
-
+        row_set_possibilities = [dict(list(self.get_row_possibilities(rows[0]).items()) + list(self.get_row_possibilities(rows[1]).items()) + list(self.get_row_possibilities(rows[2]).items())) for rows in row_set]
+        for poss in row_set_possibilities:
+            for coord, row_set_possibility in poss.items():
+                for value in self.VALUE_RANGE:
+                    columns_value_in = []
+                    rows_value_in = []
+                    # Need to iterate over the possibilities of all 3 rows. probably means cant concatenate dicts above.
+                    if value in row_set_possibility:
+                        columns_value_in.append(coord[1])
+                        rows_value_in.append(coord[0])
+                    if len(set(columns_value_in)) == 3:
+                        for col in columns_value_in:
+                            for index in self.INDEX_RANGE:
+                                if index not in rows_value_in:
+                                    success = 1
+                                    self.possible_values[(index, col)].remove(value)
+                                    self.print_reason_to_file(
+                                        'Column ' + str(col) + ' had possibility value of '
+                                        + str(value) + ' removed because there was '
+                                        + 'a swordfish interaction between rows ' +
+                                        str(rows_value_in))
 
         return success
 
@@ -637,7 +647,7 @@ class SudokuBoard:
         method_progression = [self.sole_candidates, self.unique_candidate_columns, self.unique_candidate_rows,
                               self.unique_candidate_sectors, self.naked_subset, self.hidden_subset,
                               self.sector_sector_interaction, self.sector_column_interaction,
-                              self.sector_row_interaction, self.x_wing]
+                              self.sector_row_interaction, self.x_wing, self.swordfish]
         index = 0
         while index < len(method_progression):
             success = method_progression[index]()
