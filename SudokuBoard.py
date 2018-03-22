@@ -488,31 +488,36 @@ class SudokuBoard:
         return success
 
     def swordfish(self):
-
         success = 0
-        row_set = [(a, b, c) for a, b, c in product(self.INDEX_RANGE, repeat=3) if a != b and b != c and c != a]
-        row_set_possibilities = [dict(list(self.get_row_possibilities(rows[0]).items()) + list(self.get_row_possibilities(rows[1]).items()) + list(self.get_row_possibilities(rows[2]).items())) for rows in row_set]
-        for poss in row_set_possibilities:
-            for coord, row_set_possibility in poss.items():
-                for value in self.VALUE_RANGE:
-                    columns_value_in = []
-                    rows_value_in = []
-                    # Need to iterate over the possibilities of all 3 rows. probably means cant concatenate dicts above.
-                    if value in row_set_possibility:
-                        columns_value_in.append(coord[1])
-                        rows_value_in.append(coord[0])
-                    if len(set(columns_value_in)) == 3:
-                        for col in columns_value_in:
-                            for index in self.INDEX_RANGE:
-                                if index not in rows_value_in:
+        row_sets = [(a, b, c) for a, b, c in product(self.INDEX_RANGE, repeat=3) if a != b and b != c and c != a]
+        # grab 3 rows
+        for row_set in row_sets:
+            row_set_poss = (self.get_row_possibilities(row_set[0]), self.get_row_possibilities(row_set[1]),
+                            self.get_row_possibilities(row_set[2]))
+            # for a given value
+            for value in self.VALUE_RANGE:
+                if value == 3 and row_set == (0, 1, 2):
+                    print('breakpt')
+                # check to see if all 3 rows contain that value
+                if all(value in list(chain.from_iterable(row_poss.values())) for row_poss in row_set_poss):
+                    # check to see if within those 3 rows, that value is restricted to the same 3 columns
+                    columns = []
+                    for row_poss in row_set_poss:
+                        for coord, poss in row_poss.items():
+                            if value in poss:
+                                columns.append(coord[1])
+                    if len(columns) == 3:
+                        # if so, remove value from all 3 columns
+                        for column in columns:
+                            for i in self.INDEX_RANGE:
+                                if value in self.possible_values[(i, column)]:
                                     success = 1
-                                    self.possible_values[(index, col)].remove(value)
+                                    self.possible_values[(i, column)].remove(value)
                                     self.print_reason_to_file(
-                                        'Column ' + str(col) + ' had possibility value of '
+                                        'Column ' + str(column) + ' had possibility value of '
                                         + str(value) + ' removed because there was '
                                         + 'a swordfish interaction between rows ' +
-                                        str(rows_value_in))
-
+                                        str(row_set))
         return success
 
     # ------------------------------------------- Helper Functions -------------------------------------------------
