@@ -1,10 +1,9 @@
 import SudokuBoard
-
-
+import os
 
 # data = input('enter 81 numbers between 1 and 9 corresponding to the rows of a Sudoku puzzle. For blanks, use 0')
 
-#easy
+# easy
 # data = [3, 0, 0, 6, 0, 0, 0, 9, 0,
 #         0, 4, 5, 0, 8, 0, 0, 1, 2,
 #         0, 0, 0, 0, 0, 1, 0, 7, 0,
@@ -41,7 +40,13 @@ import SudokuBoard
 # sudoku = SudokuBoard.SudokuBoard(values=data)
 #
 # sudoku.solve()
-sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/nakedtriplet1.sdk')
+
+sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/blockcolrow2.sdk')
 sudoku.solve()
-print(sudoku)
+
+# for root, dirs, filenames in os.walk('TestCases'):
+#     for f in filenames:
+#         sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/' + f)
+#         sudoku.solve()
+#         print(str(f) + ' ' + str(sudoku.is_solved()))
 
