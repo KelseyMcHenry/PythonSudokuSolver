@@ -1,6 +1,6 @@
 from itertools import product
 from itertools import chain
-
+from random import randint
 
 class SudokuBoard:
     """A data structure designed to hold sudoku data"""
@@ -365,7 +365,6 @@ class SudokuBoard:
         success = 0
         # for all subset sizes from 2 ... 5
         for subset_size in range(2, 6):
-            print(subset_size)
             # for all row/col/sectors depending on poss_func
             for index in self.INDEX_RANGE:
                 # for all possible combinations of 1 ... 9 of size subset_size (without repeats)
@@ -403,7 +402,6 @@ class SudokuBoard:
         success = 0
         # for all subset sizes from 2 ... 5
         for subset_size in range(2, 6):
-            print(subset_size)
             # for all row/col/sectors depending on poss_func
             for index in self.INDEX_RANGE:
                 # for all possible combinations of 1 ... 9 of size subset_size (without repeats)
@@ -489,15 +487,14 @@ class SudokuBoard:
 
     def swordfish(self):
         success = 0
-        row_sets = [(a, b, c) for a, b, c in product(self.INDEX_RANGE, repeat=3) if a != b and b != c and c != a]
+        index_triplets = [(a, b, c) for a, b, c in product(self.INDEX_RANGE, repeat=3) if a != b and b != c and c != a]
+        # index_triplets = [(a, b, c) for a, b, c in product(self.INDEX_RANGE, repeat=3) if a // 3 != b // 3 and b // 3 != c // 3  and c // 3 != a // 3]
         # grab 3 rows
-        for row_set in row_sets:
+        for row_set in index_triplets:
             row_set_poss = (self.get_row_possibilities(row_set[0]), self.get_row_possibilities(row_set[1]),
                             self.get_row_possibilities(row_set[2]))
             # for a given value
             for value in self.VALUE_RANGE:
-                if value == 3 and row_set == (0, 1, 2):
-                    print('breakpt')
                 # check to see if all 3 rows contain that value
                 if all(value in list(chain.from_iterable(row_poss.values())) for row_poss in row_set_poss):
                     # check to see if within those 3 rows, that value is restricted to the same 3 columns
@@ -506,11 +503,11 @@ class SudokuBoard:
                         for coord, poss in row_poss.items():
                             if value in poss:
                                 columns.append(coord[1])
-                    if len(columns) == 3:
+                    if len(set(columns)) == 3:
                         # if so, remove value from all 3 columns
                         for column in columns:
                             for i in self.INDEX_RANGE:
-                                if value in self.possible_values[(i, column)]:
+                                if value in self.possible_values[(i, column)] and i not in row_set:
                                     success = 1
                                     self.possible_values[(i, column)].remove(value)
                                     self.print_reason_to_file(
@@ -518,6 +515,55 @@ class SudokuBoard:
                                         + str(value) + ' removed because there was '
                                         + 'a swordfish interaction between rows ' +
                                         str(row_set))
+        for col_set in index_triplets:
+            col_set_poss = (self.get_col_possibilities(col_set[0]), self.get_col_possibilities(col_set[1]),
+                            self.get_col_possibilities(col_set[2]))
+            # for a given value
+            for value in self.VALUE_RANGE:
+                # check to see if all 3 rows contain that value
+                if all(value in list(chain.from_iterable(col_poss.values())) for col_poss in col_set_poss):
+                    # check to see if within those 3 rows, that value is restricted to the same 3 columns
+                    rows = []
+                    for col_poss in col_set_poss:
+                        for coord, poss in col_poss.items():
+                            if value in poss:
+                                rows.append(coord[0])
+                    if len(rows) == 3:
+                        # if so, remove value from all 3 columns
+                        for row in rows:
+                            for j in self.INDEX_RANGE:
+                                if value in self.possible_values[(row, j)] and j not in col_set:
+                                    success = 1
+                                    self.possible_values[(row, j)].remove(value)
+                                    self.print_reason_to_file(
+                                        'Row ' + str(row) + ' had possibility value of '
+                                        + str(value) + ' removed because there was '
+                                        + 'a swordfish interaction between columns ' +
+                                        str(col_set))
+        return success
+
+    def force_chain(self):
+        success = 0
+        values = []
+        for row in self.board:
+            values.extend(row)
+        print("_____________COPY MADE____________")
+        attempt_board = SudokuBoard(values=values)
+        for coord, poss in attempt_board.possible_values.items():
+            if len(poss) > 1:
+                value_to_try = poss[randint(0, len(poss) - 1)]
+                attempt_board.set(coord[0], coord[1], value_to_try)
+                try:
+                    attempt_board.solve()
+                    print(coord, value_to_try)
+                except ValueError:
+                    success = 1
+                    self.possible_values[(coord[0], coord[1])].remove(value_to_try)
+                    self.print_reason_to_file(
+                        str(coord) + ' had possibility value of '
+                        + str(value_to_try) + ' removed due to trial and error')
+                    return success
+
         return success
 
     # ------------------------------------------- Helper Functions -------------------------------------------------
@@ -640,7 +686,6 @@ class SudokuBoard:
     # TODO
     """"
     - https://www.kristanix.com/sudokuepic/sudoku-solving-techniques.php
-    - "Swordfish"
     - Forcing Chain
     - http://www.sadmansoftware.com/sudoku/solvingtechniques.php
     - XY - Wing
@@ -648,11 +693,12 @@ class SudokuBoard:
     """
 
     def solve(self):
-        print(self)
+        # print(self)
         method_progression = [self.sole_candidates, self.unique_candidate_columns, self.unique_candidate_rows,
                               self.unique_candidate_sectors, self.naked_subset, self.hidden_subset,
                               self.sector_sector_interaction, self.sector_column_interaction,
-                              self.sector_row_interaction, self.x_wing, self.swordfish]
+                              self.sector_row_interaction, self.x_wing, self.swordfish, self.force_chain]
+
         index = 0
         while index < len(method_progression):
             success = method_progression[index]()
