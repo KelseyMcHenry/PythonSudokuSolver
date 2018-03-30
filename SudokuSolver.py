@@ -41,12 +41,12 @@ import os
 #
 # sudoku.solve()
 
-sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/blockcolrow2.sdk')
-sudoku.solve()
+# sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/blockcolrow2.sdk')
+# sudoku.solve()
 
-# for root, dirs, filenames in os.walk('TestCases'):
-#     for f in filenames:
-#         sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/' + f)
-#         sudoku.solve()
-#         print(str(f) + ' ' + str(sudoku.is_solved()))
+for root, dirs, filenames in os.walk('TestCases'):
+    for f in filenames:
+        sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/' + f, printout=False)
+        sudoku.solve()
+        # print(str(f) + ' ' + str(sudoku.is_solved()))
 

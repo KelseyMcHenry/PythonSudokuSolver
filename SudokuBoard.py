@@ -1,6 +1,7 @@
 from itertools import product
 from itertools import chain
 from random import randint
+from datetime import datetime
 
 class SudokuBoard:
     """A data structure designed to hold sudoku data"""
@@ -14,22 +15,27 @@ class SudokuBoard:
 
     # -------------------------------------- Variable initialization -----------------------------------------------
 
-    # array where solved values are stored
-    board = [[0 for _ in range(9)] for _ in range(9)]
-    # map where possibilities for cells are stored
-    possible_values = {(i, j): [] for i, j in product(range(9), range(9))}
-    # 'cache' variable for x-wing method, which iterates over a complex set which is expensive to reproduce on every run
-    coordinates_to_check = []
-    # English plaintext reasons output file
-    file = open('reasons.txt', 'w')
+
 
     # --------------------------------------------- Constructor  ---------------------------------------------------
 
-    def __init__(self, values=[0]*81, file_path=''):
+    def __init__(self, values=[0]*81, file_path='', printout=True):
         """
         Initializes the board values and initializes the cell possible values. Default is empty board
         http://www.sadmansoftware.com/sudoku/faq19.php
         """
+
+        # array where solved values are stored
+        self.board = [[0 for _ in range(9)] for _ in range(9)]
+        # map where possibilities for cells are stored
+        self.possible_values = {(i, j): [] for i, j in product(range(9), range(9))}
+        # 'cache' variable for x-wing method, which iterates over a complex set which is expensive to reproduce on every run
+        self.coordinates_to_check = []
+        # English plaintext reasons output file
+        self.file = open('reasons.txt', 'w')
+        self.print_status = printout
+        self.file_path_name = file_path
+
         if file_path != '':
             values.clear()
             sudoku_file = open(file_path, 'r')
@@ -547,22 +553,21 @@ class SudokuBoard:
         values = []
         for row in self.board:
             values.extend(row)
-        print("_____________COPY MADE____________")
-        attempt_board = SudokuBoard(values=values)
+        attempt_board = SudokuBoard(values=values, printout=False)
         for coord, poss in attempt_board.possible_values.items():
             if len(poss) > 1:
                 value_to_try = poss[randint(0, len(poss) - 1)]
                 attempt_board.set(coord[0], coord[1], value_to_try)
                 try:
                     attempt_board.solve()
-                    print(coord, value_to_try)
                 except ValueError:
                     success = 1
-                    self.possible_values[(coord[0], coord[1])].remove(value_to_try)
-                    self.print_reason_to_file(
-                        str(coord) + ' had possibility value of '
-                        + str(value_to_try) + ' removed due to trial and error')
-                    return success
+                    if value_to_try in self.possible_values[(coord[0], coord[1])]:
+                        self.possible_values[(coord[0], coord[1])].remove(value_to_try)
+                        self.print_reason_to_file(
+                            str(coord) + ' had possibility value of '
+                            + str(value_to_try) + ' removed due to trial and error')
+                        return success
 
         return success
 
@@ -679,9 +684,10 @@ class SudokuBoard:
     # ---------------------------------------------- Utility ---------------------------------------------------------
 
     def print_reason_to_file(self, s):
-        self.file.write(s + '\n')
-        print(s)
-        print(self)
+        if self.print_status:
+            self.file.write(s + '\n')
+            print(s)
+            print(self)
 
     # TODO
     """"
@@ -693,6 +699,7 @@ class SudokuBoard:
     """
 
     def solve(self):
+        start_time = datetime.now()
         # print(self)
         method_progression = [self.sole_candidates, self.unique_candidate_columns, self.unique_candidate_rows,
                               self.unique_candidate_sectors, self.naked_subset, self.hidden_subset,
@@ -703,12 +710,19 @@ class SudokuBoard:
         while index < len(method_progression):
             success = method_progression[index]()
             if self.is_solved():
-                break
+                end_time = datetime.now()
+                diff = divmod((end_time - start_time).total_seconds(), 60)
+                print('Completed ' + self.file_path_name + ' in ' + str(diff[0]) + ' minutes and ' + str(diff[1]) + ' seconds.')
+                return
             else:
                 if success == 0:
                     index += 1
                 else:
                     index = 0
 
+        end_time = datetime.now()
+        diff = divmod((end_time - start_time).total_seconds(), 60)
+        print('Unable to complete ' + self.file_path_name + ' in ' + str(diff[0]) + ' minutes and ' + str(diff[1]) + ' seconds.')
+        print(self)
 
 
