@@ -2,6 +2,7 @@ from itertools import product
 from itertools import chain
 from random import randint
 from datetime import datetime
+from copy import deepcopy
 
 class SudokuBoard:
     """A data structure designed to hold sudoku data"""
@@ -213,6 +214,9 @@ class SudokuBoard:
                     self.possible_values[(x, y)].remove(value)
             if self.board[x][y] == 0 and len(self.get_possibilities(x, y)) == 0:
                 raise ValueError('Invalid cell set at ' + str((x, y)))
+
+    def set_poss_values(self, possibilities):
+        self.possible_values = deepcopy(possibilities)
 
     # ------------------------------------------- Solving Functions -------------------------------------------------
     # https://www.kristanix.com/sudokuepic/sudoku-solving-techniques.php
@@ -554,15 +558,31 @@ class SudokuBoard:
         for row in self.board:
             values.extend(row)
         attempt_board = SudokuBoard(values=values, printout=False)
+        attempt_board.set_poss_values(self.possible_values)
         for coord, poss in attempt_board.possible_values.items():
             if len(poss) > 1:
-                value_to_try = poss[randint(0, len(poss) - 1)]
-                attempt_board.set(coord[0], coord[1], value_to_try)
+                value_to_try = poss[0]
                 try:
-                    attempt_board.solve()
+                    attempt_board.set(coord[0], coord[1], value_to_try)
+                    print("Forcing chain on " + str(coord) + " with value " + str(value_to_try))
+                    print(attempt_board)
+                    try:
+                        attempt_board.solve()
+                    except ValueError:
+                        if value_to_try in self.possible_values[(coord[0], coord[1])]:
+                            success = 1
+                            self.possible_values[(coord[0], coord[1])].remove(value_to_try)
+                            self.print_reason_to_file(
+                                str(coord) + ' had possibility value of '
+                                + str(value_to_try) + ' removed due to trial and error')
+                            return success
+                    else:
+                        success = 1
+                        self.board = deepcopy(attempt_board.board)
+                        return success
                 except ValueError:
-                    success = 1
                     if value_to_try in self.possible_values[(coord[0], coord[1])]:
+                        success = 1
                         self.possible_values[(coord[0], coord[1])].remove(value_to_try)
                         self.print_reason_to_file(
                             str(coord) + ' had possibility value of '
@@ -712,7 +732,8 @@ class SudokuBoard:
             if self.is_solved():
                 end_time = datetime.now()
                 diff = divmod((end_time - start_time).total_seconds(), 60)
-                print('Completed ' + self.file_path_name + ' in ' + str(diff[0]) + ' minutes and ' + str(diff[1]) + ' seconds.')
+                if self.file_path_name:
+                    print('Completed ' + self.file_path_name + ' in ' + str(diff[0]) + ' minutes and ' + str(diff[1]) + ' seconds.')
                 return
             else:
                 if success == 0:
@@ -722,7 +743,8 @@ class SudokuBoard:
 
         end_time = datetime.now()
         diff = divmod((end_time - start_time).total_seconds(), 60)
-        print('Unable to complete ' + self.file_path_name + ' in ' + str(diff[0]) + ' minutes and ' + str(diff[1]) + ' seconds.')
-        print(self)
+        if self.file_path_name:
+            print('Unable to complete ' + self.file_path_name + ' in ' + str(diff[0]) + ' minutes and ' + str(diff[1]) + ' seconds.')
+            print(self)
 
 
