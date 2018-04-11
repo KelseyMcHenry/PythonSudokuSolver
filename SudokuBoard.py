@@ -4,33 +4,35 @@ from random import randint
 from datetime import datetime
 from copy import deepcopy
 
+
 class SudokuBoard:
     """A data structure designed to hold sudoku data"""
+    # TODO make functions take functions as parameters (ie col, row, sector) to avoid repeating code
+    # TODO document
+        #TODO add specific links for each solving method
+    # TODO error checking
+
+    # -------------------------------------- Constant initialization -----------------------------------------------
 
     INDEX_RANGE = range(9)
     VALUE_RANGE = range(1, 10)
 
-    # TODO make functions take functions as parameters (ie col, row, sector) to avoid repeating code
-    # TODO document
-    # TODO error checking
-
-    # -------------------------------------- Variable initialization -----------------------------------------------
-
-
-
-    # --------------------------------------------- Constructor  ---------------------------------------------------
+    # -------------------------------------- Python Reserved Functions  --------------------------------------------
 
     def __init__(self, values=[0]*81, file_path='', printout=True):
         """
         Initializes the board values and initializes the cell possible values. Default is empty board
-        http://www.sadmansoftware.com/sudoku/faq19.php
+        :param values: list of values 81 values long, with 0 representing an empty space.
+        Values are listed left to right, top to bottom.
+        :param file_path: path to a .sdk file, format details located at http://www.sadmansoftware.com/sudoku/faq19.php
+        :param printout: boolean value indicating whether or not to print the process to the console.
         """
 
         # array where solved values are stored
         self.board = [[0 for _ in range(9)] for _ in range(9)]
         # map where possibilities for cells are stored
         self.possible_values = {(i, j): [] for i, j in product(range(9), range(9))}
-        # 'cache' variable for x-wing method, which iterates over a complex set which is expensive to reproduce on every run
+        # 'cache' variable for x-wing method, which iterates over a complex set which is expensive to reproduce
         self.coordinates_to_check = []
         # English plaintext reasons output file
         self.file = open('reasons.txt', 'w')
@@ -62,6 +64,10 @@ class SudokuBoard:
                     self.possible_values[coordinate].append(n)
 
     def __str__(self):
+        """
+        Allows string conversion to appropriately format the Sudoku
+        :return: formatted string version of the puzzle
+        """
         print_value = ""
         # construct the string of the board
         for row in self.board:
@@ -86,6 +92,11 @@ class SudokuBoard:
         return print_value
 
     def __eq__(self, other):
+        """
+        Allows 2 SudokuBoard opjects to be compared to each other for equality
+        :param other: other board being compared against.
+        :return:
+        """
         for i, j in product(self.INDEX_RANGE, self.INDEX_RANGE):
             if other.board[i][j] != self.board[i][j]:
                 return False
@@ -216,6 +227,13 @@ class SudokuBoard:
                 raise ValueError('Invalid cell set at ' + str((x, y)))
 
     def set_poss_values(self, possibilities):
+        """
+        Sets the possibilities of a SudokuBoard manually
+        :param possibilities: dictionary of all possible values the cells could contain at time of execution
+                              Keys: Tuples (i, j) for each cell
+                              Values: Lists containing all possible values cell i,j could contain at time of execution
+        :return:
+        """
         self.possible_values = deepcopy(possibilities)
 
     # ------------------------------------------- Solving Functions -------------------------------------------------
@@ -225,7 +243,9 @@ class SudokuBoard:
     def sole_candidates(self):
         """
         Solves the values of all cells that only have one possibility
+        :return: a boolean indicating if any values were successfully solved
         """
+
         success = 0
         for coordinate, possibilities in self.possible_values.items():
             if len(possibilities) == 1:
@@ -241,7 +261,10 @@ class SudokuBoard:
         """
         Solves the values of all cells where one of the cell's possibilities is unique to its row, column, or sector as
         indicated by poss_func
+        :param poss_func: a function which gives either row, col, or sector possibilities.
+        :return: a boolean indicating if any values were successfully solved
         """
+
         success = 0
         for index in self.INDEX_RANGE:
             # accumulate all of the possibilities for all cells in col j
@@ -283,6 +306,7 @@ class SudokuBoard:
     def sector_row_interaction(self):
         """
         Eliminates possibilities within a row outside of a sector if a possibility is unique to row within said sector
+        :return: a boolean indicating if any possibilities were successfully eliminated
         """
         success = 0
         for sector in self.INDEX_RANGE:
@@ -305,7 +329,9 @@ class SudokuBoard:
 
     def sector_column_interaction(self):
         """
-        Eliminates possibilities within a column outside of a sector if a possibility is unique to column within said sector
+        Eliminates possibilities within a column outside of a sector if a possibility is unique to column within said
+        sector
+        :return: a boolean indicating if any possibilities were successfully eliminated
         """
         success = 0
         for sector in self.INDEX_RANGE:
@@ -327,6 +353,11 @@ class SudokuBoard:
         return success
 
     def sector_sector_interaction(self):
+        """
+        Eliminates possibilities in other cells in a column or row if a number appears as candidates
+        for only two cells in two different blocks, but both cells are in the same column or row
+        :return: a boolean indicating if any possibilities were successfully eliminated
+        """
         success = 0
         right_adjacent = [(x, x + 1) for x in self.INDEX_RANGE if (x + 1) % 3 != 0 and (x + 1) < 9]
         bottom_adjacent = [(x, x + 3) for x in self.INDEX_RANGE if (x + 3) < 9]
@@ -372,6 +403,14 @@ class SudokuBoard:
         return success
 
     def naked_subset_subarea(self, poss_func):
+        """
+        Eliminates possibilities from other cells in a row, column or block if N cells in the same row, column or
+        block have only the same N candidates. N ranges from 2 to 5.
+        In theory it could go up to 8 but this function stops at 5, because the operation gets more expensive the
+        larger the number and combinations that high get increasingly rare.
+        :param poss_func: a function which gives either row, col, or sector possibilities.
+        :return: a boolean indicating if any possibilities were successfully eliminated
+        """
         success = 0
         # for all subset sizes from 2 ... 5
         for subset_size in range(2, 6):
@@ -384,7 +423,6 @@ class SudokuBoard:
                     for coordinate, possibilities in poss_func(index).items():
                         if all(i in possibilities for i in values) and len(possibilities) == subset_size:
                             cells_that_contain_subset.append(coordinate)
-                            # TODO store items, pop from items, reference that subset of items instead of the if at 383
                     # if only X cells can contain a certain subset of size X, remove the values in said subset from
                     # all other members of the row/col/sector
                     if len(cells_that_contain_subset) == subset_size:
@@ -402,6 +440,10 @@ class SudokuBoard:
         return success
 
     def naked_subset(self):
+        """
+        Performs naked_subset_subarea for row, col, and sector.
+        :return: a boolean indicating if any possibilities were successfully eliminated
+        """
         if not self.naked_subset_subarea(self.get_row_possibilities):
             if not self.naked_subset_subarea(self.get_col_possibilities):
                 if not self.naked_subset_subarea(self.get_sector_possibilities):
@@ -409,6 +451,15 @@ class SudokuBoard:
         return 1
 
     def hidden_subset_subarea(self, poss_func):
+        """
+        Eliminates all other possibilities from N cells in the same row, col, or block if those N cells contain N
+        candidates between them that don't appear elsewhere in the same row, column or block. N ranges from 2 to 5.
+        In theory it could go up to 8 but this function stops at 5, because the operation gets more expensive the
+        larger the number and combinations that high get increasingly rare.
+        :param poss_func: a function which gives either row, col, or sector possibilities.
+        :return: a boolean indicating if any possibilities were successfully eliminated
+        """
+
         success = 0
         # for all subset sizes from 2 ... 5
         for subset_size in range(2, 6):
@@ -438,6 +489,11 @@ class SudokuBoard:
         return success
 
     def hidden_subset(self):
+        """
+        Performs hidden_subset_subarea for row, col, and sector.
+        :return: a boolean indicating if any possibilities were successfully eliminated
+        """
+
         if not self.hidden_subset_subarea(self.get_row_possibilities):
             if not self.hidden_subset_subarea(self.get_col_possibilities):
                 if not self.hidden_subset_subarea(self.get_sector_possibilities):
@@ -448,6 +504,7 @@ class SudokuBoard:
         """
         Picks sets of 4 cells, where the cells form the corners of a rectangle and eliminates any possibilities shared
         between all 4 from the remaining cells in the 4 corners' sectors.
+        :return: a boolean indicating if any possibilities were successfully eliminated
         """
         success = 0
         # if coordinates_to_check is not initialized...
@@ -498,7 +555,6 @@ class SudokuBoard:
     def swordfish(self):
         success = 0
         index_triplets = [(a, b, c) for a, b, c in product(self.INDEX_RANGE, repeat=3) if a != b and b != c and c != a]
-        # index_triplets = [(a, b, c) for a, b, c in product(self.INDEX_RANGE, repeat=3) if a // 3 != b // 3 and b // 3 != c // 3  and c // 3 != a // 3]
         # grab 3 rows
         for row_set in index_triplets:
             row_set_poss = (self.get_row_possibilities(row_set[0]), self.get_row_possibilities(row_set[1]),
@@ -564,8 +620,8 @@ class SudokuBoard:
                 value_to_try = poss[0]
                 try:
                     attempt_board.set(coord[0], coord[1], value_to_try)
-                    print("Forcing chain on " + str(coord) + " with value " + str(value_to_try))
-                    print(attempt_board)
+                    # print("Forcing chain on " + str(coord) + " with value " + str(value_to_try))
+                    # print(attempt_board)
                     try:
                         attempt_board.solve()
                     except ValueError:
