@@ -257,7 +257,7 @@ class SudokuBoard:
 
         return success
 
-    def unique_candidates(self, poss_func):
+    def unique_candidates_generic(self, poss_func):
         """
         Solves the values of all cells where one of the cell's possibilities is unique to its row, column, or sector as
         indicated by poss_func
@@ -281,77 +281,109 @@ class SudokuBoard:
                                                   ' because the possibility was unique to column ' + str(index) + '.')
         return success
 
-    def unique_candidate_rows(self):
+    def unique_candidate(self):
         """
-        Solves the values of all cells where one of the cell's possibilities is unique to its row
+        Solves the values of all cells where one of the cell's possibilities is unique to its row, column, or sector.
+        Note that this function will try row then col then sector, stopping if any are successful.
+        :return: a boolean indicating if any values were successfully solved
         """
-        return self.unique_candidates(self.get_row_possibilities)
 
-    def unique_candidate_columns(self):
-        """
-        Solves the values of all cells where one of the cell's possibilities is unique to its column
-        """
-        return self.unique_candidates(self.get_col_possibilities)
-
-    def unique_candidate_sectors(self):
-        """
-        Solves the values of all cells where one of the cell's possibilities is unique to its sector
-        """
-        return self.unique_candidates(self.get_sector_possibilities)
+        # Takes advantage of Python's OR operator short circuiting to cut down on number of functions run
+        return self.unique_candidates_generic(self.get_row_possibilities) or \
+            self.unique_candidates_generic(self.get_col_possibilities) or \
+            self.unique_candidates_generic(self.get_sector_possibilities)
 
     # --------------------------------- Possibility Eliminating Functions -----------------------------------------
     # https://www.kristanix.com/sudokuepic/sudoku-solving-techniques.php
     # http://www.sadmansoftware.com/sudoku/solvingtechniques.php
 
-    def sector_row_interaction(self):
+    def sector_line_interaction_generic(self, poss_func, subarea_poss_func):
         """
         Eliminates possibilities within a row outside of a sector if a possibility is unique to row within said sector
         :return: a boolean indicating if any possibilities were successfully eliminated
         """
         success = 0
         for sector in self.INDEX_RANGE:
-            row_indices_in_sector = self.row_indices_in_sector(sector)
+            area_indices_in_sector = poss_func(sector)
 
-            list_1 = self.get_sector_subrow_possibilities(sector, row_indices_in_sector[0])
-            list_2 = self.get_sector_subrow_possibilities(sector, row_indices_in_sector[1])
-            list_3 = self.get_sector_subrow_possibilities(sector, row_indices_in_sector[2])
+            list_1 = subarea_poss_func(sector, area_indices_in_sector[0])
+            list_2 = subarea_poss_func(sector, area_indices_in_sector[1])
+            list_3 = subarea_poss_func(sector, area_indices_in_sector[2])
             for n in self.VALUE_RANGE:
                 unique_index = self.unique_to_only_one(n, list_1, list_2, list_3)
                 if unique_index >= 0:
                     for i, j in product(self.INDEX_RANGE, self.INDEX_RANGE):
-                        if i == row_indices_in_sector[unique_index] and self.sector_lookup(i, j) != sector:
+                        if i == area_indices_in_sector[unique_index] and self.sector_lookup(i, j) != sector:
                             success = 1
                             self.possible_values[(i, j)].remove(n)
                             self.print_reason_to_file('Cell (' + str(i) + ', ' + str(j) + ') had possibility value of '
                                                       + str(n) + ' removed because sector '
-                                                      + str(sector) + ' must contain it via a row interaction.')
+                                                      + str(sector) + ' must contain it via a row or col interaction.')
         return success
 
-    def sector_column_interaction(self):
+    def sector_line_interaction(self):
         """
-        Eliminates possibilities within a column outside of a sector if a possibility is unique to column within said
-        sector
-        :return: a boolean indicating if any possibilities were successfully eliminated
+        Eliminates possibilities within a row outside of a sector if a possibility is unique to row or column within
+        said sector
+        Note that this function will try row then col, stopping if any are successful.
+        :return: a boolean indicating if any values were successfully solved
         """
-        success = 0
-        for sector in self.INDEX_RANGE:
-            column_indices_in_sector = self.col_indices_in_sector(sector)
+        # Takes advantage of Python's OR operator short circuiting to cut down on number of functions run
+        return self.sector_line_interaction_generic(self.row_indices_in_sector,
+                                                    self.get_sector_subrow_possibilities) or \
+            self.sector_line_interaction_generic(self.col_indices_in_sector,
+                                                 self.get_sector_subcolumn_possibilities)
 
-            list_1 = self.get_sector_subcolumn_possibilities(sector, column_indices_in_sector[0])
-            list_2 = self.get_sector_subcolumn_possibilities(sector, column_indices_in_sector[1])
-            list_3 = self.get_sector_subcolumn_possibilities(sector, column_indices_in_sector[2])
-            for n in self.VALUE_RANGE:
-                unique_index = self.unique_to_only_one(n, list_1, list_2, list_3)
-                if unique_index >= 0:
-                    for i, j in product(self.INDEX_RANGE, self.INDEX_RANGE):
-                        if j == column_indices_in_sector[unique_index] and self.sector_lookup(i, j) != sector:
-                            success = 1
-                            self.possible_values[(i, j)].remove(n)
-                            self.print_reason_to_file('Cell (' + str(i) + ', ' + str(j) + ') had possibility value of '
-                                                      + str(n) + ' removed because sector '
-                                                      + str(sector) + ' must contain it via a column interaction.')
-        return success
+    # def sector_row_interaction(self):
+    #     """
+    #     Eliminates possibilities within a row outside of a sector if a possibility is unique to row within said sector
+    #     :return: a boolean indicating if any possibilities were successfully eliminated
+    #     """
+    #     success = 0
+    #     for sector in self.INDEX_RANGE:
+    #         row_indices_in_sector = self.row_indices_in_sector(sector)
+    #
+    #         list_1 = self.get_sector_subrow_possibilities(sector, row_indices_in_sector[0])
+    #         list_2 = self.get_sector_subrow_possibilities(sector, row_indices_in_sector[1])
+    #         list_3 = self.get_sector_subrow_possibilities(sector, row_indices_in_sector[2])
+    #         for n in self.VALUE_RANGE:
+    #             unique_index = self.unique_to_only_one(n, list_1, list_2, list_3)
+    #             if unique_index >= 0:
+    #                 for i, j in product(self.INDEX_RANGE, self.INDEX_RANGE):
+    #                     if i == row_indices_in_sector[unique_index] and self.sector_lookup(i, j) != sector:
+    #                         success = 1
+    #                         self.possible_values[(i, j)].remove(n)
+    #                         self.print_reason_to_file('Cell (' + str(i) + ', ' + str(j) + ') had possibility value of '
+    #                                                   + str(n) + ' removed because sector '
+    #                                                   + str(sector) + ' must contain it via a row interaction.')
+    #     return success
+    #
+    # def sector_column_interaction(self):
+    #     """
+    #     Eliminates possibilities within a column outside of a sector if a possibility is unique to column within said
+    #     sector
+    #     :return: a boolean indicating if any possibilities were successfully eliminated
+    #     """
+    #     success = 0
+    #     for sector in self.INDEX_RANGE:
+    #         column_indices_in_sector = self.col_indices_in_sector(sector)
+    #
+    #         list_1 = self.get_sector_subcolumn_possibilities(sector, column_indices_in_sector[0])
+    #         list_2 = self.get_sector_subcolumn_possibilities(sector, column_indices_in_sector[1])
+    #         list_3 = self.get_sector_subcolumn_possibilities(sector, column_indices_in_sector[2])
+    #         for n in self.VALUE_RANGE:
+    #             unique_index = self.unique_to_only_one(n, list_1, list_2, list_3)
+    #             if unique_index >= 0:
+    #                 for i, j in product(self.INDEX_RANGE, self.INDEX_RANGE):
+    #                     if j == column_indices_in_sector[unique_index] and self.sector_lookup(i, j) != sector:
+    #                         success = 1
+    #                         self.possible_values[(i, j)].remove(n)
+    #                         self.print_reason_to_file('Cell (' + str(i) + ', ' + str(j) + ') had possibility value of '
+    #                                                   + str(n) + ' removed because sector '
+    #                                                   + str(sector) + ' must contain it via a column interaction.')
+    #     return success
 
+    # TODO make generic subfunctions?
     def sector_sector_interaction(self):
         """
         Eliminates possibilities in other cells in a column or row if a number appears as candidates
@@ -442,13 +474,14 @@ class SudokuBoard:
     def naked_subset(self):
         """
         Performs naked_subset_subarea for row, col, and sector.
+        Note that this function will try row then col then sector, stopping if any are successful.
         :return: a boolean indicating if any possibilities were successfully eliminated
         """
-        if not self.naked_subset_subarea(self.get_row_possibilities):
-            if not self.naked_subset_subarea(self.get_col_possibilities):
-                if not self.naked_subset_subarea(self.get_sector_possibilities):
-                    return 0
-        return 1
+
+        # Takes advantage of Python's OR operator short circuiting to cut down on number of functions run
+        return self.naked_subset_subarea(self.get_row_possibilities) or \
+            self.naked_subset_subarea(self.get_col_possibilities) or \
+            self.naked_subset_subarea(self.get_sector_possibilities)
 
     def hidden_subset_subarea(self, poss_func):
         """
@@ -491,14 +524,14 @@ class SudokuBoard:
     def hidden_subset(self):
         """
         Performs hidden_subset_subarea for row, col, and sector.
+        Note that this function will try row then col then sector, stopping if any are successful.
         :return: a boolean indicating if any possibilities were successfully eliminated
         """
 
-        if not self.hidden_subset_subarea(self.get_row_possibilities):
-            if not self.hidden_subset_subarea(self.get_col_possibilities):
-                if not self.hidden_subset_subarea(self.get_sector_possibilities):
-                    return 0
-        return 1
+        # Takes advantage of Python's OR operator short circuiting to cut down on number of functions run
+        return self.hidden_subset_subarea(self.get_row_possibilities) or \
+            self.hidden_subset_subarea(self.get_col_possibilities) or \
+            self.hidden_subset_subarea(self.get_sector_possibilities)
 
     def x_wing(self):
         """
@@ -522,7 +555,7 @@ class SudokuBoard:
             poss_2 = [i for i in self.get_possibilities(c, d) if i != 0]
             poss_3 = [i for i in self.get_possibilities(e, f) if i != 0]
             poss_4 = [i for i in self.get_possibilities(g, h) if i != 0]
-            intersection = self.intersection(poss_1, poss_2, poss_3, poss_4)
+            intersection = list(set(poss_1 & set(poss_2) & set(poss_3) & set(poss_4)))
             if len(intersection) > 0:
                 value_to_eliminate = intersection.pop()
                 # check that the value only shows up in rows/columns possibilities twice
@@ -552,7 +585,14 @@ class SudokuBoard:
 
         return success
 
+    #TODO make this method accept row/ col funcs
     def swordfish(self):
+        """
+        Look for three columns with only two candidates for a given digit. If these fall on exactly three common rows,
+        and each of those rows has at least two candidate cells, then all three rows can be cleared of that digit -
+        except in the defining cells.
+        :return: a boolean indicating if any possibilities were successfully eliminated
+        """
         success = 0
         index_triplets = [(a, b, c) for a, b, c in product(self.INDEX_RANGE, repeat=3) if a != b and b != c and c != a]
         # grab 3 rows
@@ -609,6 +649,13 @@ class SudokuBoard:
         return success
 
     def force_chain(self):
+        """
+        Takes the first available unsolved cell performs a recursive "guess-n-check" in an attempt to remove
+        possibilities. For each value it tries it solves a copy of the puzzle either to completion or
+        until a contradiction is met. Upon finding a contradiction it goes back to the original and removes that value.
+        Upon completing the puzzle, it copies the completed results back to the current puzzle
+        :return: a boolean indicating if any possibilities were successfully eliminated
+        """
         success = 0
         values = []
         for row in self.board:
@@ -714,13 +761,9 @@ class SudokuBoard:
 
         return tuple(sorted(return_val))
 
-    @staticmethod
-    def intersection(list_1, list_2, list_3, list_4):
-        return list(set(list_1) & set(list_2) & set(list_3) & set(list_4))
-
     def is_solved(self):
         """
-        Returns a boolean indicating if the sudoku is solved
+        :return: a boolean indicating if the sudoku is solved
         """
         for row in self.board:
             if 0 in row:
@@ -737,22 +780,47 @@ class SudokuBoard:
         return ((i // 3) * 3) + (j // 3)
 
     def row_indices_in_sector(self, sector):
+        """
+        returns a list containing all row indices contained in sector
+        :param sector: sector index
+        :return: list of row indices in sector
+        """
         return [i for i in self.INDEX_RANGE if i // 3 == sector // 3]
 
     def col_indices_in_sector(self, sector):
+        """
+        returns a list containing all col indices contained in sector
+        :param sector: sector index
+        :return: list of col indices in sector
+        """
         return [j for j in self.INDEX_RANGE if ((j % 3) // 3) == ((sector % 3) // 3)]
 
-    def eliminate_possibilities_from_row(self, i, value):
+    def eliminate_possibilities_from_row(self, row, value):
+        """
+        Removes the value from all possibility lists in row
+        :param row: row index
+        :param value: value to eliminate from row
+        """
         for coord, possibilities in self.possible_values.items():
-            if coord[0] == i and value in possibilities:
+            if coord[0] == row and value in possibilities:
                 possibilities.remove(value)
 
-    def eliminate_possibilities_from_column(self, j, value):
+    def eliminate_possibilities_from_column(self, col, value):
+        """
+        Removes the value from all possibility lists in column
+        :param col: column index
+        :param value: value to eliminate from row
+        """
         for coord, possibilities in self.possible_values.items():
-            if coord[1] == j and value in possibilities:
+            if coord[1] == col and value in possibilities:
                 possibilities.remove(value)
 
     def eliminate_possibilities_from_sector(self, sector, value):
+        """
+        Removes the value from all possibility lists in sector
+        :param sector: sector index
+        :param value: value to eliminate from sector
+        """
         for coord, possibilities in self.possible_values.items():
                 if self.sector_lookup(coord[0], coord[1]) == sector and value in possibilities:
                     possibilities.remove(value)
@@ -760,27 +828,25 @@ class SudokuBoard:
     # ---------------------------------------------- Utility ---------------------------------------------------------
 
     def print_reason_to_file(self, s):
+        """
+        Prints s to a file called "reasons.txt", prints s to the console, prints the sudoku puzzle to console
+        :param s: string to be printed to the reasons file, intended to be human readable step by step explanation of
+        how the puzzle was solved.
+        """
         if self.print_status:
             self.file.write(s + '\n')
             print(s)
             print(self)
 
-    # TODO
-    """"
-    - https://www.kristanix.com/sudokuepic/sudoku-solving-techniques.php
-    - Forcing Chain
-    - http://www.sadmansoftware.com/sudoku/solvingtechniques.php
-    - XY - Wing
-    - XYZ - Wing
-    """
-
     def solve(self):
+        """
+        Solves the sudoku puzzle
+        """
         start_time = datetime.now()
         # print(self)
-        method_progression = [self.sole_candidates, self.unique_candidate_columns, self.unique_candidate_rows,
-                              self.unique_candidate_sectors, self.naked_subset, self.hidden_subset,
-                              self.sector_sector_interaction, self.sector_column_interaction,
-                              self.sector_row_interaction, self.x_wing, self.swordfish, self.force_chain]
+        method_progression = [self.sole_candidates, self.unique_candidate, self.naked_subset, self.hidden_subset,
+                              self.sector_sector_interaction, self.sector_line_interaction, self.x_wing,
+                              self.swordfish, self.force_chain]
 
         index = 0
         while index < len(method_progression):
