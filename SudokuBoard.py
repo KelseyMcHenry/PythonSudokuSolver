@@ -6,7 +6,6 @@ from copy import deepcopy
 
 class SudokuBoard:
     """A data structure designed to hold sudoku data"""
-    # TODO error checking
 
     # -------------------------------------- Constant initialization -----------------------------------------------
 
@@ -15,7 +14,7 @@ class SudokuBoard:
 
     # -------------------------------------- Python Reserved Functions  --------------------------------------------
 
-    def __init__(self, values=[0]*81, file_path='', printout=True):
+    def __init__(self, values=[0] * 81, file_path='', printout=True):
         """
         Initializes the board values and initializes the cell possible values. Default is empty board
         :param values: list of values 81 values long, with 0 representing an empty space.
@@ -99,6 +98,7 @@ class SudokuBoard:
         if self.possible_values != other.possible_values:
             return False
         return True
+
     # ------------------------------------------- Getters / Setters -------------------------------------------------
 
     def get(self, i, j):
@@ -368,9 +368,10 @@ class SudokuBoard:
                             if n in self.possible_values[(i, j)]:
                                 success = 1
                                 self.possible_values[(i, j)].remove(n)
-                                self.print_reason_to_file('Cell (' + str(i) + ', ' + str(j) + ') had possibility value of '
-                                                      + str(n) + ' removed because of a sector - sector interaction '
-                                                      + 'between ' + str(sector_1) + ' and ' + str(sector_2) + '.')
+                                self.print_reason_to_file(
+                                    'Cell (' + str(i) + ', ' + str(j) + ') had possibility value of '
+                                    + str(n) + ' removed because of a sector - sector interaction '
+                                    + 'between ' + str(sector_1) + ' and ' + str(sector_2) + '.')
 
         for sector_1, sector_2 in sectors_to_check_cols:
             for n in self.INDEX_RANGE:
@@ -385,9 +386,10 @@ class SudokuBoard:
                             if n in self.possible_values[(i, j)]:
                                 success = 1
                                 self.possible_values[(i, j)].remove(n)
-                                self.print_reason_to_file('Cell (' + str(i) + ', ' + str(j) + ') had possibility value of '
-                                                      + str(n) + ' removed because of a sector - sector interaction '
-                                                      + 'between ' + str(sector_1) + ' and ' + str(sector_2) + '.')
+                                self.print_reason_to_file(
+                                    'Cell (' + str(i) + ', ' + str(j) + ') had possibility value of '
+                                    + str(n) + ' removed because of a sector - sector interaction '
+                                    + 'between ' + str(sector_1) + ' and ' + str(sector_2) + '.')
 
         return success
 
@@ -406,7 +408,8 @@ class SudokuBoard:
             # for all row/col/sectors depending on poss_func
             for index in self.INDEX_RANGE:
                 # for all possible combinations of 1 ... 9 of size subset_size (without repeats)
-                for values in [list(x) for x in product(self.VALUE_RANGE, repeat=subset_size) if len(set(x)) == subset_size]:
+                for values in [list(x) for x in product(self.VALUE_RANGE, repeat=subset_size) if
+                               len(set(x)) == subset_size]:
                     cells_that_contain_subset = []
                     # if the possibilities in cell in said row/col/sector can ONLY be that subset add it to a list
                     for coordinate, possibilities in poss_func(index).items():
@@ -437,8 +440,8 @@ class SudokuBoard:
 
         # Takes advantage of Python's OR operator short circuiting to cut down on number of functions run
         return self.naked_subset_generic(self.get_row_possibilities) or \
-               self.naked_subset_generic(self.get_col_possibilities) or \
-               self.naked_subset_generic(self.get_sector_possibilities)
+            self.naked_subset_generic(self.get_col_possibilities) or \
+            self.naked_subset_generic(self.get_sector_possibilities)
 
     def hidden_subset_generic(self, poss_func):
         """
@@ -456,7 +459,8 @@ class SudokuBoard:
             # for all row/col/sectors depending on poss_func
             for index in self.INDEX_RANGE:
                 # for all possible combinations of 1 ... 9 of size subset_size (without repeats)
-                for values in [list(x) for x in product(self.VALUE_RANGE, repeat=subset_size) if len(set(x)) == subset_size]:
+                for values in [list(x) for x in product(self.VALUE_RANGE, repeat=subset_size) if
+                               len(set(x)) == subset_size]:
                     cells_that_contain_members = []
                     for coordinate, possibilities in poss_func(index).items():
                         if any(i in possibilities for i in values):
@@ -504,8 +508,8 @@ class SudokuBoard:
             self.coordinates_to_check = [(a, b, c, d, e, f, g, h) for a, b, c, d, e, f, g, h in
                                          product(self.INDEX_RANGE, repeat=8)
                                          if (b == d and f == h and a == e and c == g) and len(list(
-                                            {self.sector_lookup(a, b), self.sector_lookup(c, d),
-                                             self.sector_lookup(e, f), self.sector_lookup(g, h)})) == 4]
+                    {self.sector_lookup(a, b), self.sector_lookup(c, d),
+                     self.sector_lookup(e, f), self.sector_lookup(g, h)})) == 4]
 
         for a, b, c, d, e, f, g, h in self.coordinates_to_check:
             poss_1 = [i for i in self.get_possibilities(a, b) if i != 0]
@@ -768,8 +772,8 @@ class SudokuBoard:
         :param value: value to eliminate from sector
         """
         for coord, possibilities in self.possible_values.items():
-                if self.sector_lookup(coord[0], coord[1]) == sector and value in possibilities:
-                    possibilities.remove(value)
+            if self.sector_lookup(coord[0], coord[1]) == sector and value in possibilities:
+                possibilities.remove(value)
 
     def eliminate_possibilities_from_row_swordfish(self, row, value, exclusion_triplet):
         """
@@ -842,7 +846,6 @@ class SudokuBoard:
         end_time = datetime.now()
         diff = divmod((end_time - start_time).total_seconds(), 60)
         if self.file_path_name:
-            print('Unable to complete ' + self.file_path_name + ' in ' + str(diff[0]) + ' minutes and ' + str(diff[1]) + ' seconds.')
+            print('Unable to complete ' + self.file_path_name + ' in ' + str(diff[0]) + ' minutes and ' + str(
+                diff[1]) + ' seconds.')
             print(self)
-
-
