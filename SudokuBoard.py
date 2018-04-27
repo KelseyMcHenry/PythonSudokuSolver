@@ -6,8 +6,6 @@ from copy import deepcopy
 
 class SudokuBoard:
     """A data structure designed to hold sudoku data"""
-    # TODO document
-        #TODO add specific links for each solving method
     # TODO error checking
 
     # -------------------------------------- Constant initialization -----------------------------------------------
@@ -33,7 +31,7 @@ class SudokuBoard:
         # 'cache' variable for x-wing method, which iterates over a complex set which is expensive to reproduce
         self.coordinates_to_check = []
         # English plaintext reasons output file
-        self.file = open('reasons.txt', 'w')
+        self.file = open('reasons_' + file_path[10: -4] + '.txt', 'w')
         self.print_status = printout
         self.file_path_name = file_path
 
@@ -343,8 +341,6 @@ class SudokuBoard:
             self.sector_line_interaction_generic(self.col_indices_in_sector,
                                                  self.get_sector_subcolumn_possibilities)
 
-
-
     def sector_sector_interaction(self):
         """
         Eliminates possibilities in other cells in a column or row if a number appears as candidates
@@ -491,8 +487,8 @@ class SudokuBoard:
 
         # Takes advantage of Python's OR operator short circuiting to cut down on number of functions run
         return self.hidden_subset_generic(self.get_row_possibilities) or \
-               self.hidden_subset_generic(self.get_col_possibilities) or \
-               self.hidden_subset_generic(self.get_sector_possibilities)
+            self.hidden_subset_generic(self.get_col_possibilities) or \
+            self.hidden_subset_generic(self.get_sector_possibilities)
 
     def x_wing(self):
         """
@@ -516,7 +512,7 @@ class SudokuBoard:
             poss_2 = [i for i in self.get_possibilities(c, d) if i != 0]
             poss_3 = [i for i in self.get_possibilities(e, f) if i != 0]
             poss_4 = [i for i in self.get_possibilities(g, h) if i != 0]
-            intersection = list(set(poss_1 & set(poss_2) & set(poss_3) & set(poss_4)))
+            intersection = list(set(poss_1) & set(poss_2) & set(poss_3) & set(poss_4))
             if len(intersection) > 0:
                 value_to_eliminate = intersection.pop()
                 # check that the value only shows up in rows/columns possibilities twice
@@ -563,7 +559,7 @@ class SudokuBoard:
                         for coord, poss in subarea_poss.items():
                             if value in poss:
                                 opposite_subarea.append(coord[1])
-                    if len(triplet(opposite_subarea)) == 3:
+                    if len(opposite_subarea) == 3:
                         # if so, remove value from all 3 columns/rows
                         for subarea in opposite_subarea:
                             poss_eliminator_func(subarea, value, triplet)
@@ -810,8 +806,8 @@ class SudokuBoard:
         """
         if self.print_status:
             self.file.write(s + '\n')
-            print(s)
-            print(self)
+            # print(s)
+            # print(self)
 
     def solve(self):
         """
@@ -823,6 +819,7 @@ class SudokuBoard:
                               self.sector_sector_interaction, self.sector_line_interaction, self.x_wing,
                               self.swordfish, self.force_chain]
 
+        most_complex_function_index = 0
         index = 0
         while index < len(method_progression):
             success = method_progression[index]()
@@ -830,11 +827,15 @@ class SudokuBoard:
                 end_time = datetime.now()
                 diff = divmod((end_time - start_time).total_seconds(), 60)
                 if self.file_path_name:
-                    print('Completed ' + self.file_path_name + ' in ' + str(diff[0]) + ' minutes and ' + str(diff[1]) + ' seconds.')
+                    print('Completed ' + self.file_path_name + ' in ' + str(diff[0]) + ' minutes and ' + str(diff[1])
+                          + ' seconds, with the most complex function used being '
+                          + str(method_progression[most_complex_function_index].__name__) + '.')
                 return
             else:
                 if success == 0:
                     index += 1
+                    if index > most_complex_function_index:
+                        most_complex_function_index = index
                 else:
                     index = 0
 

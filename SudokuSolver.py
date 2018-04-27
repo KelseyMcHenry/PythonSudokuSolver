@@ -47,7 +47,7 @@ import os
 
 for root, dirs, filenames in os.walk('TestCases'):
     for f in filenames:
-        sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/' + f, printout=False)
+        sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/' + f, printout=True)
         sudoku.solve()
 
 
