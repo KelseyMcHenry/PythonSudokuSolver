@@ -1,5 +1,7 @@
 import SudokuBoard
 import os
+from View import SudokuView
+from tkinter import Tk, Frame, RIGHT, Scrollbar, X, Y, Text, BOTH, WORD, Label, TOP, LEFT
 
 # data = input('enter 81 numbers between 1 and 9 corresponding to the rows of a Sudoku puzzle. For blanks, use 0')
 
@@ -26,28 +28,39 @@ import os
 #         0, 7, 6, 0, 0, 0, 0, 9, 0,
 #         0, 1, 9, 0, 0, 3, 0, 0, 4]
 
-# # evil
-# data = [0, 9, 1, 0, 3, 0, 0, 0, 0,
-#         0, 0, 0, 0, 9, 0, 0, 0, 8,
-#         7, 3, 0, 0, 0, 0, 0, 5, 0,
-#         3, 0, 0, 0, 0, 4, 1, 0, 0,
-#         0, 2, 8, 0, 0, 0, 5, 4, 0,
-#         0, 0, 7, 2, 0, 0, 0, 0, 3,
-#         0, 7, 0, 0, 0, 0, 0, 9, 5,
-#         2, 0, 0, 0, 6, 0, 0, 0, 0,
-#         0, 0, 0, 0, 1, 0, 4, 7, 0]
-#
-# sudoku = SudokuBoard.SudokuBoard(values=data)
-#
+# # # evil
+data = [1, 0, 0, 0, 9, 0, 3, 0, 0,
+        0, 6, 0, 7, 0, 0, 0, 0, 8,
+        0, 0, 4, 0, 0, 5, 0, 0, 0,
+        3, 0, 0, 0, 6, 0, 1, 0, 0,
+        0, 7, 0, 8, 0, 0, 0, 0, 0,
+        0, 0, 5, 0, 0, 0, 0, 9, 0,
+        2, 0, 0, 0, 1, 0, 0, 6, 0,
+        0, 8, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 9, 4, 0, 0, 0, 0, 0]
+
+sudoku = SudokuBoard.SudokuBoard(values=data)
+
 # sudoku.solve()
+# print(sudoku)
 
 # sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/blockcolrow5.sdk')
 # sudoku.solve()
 # print(sudoku)
 
-for root, dirs, filenames in os.walk('TestCases'):
-    for f in filenames:
-        sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/' + f, printout=True)
-        sudoku.solve()
+# for root, dirs, filenames in os.walk('TestCases'):
+#     for f in filenames:
+#         sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/' + f, printout=True)
+#         sudoku.solve()
+root = Tk()
+console_frame = Frame(master=root)
+vertical_scrollbar = Scrollbar(console_frame)
+text = Text(console_frame, height=2, wrap=WORD)
+label = Label(console_frame, text="Console: ", anchor="w")
+sudoku_view = SudokuView(root, sudoku, text)
+console_frame.pack(side=RIGHT, fill=BOTH, expand=1)
+label.pack(side=TOP, fill=X)
+vertical_scrollbar.pack(side=RIGHT, fill=Y)
+text.pack(side=RIGHT, fill=BOTH, expand=1)
 
-
+root.mainloop()

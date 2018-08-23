@@ -826,6 +826,7 @@ class SudokuBoard:
         most_complex_function_index = 0
         index = 0
         while index < len(method_progression):
+            print(method_progression[index].__name__)
             success = method_progression[index]()
             if self.is_solved():
                 end_time = datetime.now()
