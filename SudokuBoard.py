@@ -613,7 +613,6 @@ class SudokuBoard:
                         # return success
                 except ValueError:
                     if value_to_try in self.possible_values[(coord[0], coord[1])]:
-                        success = 1
                         self.possible_values[(coord[0], coord[1])].remove(value_to_try)
                         reason = str(coord) + ' had possibility value of ' + str(value_to_try) + ' removed due to trial and error'
                         self.print_reason_to_file(reason)
