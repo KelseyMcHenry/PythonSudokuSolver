@@ -2,11 +2,13 @@ from itertools import product
 from itertools import chain
 from datetime import datetime
 from copy import deepcopy
+from Move import Move, REMOVE_POSS, NUMBER_SOLVE
 
 
 # TODO: add reasons for when possibilities are updated
 # TODO: add reasons instead of simply returning a success or not.
 # TODO: PEP3
+# TODO: switch over to using formatted strings
 
 class SudokuBoard:
     """A data structure designed to hold sudoku data"""
@@ -246,16 +248,16 @@ class SudokuBoard:
         :return: a boolean indicating if any values were successfully solved
         """
 
-        success = 0
+        successes = []
         for coordinate, possibilities in self.possible_values.items():
             if len(possibilities) == 1:
-                success = 1
                 value = possibilities.pop()
                 self.set(coordinate[0], coordinate[1], value)
-                self.print_reason_to_file('Cell ' + str(coordinate) + ' set to ' + str(value) +
-                                          ' because it was the only possibility remaining for that cell.')
+                reason = 'Cell ' + str(coordinate) + ' set to ' + str(value) + ' because it was the only possibility remaining for that cell.'
+                self.print_reason_to_file(reason)
+                successes.append(Move(NUMBER_SOLVE, value, coordinate, reason))
 
-        return success
+        return successes
 
     def unique_candidates_generic(self, poss_func):
         """
@@ -265,7 +267,7 @@ class SudokuBoard:
         :return: a boolean indicating if any values were successfully solved
         """
 
-        success = 0
+        successes = []
         for index in self.INDEX_RANGE:
             # accumulate all of the possibilities for all cells in col j
             area_total_poss = list(chain.from_iterable(poss_func(index).values()))
@@ -275,7 +277,6 @@ class SudokuBoard:
             for value in unique_values_in_area:
                 for key, poss_list in poss_func(index).items():
                     if value in poss_list:
-                        success = 1
                         self.set(key[0], key[1], value)
                         if poss_func.__name__ == 'get_row_possibilities':
                             subarea_type = 'row'
@@ -283,10 +284,10 @@ class SudokuBoard:
                             subarea_type = 'column'
                         elif poss_func.__name__ == 'get_sector_possibilities':
                             subarea_type = 'sector'
-                        self.print_reason_to_file('Cell ' + str(key) + ' set to ' + str(value) +
-                                                  ' because the possibility was unique to ' + subarea_type + ' '
-                                                  + str(index) + '.')
-        return success
+                        reason = 'Cell ' + str(key) + ' set to ' + str(value) + ' because the possibility was unique to ' + subarea_type + ' ' + str(index) + '.'
+                        successes.append(Move(NUMBER_SOLVE, value, key, reason))
+                        self.print_reason_to_file(reason)
+        return successes
 
     def unique_candidate(self):
         """
@@ -309,7 +310,7 @@ class SudokuBoard:
         Eliminates possibilities within a row outside of a sector if a possibility is unique to row within said sector
         :return: a boolean indicating if any possibilities were successfully eliminated
         """
-        success = 0
+        successes = []
         for sector in self.INDEX_RANGE:
             area_indices_in_sector = poss_func(sector)
 
@@ -321,16 +322,15 @@ class SudokuBoard:
                 if unique_index >= 0:
                     for i, j in product(self.INDEX_RANGE, self.INDEX_RANGE):
                         if i == area_indices_in_sector[unique_index] and self.sector_lookup(i, j) != sector:
-                            success = 1
                             self.possible_values[(i, j)].remove(n)
                             if poss_func.__name__ == 'get_row_possibilities':
                                 subarea_type = 'row'
                             elif poss_func.__name__ == 'get_col_possibilities':
                                 subarea_type = 'column'
-                            self.print_reason_to_file('Cell (' + str(i) + ', ' + str(j) + ') had possibility value of '
-                                                      + str(n) + ' removed because sector ' + str(sector) + ' must '
-                                                      + 'contain it via a ' + subarea_type + ' interaction.')
-        return success
+                            reason = 'Cell (' + str(i) + ', ' + str(j) + ') had possibility value of ' + str(n) + ' removed because sector ' + str(sector) + ' must ' + 'contain it via a ' + subarea_type + ' interaction.'
+                            self.print_reason_to_file(reason)
+                            successes.append(Move(REMOVE_POSS, n, (i, j), reason))
+        return successes
 
     def sector_line_interaction(self):
         """
@@ -351,7 +351,7 @@ class SudokuBoard:
         for only two cells in two different blocks, but both cells are in the same column or row
         :return: a boolean indicating if any possibilities were successfully eliminated
         """
-        success = 0
+        successes = []
         right_adjacent = [(x, x + 1) for x in self.INDEX_RANGE if (x + 1) % 3 != 0 and (x + 1) < 9]
         bottom_adjacent = [(x, x + 3) for x in self.INDEX_RANGE if (x + 3) < 9]
         bottom_two_adjacent = [(x, x + 6) for x in self.INDEX_RANGE if (x + 6) < 9]
@@ -370,12 +370,10 @@ class SudokuBoard:
                         ij_sector = self.sector_lookup(i, j)
                         if ij_sector != sector_1 and ij_sector != sector_2 and i in sector_1_row_indices:
                             if n in self.possible_values[(i, j)]:
-                                success = 1
                                 self.possible_values[(i, j)].remove(n)
-                                self.print_reason_to_file(
-                                    'Cell (' + str(i) + ', ' + str(j) + ') had possibility value of '
-                                    + str(n) + ' removed because of a sector - sector interaction '
-                                    + 'between ' + str(sector_1) + ' and ' + str(sector_2) + '.')
+                                reason = 'Cell (' + str(i) + ', ' + str(j) + ') had possibility value of ' + str(n) + ' removed because of a sector - sector interaction ' + 'between ' + str(sector_1) + ' and ' + str(sector_2) + '.'
+                                self.print_reason_to_file(reason)
+                                successes.append(Move(REMOVE_POSS, n, (i, j), reason))
 
         for sector_1, sector_2 in sectors_to_check_cols:
             for n in self.INDEX_RANGE:
@@ -388,14 +386,12 @@ class SudokuBoard:
                         ij_sector = self.sector_lookup(i, j)
                         if ij_sector != sector_1 and ij_sector != sector_2 and j in sector_1_col_indices:
                             if n in self.possible_values[(i, j)]:
-                                success = 1
                                 self.possible_values[(i, j)].remove(n)
-                                self.print_reason_to_file(
-                                    'Cell (' + str(i) + ', ' + str(j) + ') had possibility value of '
-                                    + str(n) + ' removed because of a sector - sector interaction '
-                                    + 'between ' + str(sector_1) + ' and ' + str(sector_2) + '.')
+                                reason = 'Cell (' + str(i) + ', ' + str(j) + ') had possibility value of ' + str(n) + ' removed because of a sector - sector interaction ' + 'between ' + str(sector_1) + ' and ' + str(sector_2) + '.'
+                                self.print_reason_to_file(reason)
+                                successes.append(Move(REMOVE_POSS, n, (i, j), reason))
 
-        return success
+        return successes
 
     def naked_subset_generic(self, poss_func):
         """
@@ -406,7 +402,7 @@ class SudokuBoard:
         :param poss_func: a function which gives either row, col, or sector possibilities.
         :return: a boolean indicating if any possibilities were successfully eliminated
         """
-        success = 0
+        successes = []
         # for all subset sizes from 2 ... 5
         for subset_size in range(2, 6):
             # for all row/col/sectors depending on poss_func
@@ -426,14 +422,12 @@ class SudokuBoard:
                             if coordinate not in cells_that_contain_subset:
                                 for value in values:
                                     if value in possibilities:
-                                        success = 1
                                         possibilities.remove(value)
-                                        self.print_reason_to_file(
-                                            'Cell ' + str(coordinate) + ' had possibility value of '
-                                            + str(value) + ' removed because there was a naked subset at '
-                                            + str(cells_that_contain_subset) + ' of size ' + str(subset_size))
+                                        reason = 'Cell ' + str(coordinate) + ' had possibility value of ' + str(value) + ' removed because there was a naked subset at ' + str(cells_that_contain_subset) + ' of size ' + str(subset_size)
+                                        self.print_reason_to_file(reason)
+                                        successes.append(Move(REMOVE_POSS, value, coordinate, reason))
 
-        return success
+        return successes
 
     def naked_subset(self):
         """
@@ -457,7 +451,7 @@ class SudokuBoard:
         :return: a boolean indicating if any possibilities were successfully eliminated
         """
 
-        success = 0
+        successes = []
         # for all subset sizes from 2 ... 5
         for subset_size in range(2, 6):
             # for all row/col/sectors depending on poss_func
@@ -476,15 +470,12 @@ class SudokuBoard:
                                 if coordinate in cells_that_contain_members:
                                     for n in self.VALUE_RANGE:
                                         if n in possibilities and n not in values:
-                                            success = 1
                                             possibilities.remove(n)
-                                            self.print_reason_to_file(
-                                                'Cell ' + str(coordinate) + ' had possibility value of '
-                                                + str(n) + ' removed because there was a hidden subset at '
-                                                + str(cells_that_contain_members) + ' of size ' + str(subset_size)
-                                                + ' ' + str(values))
+                                            reason = 'Cell ' + str(coordinate) + ' had possibility value of ' + str(n) + ' removed because there was a hidden subset at ' + str(cells_that_contain_members) + ' of size ' + str(subset_size) + ' ' + str(values)
+                                            self.print_reason_to_file(reason)
+                                            successes.append(Move(REMOVE_POSS, n, coordinate, reason))
 
-        return success
+        return successes
 
     def hidden_subset(self):
         """
@@ -504,7 +495,7 @@ class SudokuBoard:
         between all 4 from the remaining cells in the 4 corners' sectors.
         :return: a boolean indicating if any possibilities were successfully eliminated
         """
-        success = 0
+        successes = []
         # if coordinates_to_check is not initialized...
         if len(self.coordinates_to_check) == 0:
             # for all combinations of 4 coordinate pairs where the 4 coordinates are on matching corners ...
@@ -531,24 +522,22 @@ class SudokuBoard:
                 col_2_poss = [value for poss_list in self.get_col_possibilities(d) for value in poss_list]
                 if row_1_poss.count(value_to_eliminate) == 2 and row_2_poss.count(value_to_eliminate) == 2:
                     # eliminate value from columns b, d
-                    success = 1
-                    self.eliminate_possibilities_from_column(b, value_to_eliminate)
-                    self.eliminate_possibilities_from_column(d, value_to_eliminate)
-                    self.print_reason_to_file('Columns ' + str(b) + ' and ' + str(d) + ' had possibility value of '
-                                              + str(value_to_eliminate) + ' removed because there was '
-                                              + 'an x-wing interaction between cells '
-                                              + str([(a, b), (c, d), (e, f), (g, h)]))
+                    moves1 = self.eliminate_possibilities_from_column(b, value_to_eliminate, str([(a, b), (c, d), (e, f), (g, h)]))
+                    moves2 = self.eliminate_possibilities_from_column(d, value_to_eliminate, str([(a, b), (c, d), (e, f), (g, h)]))
+                    reason = 'Columns ' + str(b) + ' and ' + str(d) + ' had possibility value of ' + str(value_to_eliminate) + ' removed because there was ' + 'an x-wing interaction between cells ' + str([(a, b), (c, d), (e, f), (g, h)])
+                    self.print_reason_to_file(reason)
+                    successes.extend(moves1)
+                    successes.extend(moves2)
                 elif col_1_poss.count(value_to_eliminate) == 2 and col_2_poss.count(value_to_eliminate) == 2:
                     # eliminate value from rows a, e
-                    success = 1
-                    self.eliminate_possibilities_from_row(a, value_to_eliminate)
-                    self.eliminate_possibilities_from_row(c, value_to_eliminate)
-                    self.print_reason_to_file('Rows ' + str(a) + ' and ' + str(c) + ' had possibility value of '
-                                              + str(value_to_eliminate) + ' removed because there was '
-                                              + 'an x-wing interaction between cells '
-                                              + str([(a, b), (c, d), (e, f), (g, h)]))
+                    moves1 = self.eliminate_possibilities_from_row(a, value_to_eliminate, str([(a, b), (c, d), (e, f), (g, h)]))
+                    moves2 = self.eliminate_possibilities_from_row(c, value_to_eliminate, str([(a, b), (c, d), (e, f), (g, h)]))
+                    reason = 'Rows ' + str(a) + ' and ' + str(c) + ' had possibility value of ' + str(value_to_eliminate) + ' removed because there was ' + 'an x-wing interaction between cells ' + str([(a, b), (c, d), (e, f), (g, h)])
+                    self.print_reason_to_file(reason)
+                    successes.extend(moves1)
+                    successes.extend(moves2)
 
-        return success
+        return successes
 
     def swordfish_generic(self, poss_func, poss_eliminator_func):
         success = 0
@@ -747,27 +736,38 @@ class SudokuBoard:
         """
         return [j for j in self.INDEX_RANGE if ((j % 3) // 3) == ((sector % 3) // 3)]
 
-    def eliminate_possibilities_from_row(self, row, value):
+    # TODO: investigate the difference between row,j and col,i between row and column
+    def eliminate_possibilities_from_row(self, row, value, quad):
         """
         Removes the value from all possibility lists in row
         :param row: row index
         :param value: value to eliminate from row
         """
+        moves = []
         for j in self.INDEX_RANGE:
             possibilities = self.possible_values[(row, j)]
             if value in possibilities:
                 possibilities.remove(value)
+                reason = str(row, j) + ' had possibility value of ' + str(value) + ' removed because there was ' + 'an x-wing interaction between cells ' + quad
+                moves.append(Move(REMOVE_POSS, value, (row, j), reason))
 
-    def eliminate_possibilities_from_column(self, col, value):
+        return moves
+
+    def eliminate_possibilities_from_column(self, col, value, quad):
         """
         Removes the value from all possibility lists in column
         :param col: column index
         :param value: value to eliminate from row
         """
+        moves = []
         for i in self.INDEX_RANGE:
             possibilities = self.possible_values[(col, i)]
             if value in possibilities:
                 possibilities.remove(value)
+                reason = str(col, i) + ' had possibility value of ' + str(value) + ' removed because there was ' + 'an x-wing interaction between cells ' + quad
+                moves.append(Move(REMOVE_POSS, value, (col, i), reason))
+
+        return moves
 
     def eliminate_possibilities_from_sector(self, sector, value):
         """
