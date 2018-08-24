@@ -10,7 +10,7 @@ from Move import Move, REMOVE_POSS, NUMBER_SOLVE
 # TODO: PEP3
 # TODO: switch over to using formatted strings
 # TODO: split file into board model and solving functions
-# TODO: instead of calling .board, make a function to return the board
+# TODO: instead of calling .board, make a function to return the board / same for poss
 
 class SudokuBoard:
     """A data structure designed to hold sudoku data"""
@@ -65,6 +65,9 @@ class SudokuBoard:
                         (n not in [self.board[i][j] for i, j in product(self.INDEX_RANGE, self.INDEX_RANGE)
                                    if self.sector_lookup(i, j) == self.sector_lookup(coordinate[0], coordinate[1])])):
                     self.possible_values[coordinate].append(n)
+
+    def __del__(self):
+        self.file.close()
 
     def __str__(self):
         """

@@ -53,6 +53,7 @@ sudoku = SudokuBoard.SudokuBoard(values=data)
 #     for f in filenames:
 #         sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/' + f, printout=True)
 #         sudoku.solve()
+
 root = Tk()
 console_frame = Frame(master=root)
 vertical_scrollbar = Scrollbar(console_frame)
