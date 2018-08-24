@@ -9,6 +9,7 @@ from Move import Move, REMOVE_POSS, NUMBER_SOLVE
 # TODO: add reasons instead of simply returning a success or not.
 # TODO: PEP3
 # TODO: switch over to using formatted strings
+# TODO: split file into board model and solving functions
 
 class SudokuBoard:
     """A data structure designed to hold sudoku data"""
@@ -540,7 +541,7 @@ class SudokuBoard:
         return successes
 
     def swordfish_generic(self, poss_func, poss_eliminator_func):
-        success = 0
+        successes = []
         index_triplets = [(a, b, c) for a, b, c in product(self.INDEX_RANGE, repeat=3) if a != b and b != c and c != a]
         # grab 3 rows
         for triplet in index_triplets:
@@ -559,19 +560,17 @@ class SudokuBoard:
                     if len(opposite_subarea) == 3:
                         # if so, remove value from all 3 columns/rows
                         for subarea in opposite_subarea:
-                            poss_eliminator_func(subarea, value, triplet)
-                            success = 1
+                            moves = poss_eliminator_func(subarea, value, triplet)
                             if poss_func.__name__ == 'get_row_possibilities':
                                 subarea_type = 'row'
                                 opposite_subarea = 'column'
                             elif poss_func.__name__ == 'get_col_possibilities':
                                 subarea_type = 'column'
                                 opposite_subarea = 'row'
-                            self.print_reason_to_file(subarea_type.title() + str(subarea) + ' had possibility value of '
-                                                      + str(value) + ' removed because there was '
-                                                      + 'a swordfish interaction between ' + opposite_subarea + 's '
-                                                      + str(triplet))
-        return success
+                            reason = subarea_type.title() + str(subarea) + ' had possibility value of ' + str(value) + ' removed because there was ' + 'a swordfish interaction between ' + opposite_subarea + 's ' + str(triplet)
+                            self.print_reason_to_file(reason)
+                            successes.extend(moves)
+        return successes
 
     def swordfish(self):
         return self.swordfish_generic(self.get_row_possibilities, self.eliminate_possibilities_from_row_swordfish) or \
@@ -585,7 +584,7 @@ class SudokuBoard:
         Upon completing the puzzle, it copies the completed results back to the current puzzle
         :return: a boolean indicating if any possibilities were successfully eliminated
         """
-        success = 0
+        successes = []
         values = []
         for row in self.board:
             values.extend(row)
@@ -599,29 +598,29 @@ class SudokuBoard:
                     # print("Forcing chain on " + str(coord) + " with value " + str(value_to_try))
                     # print(attempt_board)
                     try:
-                        attempt_board.solve()
+                        # TODO : make solve return list of moves
+                        moves = attempt_board.solve()
                     except ValueError:
                         if value_to_try in self.possible_values[(coord[0], coord[1])]:
-                            success = 1
                             self.possible_values[(coord[0], coord[1])].remove(value_to_try)
-                            self.print_reason_to_file(
-                                str(coord) + ' had possibility value of '
-                                + str(value_to_try) + ' removed due to trial and error')
-                            return success
+                            reason = str(coord) + ' had possibility value of ' + str(value_to_try) + ' removed due to trial and error'
+                            self.print_reason_to_file(reason)
+                            successes.append(Move(REMOVE_POSS, value_to_try, coord, reason))
+                            # return success
                     else:
-                        success = 1
+                        successes.extend(moves)
                         self.board = deepcopy(attempt_board.board)
-                        return success
+                        # return success
                 except ValueError:
                     if value_to_try in self.possible_values[(coord[0], coord[1])]:
                         success = 1
                         self.possible_values[(coord[0], coord[1])].remove(value_to_try)
-                        self.print_reason_to_file(
-                            str(coord) + ' had possibility value of '
-                            + str(value_to_try) + ' removed due to trial and error')
-                        return success
+                        reason = str(coord) + ' had possibility value of ' + str(value_to_try) + ' removed due to trial and error'
+                        self.print_reason_to_file(reason)
+                        successes.append(Move(REMOVE_POSS, value_to_try, coord, reason))
+                        # return success
 
-        return success
+        return successes
 
     # ------------------------------------------- Helper Functions -------------------------------------------------
 
@@ -736,7 +735,6 @@ class SudokuBoard:
         """
         return [j for j in self.INDEX_RANGE if ((j % 3) // 3) == ((sector % 3) // 3)]
 
-    # TODO: investigate the difference between row,j and col,i between row and column
     def eliminate_possibilities_from_row(self, row, value, quad):
         """
         Removes the value from all possibility lists in row
@@ -748,7 +746,7 @@ class SudokuBoard:
             possibilities = self.possible_values[(row, j)]
             if value in possibilities:
                 possibilities.remove(value)
-                reason = str(row, j) + ' had possibility value of ' + str(value) + ' removed because there was ' + 'an x-wing interaction between cells ' + quad
+                reason = str((row, j)) + ' had possibility value of ' + str(value) + ' removed because there was ' + 'an x-wing interaction between cells ' + quad
                 moves.append(Move(REMOVE_POSS, value, (row, j), reason))
 
         return moves
@@ -761,11 +759,11 @@ class SudokuBoard:
         """
         moves = []
         for i in self.INDEX_RANGE:
-            possibilities = self.possible_values[(col, i)]
+            possibilities = self.possible_values[(i, col)]
             if value in possibilities:
                 possibilities.remove(value)
-                reason = str(col, i) + ' had possibility value of ' + str(value) + ' removed because there was ' + 'an x-wing interaction between cells ' + quad
-                moves.append(Move(REMOVE_POSS, value, (col, i), reason))
+                reason = str((i, col)) + ' had possibility value of ' + str(value) + ' removed because there was ' + 'an x-wing interaction between cells ' + quad
+                moves.append(Move(REMOVE_POSS, value, (i, col), reason))
 
         return moves
 
@@ -786,10 +784,15 @@ class SudokuBoard:
         :param value: value to eliminate from row
         :param exclusion_triplet: triplet of indices which possibilities will remain untouched.
         """
+        moves = []
         for j in self.INDEX_RANGE:
             possibilities = self.possible_values[(row, j)]
             if value in possibilities and j not in exclusion_triplet:
                 possibilities.remove(value)
+                reason = 'row' + str((row, j)) + 'had possibility value of ' + str(value) + ' removed because there was ' + 'a swordfish interaction between columns ' + str(exclusion_triplet)
+                moves.append(Move(REMOVE_POSS, value, (row, j), reason))
+
+        return moves
 
     def eliminate_possibilities_from_column_swordfish(self, col, value, exclusion_triplet):
         """
@@ -798,11 +801,17 @@ class SudokuBoard:
         :param value: value to eliminate from row
         :param exclusion_triplet: triplet of indices which possibilities will remain untouched.
         """
-
+        moves = []
         for i in self.INDEX_RANGE:
             possibilities = self.possible_values[(i, col)]
             if value in possibilities and i not in exclusion_triplet:
                 possibilities.remove(value)
+                reason = 'column' + str((i, col)) + 'had possibility value of ' + str(
+                    value) + ' removed because there was ' + 'a swordfish interaction between columns ' + str(
+                    exclusion_triplet)
+                moves.append(Move(REMOVE_POSS, value, (i, col), reason))
+
+        return moves
 
     # ---------------------------------------------- Utility ---------------------------------------------------------
 
@@ -821,6 +830,7 @@ class SudokuBoard:
         """
         Solves the sudoku puzzle
         """
+        moves = []
         start_time = datetime.now()
         # print(self)
         method_progression = [self.sole_candidates, self.unique_candidate, self.naked_subset, self.hidden_subset,
@@ -831,7 +841,8 @@ class SudokuBoard:
         index = 0
         while index < len(method_progression):
             print(method_progression[index].__name__)
-            success = method_progression[index]()
+            successes = method_progression[index]()
+            moves.extend(successes)
             if self.is_solved():
                 end_time = datetime.now()
                 diff = divmod((end_time - start_time).total_seconds(), 60)
@@ -841,7 +852,7 @@ class SudokuBoard:
                           + str(method_progression[most_complex_function_index].__name__) + '.')
                 return
             else:
-                if success == 0:
+                if not successes:
                     index += 1
                     if index > most_complex_function_index:
                         most_complex_function_index = index
@@ -854,3 +865,5 @@ class SudokuBoard:
             print('Unable to complete ' + self.file_path_name + ' in ' + str(diff[0]) + ' minutes and ' + str(
                 diff[1]) + ' seconds.')
             print(self)
+
+        return moves
