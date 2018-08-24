@@ -57,6 +57,7 @@ class SudokuView(Frame):
 
         self.canvas.bind("<Button-1>", self.cell_clicked)
         self.canvas.bind("<Key>", self.key_pressed)
+        self.canvas.bind("<FocusOut>", self.clear_cursor)
 
     def draw_grid(self):
         for i in range(10):
@@ -168,8 +169,10 @@ class SudokuView(Frame):
     def hint(self):
         # TODO
         # check and see if any cells are incorrect, possibilities or solutions; if so highlight them and say so.
+        #   possibly attempt to explain why it is wrong?
 
-        # grab the next move, dole out position, then operation, then number with a reason.
+        # grab the next move, see if the user has already figured it, if so, move on to the next move.
+        #   dole out position, then operation, then number with a reason.
 
         # put a note in the console
         pass
@@ -185,3 +188,7 @@ class SudokuView(Frame):
 
     def write_to_console(self, text):
         self.console.insert('end', text + '\n')
+
+    def clear_cursor(self, event):
+        self.row, self.col = -1, -1
+        self.draw_cursor()
