@@ -4,6 +4,10 @@ from datetime import datetime
 from copy import deepcopy
 
 
+# TODO: add reasons for when possibilities are updated
+# TODO: add reasons instead of simply returning a success or not.
+# TODO: PEP3
+
 class SudokuBoard:
     """A data structure designed to hold sudoku data"""
 

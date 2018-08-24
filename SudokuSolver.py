@@ -1,7 +1,8 @@
 import SudokuBoard
 import os
 from View import SudokuView
-from tkinter import Tk, Frame, RIGHT, Scrollbar, X, Y, Text, BOTH, WORD, Label, TOP, LEFT
+from tkinter import Tk, Frame, RIGHT, Scrollbar, X, Y, Text, BOTH, WORD, Label, TOP, LEFT, font
+from tkinter.font import Font
 
 # data = input('enter 81 numbers between 1 and 9 corresponding to the rows of a Sudoku puzzle. For blanks, use 0')
 
@@ -62,5 +63,6 @@ console_frame.pack(side=RIGHT, fill=BOTH, expand=1)
 label.pack(side=TOP, fill=X)
 vertical_scrollbar.pack(side=RIGHT, fill=Y)
 text.pack(side=RIGHT, fill=BOTH, expand=1)
+
 
 root.mainloop()

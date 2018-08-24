@@ -3,11 +3,10 @@ from random import randint
 from SudokuBoard import SudokuBoard
 from itertools import product
 
+# TODO - write better, more comprehensive, tests
 
 class SudokuBoardTestCase(unittest.TestCase):
     """tests for SudokuBoard.py"""
-
-    # TODO - write better tests
 
     def setUp(self):
         """Creates a test board we will work with"""

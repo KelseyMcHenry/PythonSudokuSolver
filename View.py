@@ -1,4 +1,6 @@
 from tkinter import Tk, Canvas, Frame, Button, BOTH, TOP, BOTTOM, LEFT
+from tkinter.font import Font
+from UserSudokuModel import UserBoard
 
 # http://newcoder.io/gui/part-3/
 # http://wiki.tcl.tk/37701
@@ -13,11 +15,21 @@ MINOR_LINE_COLOR = "gray"
 ORIGINAL_NUMBER = "black"
 ENTERED_NUMBER = "sea green"
 
+CURSOR_COLOR = "red"
+
+# TODO: async pass the original puzzle to the solver, when it returns set a flag.
+    # TODO: disable solve and hint buttons until it returns
+# TODO: add an option to 'handhold' and not allow them to add incorrect possibilities
+# TODO: docstrings
+# TODO: button styling
+# TODO: make console read only
+
 
 class SudokuView(Frame):
 
     def __init__(self, parent, game, text):
-        self.game = game
+        self.game_model = game
+        self.user_board = UserBoard(game)
         self.parent = parent
         self.console = text
         Frame.__init__(self, parent)
@@ -66,17 +78,25 @@ class SudokuView(Frame):
         self.canvas.delete("numbers")
         for i in range(9):
             for j in range(9):
-                answer = self.game.get(i, j)
+                answer = self.user_board.get(i, j)
                 if answer != 0:
-                    x = MARGIN + j * SIDE + SIDE / 2
-                    y = MARGIN + i * SIDE + SIDE / 2
-                    original = self.game.get(i, j)
+                    original = self.game_model.get(i, j)
                     color = ORIGINAL_NUMBER if answer == original else ENTERED_NUMBER
-                    self.canvas.create_text(x, y, text=answer, tags="numbers", fill=color)
+                    if type(answer) is list:
+                        font = Font(family="Segoe UI", size=9)
+                        for number in answer:
+                            x = MARGIN + j * SIDE + 14 * ((number - 1) % 3) + 10
+                            y = MARGIN + i * SIDE + 14 * ((number - 1) // 3) + 10
+                            self.canvas.create_text(x, y, text=number, tags="numbers", fill=color, font=font)
+                    elif type(answer) is int:
+                        x = MARGIN + j * SIDE + SIDE / 2
+                        y = MARGIN + i * SIDE + SIDE / 2
+                        font = Font(family="Segoe UI", size=12)
+                        self.canvas.create_text(x, y, text=answer, tags="numbers", fill=color, font=font)
 
     def cell_clicked(self, event):
-        if self.game.is_solved():
-            return
+        # if self.user_board.is_solved():
+        #     return
         x, y = event.x, event.y
         if MARGIN < x < WIDTH - MARGIN and MARGIN < y < HEIGHT - MARGIN:
             self.canvas.focus_set()
@@ -85,7 +105,7 @@ class SudokuView(Frame):
             # if cell was selected already - deselect it
             if (row, col) == (self.row, self.col):
                 self.row, self.col = -1, -1
-            elif self.game.get(row, col) == 0:
+            else:
                 self.row, self.col = row, col
 
         self.draw_cursor()
@@ -97,20 +117,37 @@ class SudokuView(Frame):
             y0 = MARGIN + self.row * SIDE + 1
             x1 = MARGIN + (self.col + 1) * SIDE - 1
             y1 = MARGIN + (self.row + 1) * SIDE - 1
-            self.canvas.create_rectangle(x0, y0, x1, y1, outline="red", tags="cursor")
+            self.canvas.create_rectangle(x0, y0, x1, y1, outline=CURSOR_COLOR, tags="cursor")
 
     def key_pressed(self, event):
-        if self.game.is_solved():
-            return
+        # if self.user_board.is_solved():
+        #     return
         if self.row >= 0 and self.col >= 0 and event.char in "1234567890":
-            self.game.puzzle[self.row][self.col] = int(event.char)
-            self.col, self.row = -1, -1
+            val = int(event.char)
+            cell = self.user_board.get(self.row, self.col)
+            if type(cell) == int and cell == self.game_model.get(self.row, self.col) and cell != 0:
+                return
+            if type(cell) == int:
+                if val == cell:
+                    self.user_board.set(self.row, self.col, 0)
+                elif cell == 0:
+                    self.user_board.set(self.row, self.col, val)
+                else:
+                    self.user_board.add_possibility(self.row, self.col, val)
+            elif type(cell) == list:
+                if val in cell:
+                    self.user_board.remove_possibility(self.row, self.col, val)
+                else:
+                    self.user_board.add_possibility(self.row, self.col, val)
+
+            # self.col, self.row = -1, -1
             self.draw_puzzle()
             self.draw_cursor()
-            if self.game.check_win():
-                self.draw_victory()
+            # if self.user_board.check_win():
+            #     self.draw_victory()
 
     def draw_victory(self):
+        # TODO: Don't particularly like this, look into changing it
         # create a oval (which will be a circle)
         x0 = y0 = MARGIN + SIDE * 2
         x1 = y1 = MARGIN + SIDE * 7
@@ -120,15 +157,30 @@ class SudokuView(Frame):
         self.canvas.create_text(x, y, text="You win!", tags="winner", fill="white", font=("Arial", 32))
 
     def clear_answers(self):
-        pass
+        for i in range(9):
+            for j in range(9):
+                answer = self.user_board.get(i, j)
+                original = self.game_model.get(i, j)
+                if answer != original:
+                    self.user_board.set(i, j, 0)
+        self.draw_puzzle()
 
     def hint(self):
+        # TODO
+        # check and see if any cells are incorrect, possibilities or solutions; if so highlight them and say so.
+
+        # grab the next move, dole out position, then operation, then number with a reason.
+
+        # put a note in the console
         pass
 
     def solve(self):
+        # TODO solve the whole thing and dump the reasons to the console
         pass
 
     def new_puzzle(self):
+        # TODO
+        # pull a puzzle from online
         pass
 
     def write_to_console(self, text):
