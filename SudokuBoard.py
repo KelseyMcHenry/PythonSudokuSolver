@@ -10,6 +10,7 @@ from Move import Move, REMOVE_POSS, NUMBER_SOLVE
 # TODO: PEP3
 # TODO: switch over to using formatted strings
 # TODO: split file into board model and solving functions
+# TODO: instead of calling .board, make a function to return the board
 
 class SudokuBoard:
     """A data structure designed to hold sudoku data"""
