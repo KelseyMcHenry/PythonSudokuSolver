@@ -44,15 +44,15 @@ class SudokuBoard:
 
         if file_path != '':
             values.clear()
-            sudoku_file = open(file_path, 'r')
-            for line in sudoku_file:
-                for character in line:
-                    if character == '.':
-                        values.append(0)
-                    elif character == '\n':
-                        pass
-                    else:
-                        values.append(int(character))
+            with open(file_path, 'r') as sudoku_file:
+                for line in sudoku_file:
+                    for character in line:
+                        if character == '.':
+                            values.append(0)
+                        elif character == '\n':
+                            pass
+                        else:
+                            values.append(int(character))
 
         for i, value in enumerate(values):
             self.board[i // 9][i % 9] = value
@@ -253,14 +253,20 @@ class SudokuBoard:
         :return: a boolean indicating if any values were successfully solved
         """
 
+        queue = {}
+
         successes = []
         for coordinate, possibilities in self.possible_values.items():
             if len(possibilities) == 1:
-                value = possibilities.pop()
-                self.set(coordinate[0], coordinate[1], value)
-                reason = 'Cell ' + str(coordinate) + ' set to ' + str(value) + ' because it was the only possibility remaining for that cell.'
-                self.print_reason_to_file(reason)
-                successes.append(Move(NUMBER_SOLVE, value, coordinate, reason))
+                value = possibilities[0]
+                queue[coordinate] = value
+
+        for coordinate, value in queue.items():
+            self.set(coordinate[0], coordinate[1], value)
+            reason = 'Cell ' + str(coordinate) + ' set to ' + str(
+                value) + ' because it was the only possibility remaining for that cell.'
+            self.print_reason_to_file(reason)
+            successes.append(Move(NUMBER_SOLVE, value, coordinate, reason))
 
         return successes
 

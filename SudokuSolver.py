@@ -6,8 +6,8 @@ from tkinter.font import Font
 
 # data = input('enter 81 numbers between 1 and 9 corresponding to the rows of a Sudoku puzzle. For blanks, use 0')
 
-# easy
-# data = [3, 0, 0, 6, 0, 0, 0, 9, 0,
+# # easy
+# data_3 = [3, 0, 0, 6, 0, 0, 0, 9, 0,
 #         0, 4, 5, 0, 8, 0, 0, 1, 2,
 #         0, 0, 0, 0, 0, 1, 0, 7, 0,
 #         9, 0, 2, 4, 0, 7, 0, 8, 0,
@@ -16,10 +16,10 @@ from tkinter.font import Font
 #         0, 9, 3, 5, 0, 0, 6, 2, 0,
 #         0, 7, 0, 0, 0, 0, 8, 0, 0,
 #         0, 5, 8, 0, 0, 0, 0, 0, 1]
-
-
-# hard
-# data = [9, 0, 0, 3, 0, 0, 5, 8, 0,
+#
+#
+# # hard
+# data_2 = [9, 0, 0, 3, 0, 0, 5, 8, 0,
 #         0, 8, 0, 0, 0, 0, 3, 7, 0,
 #         0, 0, 0, 0, 0, 7, 4, 0, 2,
 #         1, 0, 0, 9, 7, 0, 0, 0, 0,
@@ -28,19 +28,25 @@ from tkinter.font import Font
 #         5, 0, 4, 2, 0, 0, 0, 0, 0,
 #         0, 7, 6, 0, 0, 0, 0, 9, 0,
 #         0, 1, 9, 0, 0, 3, 0, 0, 4]
+#
+# # # # evil
+# data_1 = [1, 0, 0, 0, 9, 0, 3, 0, 0,
+#         0, 6, 0, 7, 0, 0, 0, 0, 8,
+#         0, 0, 4, 0, 0, 5, 0, 0, 0,
+#         3, 0, 0, 0, 6, 0, 1, 0, 0,
+#         0, 7, 0, 8, 0, 0, 0, 0, 0,
+#         0, 0, 5, 0, 0, 0, 0, 9, 0,
+#         2, 0, 0, 0, 1, 0, 0, 6, 0,
+#         0, 8, 0, 0, 0, 0, 0, 0, 0,
+#         0, 0, 9, 4, 0, 0, 0, 0, 0]
 
-# # # evil
-data = [1, 0, 0, 0, 9, 0, 3, 0, 0,
-        0, 6, 0, 7, 0, 0, 0, 0, 8,
-        0, 0, 4, 0, 0, 5, 0, 0, 0,
-        3, 0, 0, 0, 6, 0, 1, 0, 0,
-        0, 7, 0, 8, 0, 0, 0, 0, 0,
-        0, 0, 5, 0, 0, 0, 0, 9, 0,
-        2, 0, 0, 0, 1, 0, 0, 6, 0,
-        0, 8, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 9, 4, 0, 0, 0, 0, 0]
+sudoku = SudokuBoard.SudokuBoard(file_path=r'TestCases\nakedsingle1.sdk')
 
-sudoku = SudokuBoard.SudokuBoard(values=data)
+sudoku.solve()
+
+print(sudoku)
+
+exit()
 
 # sudoku.solve()
 # print(sudoku)
