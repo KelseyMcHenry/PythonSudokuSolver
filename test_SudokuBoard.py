@@ -196,8 +196,8 @@ class SudokuBoardTestCase(unittest.TestCase):
         self.assertEqual(self.random_board.board, correct)
 
     def test_init_from_sdk_file(self):
-        sole_candidates = SudokuBoard(file_path=r'TestCases\nakedsingle1.sdk')
-        self.assertEqual(sole_candidates, self.test_sole_candidates_board)
+        self.sole_candidates = SudokuBoard(file_path='TestCases\\nakedsingle1.sdk')
+        self.assertEqual(self.sole_candidates, self.test_sole_candidates_board)
 
     def test_str(self):
         correct = """[0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -223,10 +223,13 @@ class SudokuBoardTestCase(unittest.TestCase):
         self.assertEqual(str(self.blank_board), correct)
 
     def test_eq(self):
-        self.assertEqual(self.random_board == self.random_board, True)
-        self.assertEqual(self.test_board_1 == self.test_board_1, True)
-        self.assertEqual(self.test_board_2 == self.test_board_2, True)
-        self.assertEqual(self.test_board_3 == self.test_board_3, True)
+        self.assertTrue(self.random_board == self.random_board)
+        self.assertTrue(self.test_board_1 == self.test_board_1)
+        self.assertTrue(self.test_board_2 == self.test_board_2)
+        self.assertTrue(self.test_board_3 == self.test_board_3)
+        self.assertFalse(self.test_board_1 == self.test_board_2)
+        self.assertFalse(self.test_board_2 == self.test_board_3)
+        self.assertFalse(self.test_board_3 == self.test_board_1)
 
     def test_set(self):
         # TODO check that set also correctly sets possibilities
@@ -385,7 +388,19 @@ class SudokuBoardTestCase(unittest.TestCase):
         self.assertEqual(self.test_board_1.possible_values, self.test_board_3.possible_values)
 
     def test_unique_to_only_one(self):
-        pass
+        list_1 = [1, 2, 3]
+        list_2 = [2, 3, 4]
+        list_3 = [5, 6, 7]
+        # unique to first list
+        self.assertEqual(SudokuBoard.unique_to_only_one(1, list_1, list_2, list_3), 0)
+        # unique to second list
+        self.assertEqual(SudokuBoard.unique_to_only_one(4, list_1, list_2, list_3), 1)
+        # unique to third list
+        self.assertEqual(SudokuBoard.unique_to_only_one(7, list_1, list_2, list_3), 2)
+        # not in any list
+        self.assertEqual(SudokuBoard.unique_to_only_one(9, list_1, list_2, list_3), -1)
+        # not unique
+        self.assertEqual(SudokuBoard.unique_to_only_one(2, list_1, list_2, list_3), -1)
 
     def test_unique_to_two_rows(self):
         pass
@@ -394,13 +409,37 @@ class SudokuBoardTestCase(unittest.TestCase):
         pass
 
     def test_is_solved(self):
-        pass
+        self.assertFalse(self.blank_board.is_solved())
+        self.assertFalse(self.test_board_1.is_solved())
+        self.assertFalse(self.test_board_2.is_solved())
+        self.assertFalse(self.test_board_3.is_solved())
+        self.assertFalse(self.test_sole_candidates_board.is_solved())
+        self.assertTrue(SudokuBoard(self.test_data_1_soln).is_solved())
+        self.assertTrue(SudokuBoard(self.test_data_2_soln).is_solved())
+        self.assertTrue(SudokuBoard(self.test_data_3_soln).is_solved())
+        self.assertTrue(SudokuBoard(self.test_data_sole_candidates_soln).is_solved())
 
     def test_row_indices_in_sector(self):
-        pass
+        self.assertEqual(self.blank_board.row_indices_in_sector(0), [0, 1, 2])
+        self.assertEqual(self.blank_board.row_indices_in_sector(1), [0, 1, 2])
+        self.assertEqual(self.blank_board.row_indices_in_sector(2), [0, 1, 2])
+        self.assertEqual(self.blank_board.row_indices_in_sector(3), [3, 4, 5])
+        self.assertEqual(self.blank_board.row_indices_in_sector(4), [3, 4, 5])
+        self.assertEqual(self.blank_board.row_indices_in_sector(5), [3, 4, 5])
+        self.assertEqual(self.blank_board.row_indices_in_sector(6), [6, 7, 8])
+        self.assertEqual(self.blank_board.row_indices_in_sector(7), [6, 7, 8])
+        self.assertEqual(self.blank_board.row_indices_in_sector(8), [6, 7, 8])
 
     def test_col_indices_in_sector(self):
-        pass
+        self.assertEqual(self.blank_board.col_indices_in_sector(0), [0, 1, 2])
+        self.assertEqual(self.blank_board.col_indices_in_sector(1), [3, 4, 5])
+        self.assertEqual(self.blank_board.col_indices_in_sector(2), [6, 7, 8])
+        self.assertEqual(self.blank_board.col_indices_in_sector(3), [0, 1, 2])
+        self.assertEqual(self.blank_board.col_indices_in_sector(4), [3, 4, 5])
+        self.assertEqual(self.blank_board.col_indices_in_sector(5), [6, 7, 8])
+        self.assertEqual(self.blank_board.col_indices_in_sector(6), [0, 1, 2])
+        self.assertEqual(self.blank_board.col_indices_in_sector(7), [3, 4, 5])
+        self.assertEqual(self.blank_board.col_indices_in_sector(8), [6, 7, 8])
 
     def test_eliminate_poss_from_row(self):
         pass

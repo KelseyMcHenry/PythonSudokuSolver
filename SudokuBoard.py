@@ -42,19 +42,24 @@ class SudokuBoard:
         self.print_status = printout
         self.file_path_name = file_path
 
+        new_values = []
         if file_path != '':
-            values.clear()
-            with open(file_path, 'r') as sudoku_file:
-                for line in sudoku_file:
-                    for character in line:
-                        if character == '.':
-                            values.append(0)
-                        elif character == '\n':
-                            pass
-                        else:
-                            values.append(int(character))
+            sudoku_file = open(file_path, 'r')
+            for line in sudoku_file:
+                for character in line:
+                    if character == '.':
+                        new_values.append(0)
+                    elif character == '\n':
+                        pass
+                    else:
+                        new_values.append(int(character))
+            sudoku_file.close()
 
-        for i, value in enumerate(values):
+        # if this if statement is not here, random unit tests fail as the "values" default seems to get overwritten...
+        if not new_values:
+            new_values.extend(values)
+
+        for i, value in enumerate(new_values):
             self.board[i // 9][i % 9] = value
 
         for coordinate, possibilities in self.possible_values.items():
@@ -742,7 +747,7 @@ class SudokuBoard:
         :param sector: sector index
         :return: list of col indices in sector
         """
-        return [j for j in self.INDEX_RANGE if ((j % 3) // 3) == ((sector % 3) // 3)]
+        return [j for j in self.INDEX_RANGE if j in range(((sector % 3) * 3), ((sector % 3) * 3) + 3)]
 
     def eliminate_possibilities_from_row(self, row, value, quad):
         """
@@ -832,8 +837,6 @@ class SudokuBoard:
         """
         if self.print_status:
             self.file.write(s + '\n')
-            # print(s)
-            # print(self)
 
     def solve(self):
         """
