@@ -1,7 +1,11 @@
+import glob
+import os
 import unittest
 from random import randint
 from SudokuBoard import SudokuBoard
 from itertools import product
+from Move import Move
+from Move import NUMBER_SOLVE, REMOVE_POSS
 
 # TODO - write better, more comprehensive, tests
 # TODO - generate sdk files with solutions to compare
@@ -190,6 +194,18 @@ class SudokuBoardTestCase(unittest.TestCase):
         self.assertNotEqual(self.test_board_2.possible_values, {(x, y): [] for x in range(9) for y in range(9)})
         self.assertNotEqual(self.test_board_3.possible_values, {(x, y): [] for x in range(9) for y in range(9)})
 
+    def tearDown(self):
+        # delete all of the boards that were created to force them to release their files
+        del self.blank_board
+        del self.random_board
+        del self.test_board_1
+        del self.test_board_2
+        del self.test_board_3
+        del self.test_sole_candidates_board
+        # remove the file this generated
+        for filename in glob.glob('reasons_*.txt'):
+            os.remove(filename)
+
     def test_init_empty(self):
         correct = [[0 for _ in range(9)] for _ in range(9)]
         self.assertEqual(self.blank_board.board, correct)
@@ -201,6 +217,7 @@ class SudokuBoardTestCase(unittest.TestCase):
     def test_init_from_sdk_file(self):
         self.sole_candidates = SudokuBoard(file_path='TestCases\\nakedsingle1.sdk')
         self.assertEqual(self.sole_candidates, self.test_sole_candidates_board)
+        del self.sole_candidates
 
     def test_str(self):
         correct = """[0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -235,7 +252,6 @@ class SudokuBoardTestCase(unittest.TestCase):
         self.assertFalse(self.test_board_3 == self.test_board_1)
 
     def test_set(self):
-        # TODO : ensure that the poss updates are returned correctly
         self.blank_board.set(self.random_i, self.random_j, self.random_value)
         self.assertEqual(self.blank_board.board[self.random_i][self.random_j], self.random_value)
 
@@ -386,6 +402,7 @@ class SudokuBoardTestCase(unittest.TestCase):
         self.assertNotIn(8, self.test_board_3.get_sector_possibilities(SudokuBoard.sector_lookup(0, 8)))
 
     def test_set_poss_values(self):
+        # TODO : ensure that the poss updates are returned correctly
         self.test_board_1.set_poss_values(self.test_board_2.possible_values)
         self.test_board_3.set_poss_values(self.test_board_2.possible_values)
         self.assertEqual(self.test_board_1.possible_values, self.test_board_3.possible_values)
@@ -463,18 +480,36 @@ class SudokuBoardTestCase(unittest.TestCase):
         self.assertEqual(self.blank_board.col_indices_in_sector(8), [6, 7, 8])
 
     def test_eliminate_poss_from_row(self):
-        self.test_board_1.eliminate_possibilities_from_row(0, 7, "test_val")
+        # test board_ 1 > 3 move
+        actual_moves = self.test_board_1.eliminate_possibilities_from_row(0, 7, "test_val")
         self.assertEqual(self.test_board_1.get_row_possibilities(0),
                          {(0, 0): [], (0, 1): [2, 5], (0, 2): [2, 8], (0, 3): [2, 6], (0, 4): [],
                           (0, 5): [2, 4, 6, 8], (0, 6): [], (0, 7): [2, 4, 5], (0, 8): [2, 4, 5, 6]})
-        self.test_board_2.eliminate_possibilities_from_row(0, 7, "test_val")
+        expected_moves = [
+            Move(REMOVE_POSS, 7, (0, 2), str((0, 2)) + ' had possibility value of ' + str(7) +
+                 ' removed because there was ' + 'an x-wing interaction between cells ' + "test_val"),
+            Move(REMOVE_POSS, 7, (0, 7), str((0, 7)) + ' had possibility value of ' + str(7) +
+                 ' removed because there was ' + 'an x-wing interaction between cells ' + "test_val"),
+            Move(REMOVE_POSS, 7, (0, 8), str((0, 8)) + ' had possibility value of ' + str(7) +
+                 ' removed because there was ' + 'an x-wing interaction between cells ' + "test_val")]
+        self.assertEqual(expected_moves, actual_moves)
+
+        # test board_ 2 > 1 move
+        actual_moves = self.test_board_2.eliminate_possibilities_from_row(0, 7, "test_val")
         self.assertEqual(self.test_board_2.get_row_possibilities(0),
                          {(0, 0): [], (0, 1): [2, 4, 6], (0, 2): [1, 2], (0, 3): [], (0, 4): [1, 2, 4, 6],
                           (0, 5): [1, 4, 6], (0, 6): [], (0, 7): [], (0, 8): [1]})
-        self.test_board_3.eliminate_possibilities_from_row(0, 9, "test_val")
+        expected_moves = [
+            Move(REMOVE_POSS, 7, (0, 2), str((0, 2)) + ' had possibility value of ' + str(7) +
+                 ' removed because there was ' + 'an x-wing interaction between cells ' + "test_val")]
+        self.assertEqual(expected_moves, actual_moves)
+
+        # test board_ 3 > 0 moves
+        actual_moves = self.test_board_3.eliminate_possibilities_from_row(0, 9, "test_val")
         self.assertEqual(self.test_board_3.get_row_possibilities(0),
                          {(0, 0): [], (0, 1): [1, 2, 8], (0, 2): [7], (0, 3): [], (0, 4): [2, 4, 5, 7],
                           (0, 5): [4, 5], (0, 6): [4, 5], (0, 7): [], (0, 8): [4, 5, 8]})
+        self.assertEqual(actual_moves, [])
 
     def test_eliminate_poss_from_col(self):
         self.test_board_1.eliminate_possibilities_from_column(0, 9, "test_val")
@@ -533,10 +568,15 @@ class SudokuBoardTestCase(unittest.TestCase):
                           (5, 0): [4, 5, 6, 7, 8], (6, 0): [1, 4], (7, 0): [1, 2, 4, 6], (8, 0): [2, 4, 6]})
 
     def test_print_reason_to_file(self):
-        test_string = 'test test test\n'
+        test_string = 'test test test'
         self.blank_board.print_reason_to_file(test_string)
-        value = self.blank_board.file.readlines()
-        self.assertEqual(value[-1], test_string)
+        # force blank board to free the file
+        self.blank_board.__del__()
+        with open(self.blank_board.file.name, 'r') as written_to_file:
+            self.assertIsNotNone(written_to_file)
+            value = written_to_file.readlines()
+            self.assertEqual(value[-1], test_string + '\n')
+            written_to_file.close()
 
     def test_sole_candidates(self):
         # TODO add all naked single test cases

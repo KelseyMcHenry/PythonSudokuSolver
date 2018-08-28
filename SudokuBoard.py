@@ -1,3 +1,4 @@
+import time
 from itertools import product
 from itertools import chain
 from datetime import datetime
@@ -38,7 +39,12 @@ class SudokuBoard:
         # 'cache' variable for x-wing method, which iterates over a complex set which is expensive to reproduce
         self.coordinates_to_check = []
         # English plaintext reasons output file
-        self.file = open('reasons_' + file_path[10: -4] + '.txt', 'r+')
+        timestamp = datetime.fromtimestamp(time.time()).strftime('%Y_%m_%d_%H%M%S')
+        reasons_filename = 'reasons_' + timestamp
+        if file_path:
+            reasons_filename += '_' + file_path[10: -4]
+        reasons_filename += '.txt'
+        self.file = open(reasons_filename, 'w')
         self.print_status = printout
         self.file_path_name = file_path
 
