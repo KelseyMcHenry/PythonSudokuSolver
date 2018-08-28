@@ -38,7 +38,7 @@ class SudokuBoard:
         # 'cache' variable for x-wing method, which iterates over a complex set which is expensive to reproduce
         self.coordinates_to_check = []
         # English plaintext reasons output file
-        self.file = open('reasons_' + file_path[10: -4] + '.txt', 'w')
+        self.file = open('reasons_' + file_path[10: -4] + '.txt', 'r+')
         self.print_status = printout
         self.file_path_name = file_path
 
@@ -229,6 +229,9 @@ class SudokuBoard:
         :param j: y coordinate. starts at 0, which is located at the top
         :param value: value to set
         """
+
+        # TODO: add global moves queue
+        # TODO : have set add to moves when it updates possibilities
         self.board[i][j] = value
         self.possible_values[(i, j)] = []
         for x, y in product(self.INDEX_RANGE, self.INDEX_RANGE):
@@ -381,7 +384,7 @@ class SudokuBoard:
                 # then remove them from all other cells in that same row outside of sector 1 and sector 2
                 sector_1_row_indices = self.unique_to_two_rows(n, sector_1)
                 sector_2_row_indices = self.unique_to_two_rows(n, sector_2)
-                if sector_1_row_indices == sector_2_row_indices and len(sector_1_row_indices) == 2:
+                if sector_1_row_indices != -1 and sector_1_row_indices == sector_2_row_indices:
                     for i, j in product(self.INDEX_RANGE, self.INDEX_RANGE):
                         ij_sector = self.sector_lookup(i, j)
                         if ij_sector != sector_1 and ij_sector != sector_2 and i in sector_1_row_indices:
@@ -397,7 +400,7 @@ class SudokuBoard:
                 # then remove them from all other cells in that same column outside of sector 1 and sector 2
                 sector_1_col_indices = self.unique_to_two_cols(n, sector_1)
                 sector_2_col_indices = self.unique_to_two_cols(n, sector_2)
-                if sector_1_col_indices == sector_2_col_indices and len(sector_1_col_indices) == 2:
+                if sector_1_col_indices != -1 and sector_1_col_indices == sector_2_col_indices:
                     for i, j in product(self.INDEX_RANGE, self.INDEX_RANGE):
                         ij_sector = self.sector_lookup(i, j)
                         if ij_sector != sector_1 and ij_sector != sector_2 and j in sector_1_col_indices:
@@ -683,8 +686,12 @@ class SudokuBoard:
             if value in sublist:
                 return_val.append(row_indices_in_sector[2])
                 break
+        return_val = tuple(sorted(return_val))
 
-        return tuple(sorted(return_val))
+        if len(return_val) != 2:
+            return -1
+        else:
+            return return_val
 
     def unique_to_two_cols(self, value, sector):
         """
@@ -713,7 +720,12 @@ class SudokuBoard:
                 return_val.append(col_indices_in_sector[2])
                 break
 
-        return tuple(sorted(return_val))
+        return_val = tuple(sorted(return_val))
+
+        if len(return_val) != 2:
+            return -1
+        else:
+            return return_val
 
     def is_solved(self):
         """
@@ -756,12 +768,14 @@ class SudokuBoard:
         :param value: value to eliminate from row
         """
         moves = []
-        for j in self.INDEX_RANGE:
-            possibilities = self.possible_values[(row, j)]
-            if value in possibilities:
-                possibilities.remove(value)
-                reason = str((row, j)) + ' had possibility value of ' + str(value) + ' removed because there was ' + 'an x-wing interaction between cells ' + quad
-                moves.append(Move(REMOVE_POSS, value, (row, j), reason))
+
+        possibilities = self.get_row_possibilities(row)
+        for coord, values in possibilities.items():
+            if value in self.possible_values[coord]:
+                self.possible_values[coord].remove(value)
+                reason = str(coord) + ' had possibility value of ' + str(
+                    value) + ' removed because there was ' + 'an x-wing interaction between cells ' + quad
+                moves.append(Move(REMOVE_POSS, value, coord, reason))
 
         return moves
 
@@ -772,12 +786,13 @@ class SudokuBoard:
         :param value: value to eliminate from row
         """
         moves = []
-        for i in self.INDEX_RANGE:
-            possibilities = self.possible_values[(i, col)]
-            if value in possibilities:
-                possibilities.remove(value)
-                reason = str((i, col)) + ' had possibility value of ' + str(value) + ' removed because there was ' + 'an x-wing interaction between cells ' + quad
-                moves.append(Move(REMOVE_POSS, value, (i, col), reason))
+
+        possibilities = self.get_col_possibilities(col)
+        for coord, values in possibilities.items():
+            if value in values:
+                self.possible_values[coord].remove(value)
+                reason = str(coord) + ' had possibility value of ' + str(value) + ' removed because there was ' + 'an x-wing interaction between cells ' + quad
+                moves.append(Move(REMOVE_POSS, value, coord, reason))
 
         return moves
 
@@ -789,7 +804,7 @@ class SudokuBoard:
         """
         for coord, possibilities in self.possible_values.items():
             if self.sector_lookup(coord[0], coord[1]) == sector and value in possibilities:
-                possibilities.remove(value)
+                self.possible_values[coord].remove(value)
 
     def eliminate_possibilities_from_row_swordfish(self, row, value, exclusion_triplet):
         """
@@ -799,12 +814,13 @@ class SudokuBoard:
         :param exclusion_triplet: triplet of indices which possibilities will remain untouched.
         """
         moves = []
-        for j in self.INDEX_RANGE:
-            possibilities = self.possible_values[(row, j)]
-            if value in possibilities and j not in exclusion_triplet:
-                possibilities.remove(value)
-                reason = 'row' + str((row, j)) + 'had possibility value of ' + str(value) + ' removed because there was ' + 'a swordfish interaction between columns ' + str(exclusion_triplet)
-                moves.append(Move(REMOVE_POSS, value, (row, j), reason))
+
+        possibilities = self.get_row_possibilities(row)
+        for coord, values in possibilities.items():
+            if value in values and coord[1] not in exclusion_triplet:
+                self.possible_values[coord].remove(value)
+                reason = str(coord) + 'had possibility value of ' + str(value) + ' removed because there was ' + 'a swordfish interaction between columns ' + str(exclusion_triplet)
+                moves.append(Move(REMOVE_POSS, value, coord, reason))
 
         return moves
 
@@ -816,14 +832,13 @@ class SudokuBoard:
         :param exclusion_triplet: triplet of indices which possibilities will remain untouched.
         """
         moves = []
-        for i in self.INDEX_RANGE:
-            possibilities = self.possible_values[(i, col)]
-            if value in possibilities and i not in exclusion_triplet:
-                possibilities.remove(value)
-                reason = 'column' + str((i, col)) + 'had possibility value of ' + str(
-                    value) + ' removed because there was ' + 'a swordfish interaction between columns ' + str(
-                    exclusion_triplet)
-                moves.append(Move(REMOVE_POSS, value, (i, col), reason))
+
+        possibilities = self.get_col_possibilities(col)
+        for coord, values in possibilities.items():
+            if value in values and coord[0] not in exclusion_triplet:
+                self.possible_values[coord].remove(value)
+                reason = str(coord) + 'had possibility value of ' + str(value) + ' removed because there was ' + 'a swordfish interaction between columns ' + str(exclusion_triplet)
+                moves.append(Move(REMOVE_POSS, value, coord, reason))
 
         return moves
 

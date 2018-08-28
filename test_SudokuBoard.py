@@ -5,6 +5,9 @@ from itertools import product
 
 # TODO - write better, more comprehensive, tests
 # TODO - generate sdk files with solutions to compare
+# TODO - convert all "strings" to 'strings'
+# TODO - make sure pass / fail covered as well as all outcomes
+# TODO - make sure Moves are returned correctly.
 
 
 class SudokuBoardTestCase(unittest.TestCase):
@@ -232,7 +235,7 @@ class SudokuBoardTestCase(unittest.TestCase):
         self.assertFalse(self.test_board_3 == self.test_board_1)
 
     def test_set(self):
-        # TODO check that set also correctly sets possibilities
+        # TODO : ensure that the poss updates are returned correctly
         self.blank_board.set(self.random_i, self.random_j, self.random_value)
         self.assertEqual(self.blank_board.board[self.random_i][self.random_j], self.random_value)
 
@@ -403,10 +406,28 @@ class SudokuBoardTestCase(unittest.TestCase):
         self.assertEqual(SudokuBoard.unique_to_only_one(2, list_1, list_2, list_3), -1)
 
     def test_unique_to_two_rows(self):
-        pass
+        # different combination of return values
+        self.assertEqual(self.test_board_3.unique_to_two_rows(6, 0), (1, 2))
+        self.assertEqual(self.test_board_3.unique_to_two_rows(7, 0), (0, 1))
+        self.assertEqual(self.test_board_3.unique_to_two_rows(8, 0), (0, 2))
+        # non existent
+        self.assertEqual(self.test_board_3.unique_to_two_rows(5, 0), -1)
+        # exists in only one row
+        self.assertEqual(self.test_board_3.unique_to_two_rows(1, 0), -1)
+        # exists in all 3 rows
+        self.assertEqual(self.test_board_1.unique_to_two_rows(2, 0), -1)
 
     def test_unique_to_two_cols(self):
-        pass
+        # different combination of return values
+        self.assertEqual(self.test_board_3.unique_to_two_cols(7, 0), (0, 2))
+        self.assertEqual(self.test_board_3.unique_to_two_cols(2, 0), (0, 1))
+        self.assertEqual(self.test_board_1.unique_to_two_cols(2, 0), (1, 2))
+        # non existent
+        self.assertEqual(self.test_board_3.unique_to_two_cols(5, 0), -1)
+        # exists in only one column
+        self.assertEqual(self.test_board_3.unique_to_two_cols(1, 0), -1)
+        # exists in all 3 columns
+        self.assertEqual(self.test_board_3.unique_to_two_cols(6, 0), -1)
 
     def test_is_solved(self):
         self.assertFalse(self.blank_board.is_solved())
@@ -442,25 +463,84 @@ class SudokuBoardTestCase(unittest.TestCase):
         self.assertEqual(self.blank_board.col_indices_in_sector(8), [6, 7, 8])
 
     def test_eliminate_poss_from_row(self):
-        pass
+        self.test_board_1.eliminate_possibilities_from_row(0, 7, "test_val")
+        self.assertEqual(self.test_board_1.get_row_possibilities(0),
+                         {(0, 0): [], (0, 1): [2, 5], (0, 2): [2, 8], (0, 3): [2, 6], (0, 4): [],
+                          (0, 5): [2, 4, 6, 8], (0, 6): [], (0, 7): [2, 4, 5], (0, 8): [2, 4, 5, 6]})
+        self.test_board_2.eliminate_possibilities_from_row(0, 7, "test_val")
+        self.assertEqual(self.test_board_2.get_row_possibilities(0),
+                         {(0, 0): [], (0, 1): [2, 4, 6], (0, 2): [1, 2], (0, 3): [], (0, 4): [1, 2, 4, 6],
+                          (0, 5): [1, 4, 6], (0, 6): [], (0, 7): [], (0, 8): [1]})
+        self.test_board_3.eliminate_possibilities_from_row(0, 9, "test_val")
+        self.assertEqual(self.test_board_3.get_row_possibilities(0),
+                         {(0, 0): [], (0, 1): [1, 2, 8], (0, 2): [7], (0, 3): [], (0, 4): [2, 4, 5, 7],
+                          (0, 5): [4, 5], (0, 6): [4, 5], (0, 7): [], (0, 8): [4, 5, 8]})
 
     def test_eliminate_poss_from_col(self):
-        pass
+        self.test_board_1.eliminate_possibilities_from_column(0, 9, "test_val")
+        self.assertEqual(self.test_board_1.get_col_possibilities(0),
+                         {(0, 0): [], (1, 0): [5], (2, 0): [7, 8], (3, 0): [], (4, 0): [4, 6],
+                          (5, 0): [4, 6, 8], (6, 0): [], (7, 0): [4, 5, 6, 7], (8, 0): [5, 6, 7]})
+        self.test_board_2.eliminate_possibilities_from_column(0, 8, "test_val")
+        self.assertEqual(self.test_board_2.get_col_possibilities(0),
+                         {(0, 0): [], (1, 0): [2, 4, 6], (2, 0): [3, 6], (3, 0): [], (4, 0): [2, 3, 6, 7],
+                          (5, 0): [4, 7], (6, 0): [], (7, 0): [2, 3], (8, 0): [2]})
+        self.test_board_3.eliminate_possibilities_from_column(0, 9, "test_val")
+        self.assertEqual(self.test_board_3.get_col_possibilities(0),
+                         {(0, 0): [], (1, 0): [6, 7], (2, 0): [2, 6, 8], (3, 0): [], (4, 0): [4, 5, 6, 7, 8],
+                          (5, 0): [4, 5, 6, 7, 8], (6, 0): [1, 4], (7, 0): [1, 2, 4, 6], (8, 0): [2, 4, 6]})
 
     def test_eliminate_poss_from_sector(self):
-        pass
+        self.test_board_1.eliminate_possibilities_from_sector(0, 9)
+        self.assertEqual(self.test_board_1.get_sector_possibilities(0),
+                         {(0, 0): [], (0, 1): [2, 5], (0, 2): [2, 7, 8], (1, 0): [5], (1, 1): [],
+                          (1, 2): [2, 3], (2, 0): [7, 8], (2, 1): [2, 3], (2, 2): []})
+        self.test_board_2.eliminate_possibilities_from_sector(0, 8)
+        self.assertEqual(self.test_board_2.get_sector_possibilities(0),
+                         {(0, 0): [], (0, 1): [2, 4, 6], (0, 2): [1, 2, 7], (1, 0): [2, 4, 6], (1, 1): [],
+                          (1, 2): [1, 2, 5], (2, 0): [3, 6], (2, 1): [3, 5, 6], (2, 2): [1, 3, 5]})
+        self.test_board_3.eliminate_possibilities_from_sector(0, 2)
+        self.assertEqual(self.test_board_3.get_sector_possibilities(0),
+                         {(0, 0): [], (0, 1): [1, 8], (0, 2): [7], (1, 0): [6, 7], (1, 1): [],
+                          (1, 2): [], (2, 0): [6, 8], (2, 1): [6, 8], (2, 2): [6, 9]})
 
     def test_eliminate_possibilities_from_row_swordfish(self):
-        pass
+        self.test_board_1.eliminate_possibilities_from_row_swordfish(0, 2, (1, 2, 8))
+        self.assertEqual(self.test_board_1.get_row_possibilities(0),
+                         {(0, 0): [], (0, 1): [2, 5], (0, 2): [2, 7, 8], (0, 3): [6], (0, 4): [],
+                          (0, 5): [4, 6, 8], (0, 6): [], (0, 7): [4, 5, 7], (0, 8): [2, 4, 5, 6, 7]})
+        self.test_board_2.eliminate_possibilities_from_row_swordfish(0, 1, (2, 4, 8))
+        self.assertEqual(self.test_board_2.get_row_possibilities(0),
+                         {(0, 0): [], (0, 1): [2, 4, 6], (0, 2): [1, 2, 7], (0, 3): [], (0, 4): [1, 2, 4, 6],
+                          (0, 5): [4, 6], (0, 6): [], (0, 7): [], (0, 8): [1]})
+        self.test_board_3.eliminate_possibilities_from_row_swordfish(0, 2, (0, 2, 3))
+        self.assertEqual(self.test_board_3.get_row_possibilities(0),
+                         {(0, 0): [], (0, 1): [1, 8], (0, 2): [7], (0, 3): [], (0, 4): [4, 5, 7],
+                          (0, 5): [4, 5], (0, 6): [4, 5], (0, 7): [], (0, 8): [4, 5, 8]})
 
     def test_eliminate_possibilities_from_col_swordfish(self):
-        pass
+        self.test_board_1.eliminate_possibilities_from_column_swordfish(0, 7, (2, 7, 8))
+        self.assertEqual(self.test_board_1.get_col_possibilities(0),
+                         {(0, 0): [], (1, 0): [5, 9], (2, 0): [7, 8, 9], (3, 0): [], (4, 0): [4, 6, 9],
+                          (5, 0): [4, 6, 8], (6, 0): [], (7, 0): [4, 5, 6, 7], (8, 0): [5, 6, 7]})
+        self.test_board_2.eliminate_possibilities_from_column_swordfish(0, 2, (1, 4, 8))
+        self.assertEqual(self.test_board_2.get_col_possibilities(0),
+                         {(0, 0): [], (1, 0): [2, 4, 6], (2, 0): [3, 6], (3, 0): [], (4, 0): [2, 3, 6, 7],
+                          (5, 0): [4, 7, 8], (6, 0): [], (7, 0): [3, 8], (8, 0): [2, 8]})
+        self.test_board_3.eliminate_possibilities_from_column_swordfish(0, 6, (5, 7, 8))
+        self.assertEqual(self.test_board_3.get_col_possibilities(0),
+                         {(0, 0): [], (1, 0): [7], (2, 0): [2, 8], (3, 0): [], (4, 0): [4, 5, 7, 8],
+                          (5, 0): [4, 5, 6, 7, 8], (6, 0): [1, 4], (7, 0): [1, 2, 4, 6], (8, 0): [2, 4, 6]})
 
     def test_print_reason_to_file(self):
-        pass
+        test_string = 'test test test\n'
+        self.blank_board.print_reason_to_file(test_string)
+        value = self.blank_board.file.readlines()
+        self.assertEqual(value[-1], test_string)
 
     def test_sole_candidates(self):
         # TODO add all naked single test cases
+        # TODO : ensure that moves are returned correctly
         self.test_sole_candidates_board.sole_candidates()
         self.assertEqual(self.test_sole_candidates_board.get(0, 4), 7)
         self.assertEqual(self.test_sole_candidates_board.get(2, 1), 6)
