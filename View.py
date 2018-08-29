@@ -29,7 +29,7 @@ class SudokuView(Frame):
 
     def __init__(self, parent, game, text):
         self.game_model = game
-        self.user_board = UserBoard(game)
+        self.user_board = UserBoard(game, poss_dict=game.possible_values)
         self.parent = parent
         self.console = text
         Frame.__init__(self, parent)

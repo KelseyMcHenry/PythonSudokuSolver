@@ -40,13 +40,13 @@ data_1 = [1, 0, 0, 0, 9, 0, 3, 0, 0,
         0, 8, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 9, 4, 0, 0, 0, 0, 0]
 
-sudoku = SudokuBoard.SudokuBoard(data_1)
+sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/nakedhiddensingle1.sdk')
 
-sudoku.solve()
+# sudoku.solve()
 
 print(sudoku)
 
-exit()
+# exit()
 
 # sudoku.solve()
 # print(sudoku)

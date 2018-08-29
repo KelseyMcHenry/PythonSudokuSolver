@@ -14,3 +14,7 @@ class Move:
                other.move_pos == self.move_pos and \
                other.number == self.number and \
                other.reason == self.reason
+
+    def __str__(self):
+        return f"Move({self.operation}, {self.number}, {self.move_pos}, '{self.reason}')"
+        # return f'OP: {self.operation}, POS: {self.move_pos}, VAL: {self.number}, REASON: {self.reason}'

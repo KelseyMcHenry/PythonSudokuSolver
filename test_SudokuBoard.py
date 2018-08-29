@@ -1,6 +1,7 @@
 import glob
 import os
 import unittest
+from copy import deepcopy
 from random import randint
 from SudokuBoard import SudokuBoard
 from itertools import product
@@ -177,6 +178,8 @@ class SudokuBoardTestCase(unittest.TestCase):
                                       5, 2, 1, 4, 8, 9, 6, 7, 3,
                                       4, 7, 3, 2, 6, 1, 5, 9, 8]
 
+    
+
     def setUp(self):
         self.blank_board = SudokuBoard()
         # NOTE: the random datasets do not follow Sudoku rules, they are only intended for data access testing
@@ -189,7 +192,8 @@ class SudokuBoardTestCase(unittest.TestCase):
         self.test_board_2 = SudokuBoard(self.test_data_2)
         self.test_board_3 = SudokuBoard(self.test_data_3)
         self.test_sole_candidates_board = SudokuBoard(self.test_data_sole_candidates)
-        self.assertNotEqual(self.test_sole_candidates_board.possible_values, {(x, y): [] for x in range(9) for y in range(9)})
+        self.assertNotEqual(self.test_sole_candidates_board.possible_values,
+                            {(x, y): [] for x in range(9) for y in range(9)})
         self.assertNotEqual(self.test_board_1.possible_values, {(x, y): [] for x in range(9) for y in range(9)})
         self.assertNotEqual(self.test_board_2.possible_values, {(x, y): [] for x in range(9) for y in range(9)})
         self.assertNotEqual(self.test_board_3.possible_values, {(x, y): [] for x in range(9) for y in range(9)})
@@ -512,18 +516,40 @@ class SudokuBoardTestCase(unittest.TestCase):
         self.assertEqual(actual_moves, [])
 
     def test_eliminate_poss_from_col(self):
-        self.test_board_1.eliminate_possibilities_from_column(0, 9, "test_val")
+        # test_board 1 > 3 moves
+        actual_moves = self.test_board_1.eliminate_possibilities_from_column(0, 9, "test_val")
         self.assertEqual(self.test_board_1.get_col_possibilities(0),
                          {(0, 0): [], (1, 0): [5], (2, 0): [7, 8], (3, 0): [], (4, 0): [4, 6],
                           (5, 0): [4, 6, 8], (6, 0): [], (7, 0): [4, 5, 6, 7], (8, 0): [5, 6, 7]})
-        self.test_board_2.eliminate_possibilities_from_column(0, 8, "test_val")
+        expected_moves = [
+            Move(REMOVE_POSS, 9, (1, 0), str((1, 0)) + ' had possibility value of ' + str(9) +
+                 ' removed because there was ' + 'an x-wing interaction between cells ' + "test_val"),
+            Move(REMOVE_POSS, 9, (2, 0), str((2, 0)) + ' had possibility value of ' + str(9) +
+                 ' removed because there was ' + 'an x-wing interaction between cells ' + "test_val"),
+            Move(REMOVE_POSS, 9, (4, 0), str((4, 0)) + ' had possibility value of ' + str(9) +
+                 ' removed because there was ' + 'an x-wing interaction between cells ' + "test_val")]
+        self.assertEqual(expected_moves, actual_moves)
+
+        # test_board 2 > 3 moves
+        actual_moves = self.test_board_2.eliminate_possibilities_from_column(0, 8, "test_val")
         self.assertEqual(self.test_board_2.get_col_possibilities(0),
                          {(0, 0): [], (1, 0): [2, 4, 6], (2, 0): [3, 6], (3, 0): [], (4, 0): [2, 3, 6, 7],
                           (5, 0): [4, 7], (6, 0): [], (7, 0): [2, 3], (8, 0): [2]})
-        self.test_board_3.eliminate_possibilities_from_column(0, 9, "test_val")
+        expected_moves = [
+            Move(REMOVE_POSS, 8, (5, 0), str((5, 0)) + ' had possibility value of ' + str(8) +
+                 ' removed because there was ' + 'an x-wing interaction between cells ' + "test_val"),
+            Move(REMOVE_POSS, 8, (7, 0), str((7, 0)) + ' had possibility value of ' + str(8) +
+                 ' removed because there was ' + 'an x-wing interaction between cells ' + "test_val"),
+            Move(REMOVE_POSS, 8, (8, 0), str((8, 0)) + ' had possibility value of ' + str(8) +
+                 ' removed because there was ' + 'an x-wing interaction between cells ' + "test_val")]
+        self.assertEqual(expected_moves, actual_moves)
+
+        # test_board 3 > 0 moves
+        actual_moves = self.test_board_3.eliminate_possibilities_from_column(0, 9, "test_val")
         self.assertEqual(self.test_board_3.get_col_possibilities(0),
                          {(0, 0): [], (1, 0): [6, 7], (2, 0): [2, 6, 8], (3, 0): [], (4, 0): [4, 5, 6, 7, 8],
                           (5, 0): [4, 5, 6, 7, 8], (6, 0): [1, 4], (7, 0): [1, 2, 4, 6], (8, 0): [2, 4, 6]})
+        self.assertEqual([], actual_moves)
 
     def test_eliminate_poss_from_sector(self):
         self.test_board_1.eliminate_possibilities_from_sector(0, 9)
@@ -540,32 +566,73 @@ class SudokuBoardTestCase(unittest.TestCase):
                           (1, 2): [], (2, 0): [6, 8], (2, 1): [6, 8], (2, 2): [6, 9]})
 
     def test_eliminate_possibilities_from_row_swordfish(self):
-        self.test_board_1.eliminate_possibilities_from_row_swordfish(0, 2, (1, 2, 8))
+        # test_board 1 > 3 moves
+        actual_moves = self.test_board_1.eliminate_possibilities_from_row_swordfish(0, 2, (1, 2, 8))
         self.assertEqual(self.test_board_1.get_row_possibilities(0),
                          {(0, 0): [], (0, 1): [2, 5], (0, 2): [2, 7, 8], (0, 3): [6], (0, 4): [],
                           (0, 5): [4, 6, 8], (0, 6): [], (0, 7): [4, 5, 7], (0, 8): [2, 4, 5, 6, 7]})
-        self.test_board_2.eliminate_possibilities_from_row_swordfish(0, 1, (2, 4, 8))
+        expected_moves = [
+            Move(REMOVE_POSS, 2, (0, 3), str((0, 3)) + ' had possibility value of ' + str(2) +
+                 ' removed because there was ' + 'a swordfish interaction between rows ' + str((1, 2, 8))),
+            Move(REMOVE_POSS, 2, (0, 5), str((0, 5)) + ' had possibility value of ' + str(2) +
+                 ' removed because there was ' + 'a swordfish interaction between rows ' + str((1, 2, 8))),
+            Move(REMOVE_POSS, 2, (0, 7), str((0, 7)) + ' had possibility value of ' + str(2) +
+                 ' removed because there was ' + 'a swordfish interaction between rows ' + str((1, 2, 8)))]
+        self.assertEqual(expected_moves, actual_moves)
+
+        # test_board 2 > 1 move
+        actual_moves = self.test_board_2.eliminate_possibilities_from_row_swordfish(0, 1, (2, 4, 8))
         self.assertEqual(self.test_board_2.get_row_possibilities(0),
                          {(0, 0): [], (0, 1): [2, 4, 6], (0, 2): [1, 2, 7], (0, 3): [], (0, 4): [1, 2, 4, 6],
                           (0, 5): [4, 6], (0, 6): [], (0, 7): [], (0, 8): [1]})
-        self.test_board_3.eliminate_possibilities_from_row_swordfish(0, 2, (0, 2, 3))
+        expected_moves = [
+            Move(REMOVE_POSS, 1, (0, 5), str((0, 5)) + ' had possibility value of ' + str(1) +
+                 ' removed because there was ' + 'a swordfish interaction between rows ' + str((2, 4, 8)))]
+        self.assertEqual(expected_moves, actual_moves)
+
+        # test_board 3 > 2 moves
+        actual_moves = self.test_board_3.eliminate_possibilities_from_row_swordfish(0, 2, (0, 2, 3))
         self.assertEqual(self.test_board_3.get_row_possibilities(0),
                          {(0, 0): [], (0, 1): [1, 8], (0, 2): [7], (0, 3): [], (0, 4): [4, 5, 7],
                           (0, 5): [4, 5], (0, 6): [4, 5], (0, 7): [], (0, 8): [4, 5, 8]})
+        expected_moves = [
+            Move(REMOVE_POSS, 2, (0, 1), str((0, 1)) + ' had possibility value of ' + str(2) +
+                 ' removed because there was ' + 'a swordfish interaction between rows ' + str((0, 2, 3))),
+            Move(REMOVE_POSS, 2, (0, 4), str((0, 4)) + ' had possibility value of ' + str(2) +
+                 ' removed because there was ' + 'a swordfish interaction between rows ' + str((0, 2, 3)))]
+        self.assertEqual(expected_moves, actual_moves)
 
     def test_eliminate_possibilities_from_col_swordfish(self):
-        self.test_board_1.eliminate_possibilities_from_column_swordfish(0, 7, (2, 7, 8))
+        # test_board 1 > 0 moves
+        actual_moves = self.test_board_1.eliminate_possibilities_from_column_swordfish(0, 7, (2, 7, 8))
         self.assertEqual(self.test_board_1.get_col_possibilities(0),
                          {(0, 0): [], (1, 0): [5, 9], (2, 0): [7, 8, 9], (3, 0): [], (4, 0): [4, 6, 9],
                           (5, 0): [4, 6, 8], (6, 0): [], (7, 0): [4, 5, 6, 7], (8, 0): [5, 6, 7]})
-        self.test_board_2.eliminate_possibilities_from_column_swordfish(0, 2, (1, 4, 8))
+        self.assertEqual([], actual_moves)
+
+        # test_board > 1 move
+        actual_moves = self.test_board_2.eliminate_possibilities_from_column_swordfish(0, 2, (1, 4, 8))
         self.assertEqual(self.test_board_2.get_col_possibilities(0),
                          {(0, 0): [], (1, 0): [2, 4, 6], (2, 0): [3, 6], (3, 0): [], (4, 0): [2, 3, 6, 7],
                           (5, 0): [4, 7, 8], (6, 0): [], (7, 0): [3, 8], (8, 0): [2, 8]})
-        self.test_board_3.eliminate_possibilities_from_column_swordfish(0, 6, (5, 7, 8))
+        expected_moves = [
+            Move(REMOVE_POSS, 2, (7, 0), str((7, 0)) + ' had possibility value of ' + str(2) +
+                 ' removed because there was ' + 'a swordfish interaction between columns ' + str((1, 4, 8)))]
+        self.assertEqual(expected_moves, actual_moves)
+
+        # test_board 3 > 3 moves
+        actual_moves = self.test_board_3.eliminate_possibilities_from_column_swordfish(0, 6, (5, 7, 8))
         self.assertEqual(self.test_board_3.get_col_possibilities(0),
                          {(0, 0): [], (1, 0): [7], (2, 0): [2, 8], (3, 0): [], (4, 0): [4, 5, 7, 8],
                           (5, 0): [4, 5, 6, 7, 8], (6, 0): [1, 4], (7, 0): [1, 2, 4, 6], (8, 0): [2, 4, 6]})
+        expected_moves = [
+            Move(REMOVE_POSS, 6, (1, 0), str((1, 0)) + ' had possibility value of ' + str(6) +
+                 ' removed because there was ' + 'a swordfish interaction between columns ' + str((5, 7, 8))),
+            Move(REMOVE_POSS, 6, (2, 0), str((2, 0)) + ' had possibility value of ' + str(6) +
+                 ' removed because there was ' + 'a swordfish interaction between columns ' + str((5, 7, 8))),
+            Move(REMOVE_POSS, 6, (4, 0), str((4, 0)) + ' had possibility value of ' + str(6) +
+                 ' removed because there was ' + 'a swordfish interaction between columns ' + str((5, 7, 8)))]
+        self.assertEqual(expected_moves, actual_moves)
 
     def test_print_reason_to_file(self):
         test_string = 'test test test'
@@ -579,18 +646,60 @@ class SudokuBoardTestCase(unittest.TestCase):
             written_to_file.close()
 
     def test_sole_candidates(self):
-        # TODO add all naked single test cases
-        # TODO : ensure that moves are returned correctly
-        self.test_sole_candidates_board.sole_candidates()
-        self.assertEqual(self.test_sole_candidates_board.get(0, 4), 7)
-        self.assertEqual(self.test_sole_candidates_board.get(2, 1), 6)
-        self.assertEqual(self.test_sole_candidates_board.get(8, 6), 5)
+        actual_moves = self.test_sole_candidates_board.sole_candidates()
+        expected_moves = [
+            Move(NUMBER_SOLVE, 7, (0, 4), 'Cell ' + str((0, 4)) + ' set to ' + str(7) +
+                 ' because it was the only possibility remaining for that cell.'),
+            Move(NUMBER_SOLVE, 6, (2, 1), 'Cell ' + str((2, 1)) + ' set to ' + str(6) +
+                 ' because it was the only possibility remaining for that cell.'),
+            Move(NUMBER_SOLVE, 5, (8, 6), 'Cell ' + str((8, 6)) + ' set to ' + str(5) +
+                 ' because it was the only possibility remaining for that cell.')]
+        test_data_sole_expected = [[9, 3, 0, 6, 7, 0, 2, 4, 0],
+                                   [0, 0, 5, 8, 0, 0, 0, 0, 0],
+                                   [2, 6, 0, 0, 4, 0, 0, 8, 0],
+                                   [0, 1, 0, 0, 0, 0, 0, 0, 0],
+                                   [6, 0, 0, 0, 1, 0, 0, 0, 7],
+                                   [0, 0, 0, 0, 0, 0, 0, 1, 0],
+                                   [0, 9, 0, 0, 5, 0, 0, 0, 4],
+                                   [0, 0, 0, 0, 0, 9, 6, 0, 0],
+                                   [0, 7, 3, 0, 0, 1, 5, 9, 8]]
+
+        self.assertEqual(expected_moves, actual_moves)
+        self.assertEqual(test_data_sole_expected, self.test_sole_candidates_board.board)
+
+        # no effect
+        temp_board = deepcopy(self.test_board_1.board)
+        actual_moves = self.test_board_1.sole_candidates()
+        self.assertEqual([], actual_moves)
+        self.assertEqual(temp_board, self.test_board_1.board)
 
     # /////////////////// TODO //////////////////////
     # ******************** test pass and fail *****************
 
     def test_unique_candidates_generic_row(self):
-        pass
+        unique_row_test_board = SudokuBoard([0, 0, 5, 0, 0, 3, 0, 8, 0, 0, 0, 7, 8, 9, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
+                                             0, 0, 9, 0, 1, 0, 8, 0, 2, 5, 0, 0, 7, 0, 0, 2, 0, 0, 3, 0, 0, 5, 4, 0, 3,
+                                             0, 8, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 5, 8, 4, 0, 0, 0, 1, 0,
+                                             4, 0, 0, 3, 0, 0])
+
+        actual_moves = unique_row_test_board.unique_candidates_generic(unique_row_test_board.get_row_possibilities)
+        expected_moves = [
+             Move(NUMBER_SOLVE, 3, (3, 1), 'Cell (3, 1) set to 3 because the possibility was unique to row 3.'),
+             Move(NUMBER_SOLVE, 2, (5, 0), 'Cell (5, 0) set to 2 because the possibility was unique to row 5.'),
+             Move(NUMBER_SOLVE, 1, (7, 3), 'Cell (7, 3) set to 1 because the possibility was unique to row 7.')]
+        
+        unique_row_test_board_expected = [[0, 0, 5, 0, 0, 3, 0, 8, 0],
+                                          [0, 0, 7, 8, 9, 0, 0, 0, 0],
+                                          [1, 0, 0, 0, 0, 0, 0, 0, 0],
+                                          [9, 3, 1, 0, 8, 0, 2, 5, 0],
+                                          [0, 7, 0, 0, 2, 0, 0, 3, 0],
+                                          [2, 5, 4, 0, 3, 0, 8, 0, 7],
+                                          [0, 0, 0, 0, 0, 0, 0, 0, 1],
+                                          [0, 0, 0, 1, 5, 8, 4, 0, 0],
+                                          [0, 1, 0, 4, 0, 0, 3, 0, 0]]
+
+        self.assertEqual(actual_moves, expected_moves)
+        self.assertEqual(unique_row_test_board.board, unique_row_test_board_expected)
 
     def test_unique_candidates_generic_column(self):
         pass

@@ -2,8 +2,13 @@ from copy import deepcopy
 
 
 class UserBoard:
-    def __init__(self, board):
+    def __init__(self, board, poss_dict=None):
         self.board = deepcopy(board.board)
+        if poss_dict:
+            for coord, poss_list in poss_dict.items():
+                if self.board[coord[0]][coord[1]] == 0:
+                    self.board[coord[0]][coord[1]] = list()
+                    self.board[coord[0]][coord[1]].extend(poss_list)
 
     def get(self, x, y):
         return self.board[x][y]

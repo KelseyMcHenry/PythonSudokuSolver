@@ -77,6 +77,9 @@ class SudokuBoard:
                                    if self.sector_lookup(i, j) == self.sector_lookup(coordinate[0], coordinate[1])])):
                     self.possible_values[coordinate].append(n)
 
+        # print(self.board)
+        # print(self.possible_values)
+
     def __del__(self):
         self.file.close()
 
@@ -292,6 +295,9 @@ class SudokuBoard:
         :return: a boolean indicating if any values were successfully solved
         """
 
+        board_copy = deepcopy(self.board)
+        poss_copy = deepcopy(self.possible_values)
+
         successes = []
         for index in self.INDEX_RANGE:
             # accumulate all of the possibilities for all cells in col j
@@ -312,6 +318,14 @@ class SudokuBoard:
                         reason = 'Cell ' + str(key) + ' set to ' + str(value) + ' because the possibility was unique to ' + subarea_type + ' ' + str(index) + '.'
                         successes.append(Move(NUMBER_SOLVE, value, key, reason))
                         self.print_reason_to_file(reason)
+        if successes:
+            print('unique candidate: ' + poss_func.__name__)
+            for s in successes:
+                print(s)
+            print(poss_copy)
+            print(board_copy)
+            print(self.board)
+
         return successes
 
     def unique_candidate(self):
@@ -825,7 +839,7 @@ class SudokuBoard:
         for coord, values in possibilities.items():
             if value in values and coord[1] not in exclusion_triplet:
                 self.possible_values[coord].remove(value)
-                reason = str(coord) + 'had possibility value of ' + str(value) + ' removed because there was ' + 'a swordfish interaction between columns ' + str(exclusion_triplet)
+                reason = str(coord) + ' had possibility value of ' + str(value) + ' removed because there was ' + 'a swordfish interaction between rows ' + str(exclusion_triplet)
                 moves.append(Move(REMOVE_POSS, value, coord, reason))
 
         return moves
@@ -843,7 +857,7 @@ class SudokuBoard:
         for coord, values in possibilities.items():
             if value in values and coord[0] not in exclusion_triplet:
                 self.possible_values[coord].remove(value)
-                reason = str(coord) + 'had possibility value of ' + str(value) + ' removed because there was ' + 'a swordfish interaction between columns ' + str(exclusion_triplet)
+                reason = str(coord) + ' had possibility value of ' + str(value) + ' removed because there was ' + 'a swordfish interaction between columns ' + str(exclusion_triplet)
                 moves.append(Move(REMOVE_POSS, value, coord, reason))
 
         return moves
