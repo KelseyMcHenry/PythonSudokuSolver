@@ -295,9 +295,6 @@ class SudokuBoard:
         :return: a boolean indicating if any values were successfully solved
         """
 
-        board_copy = deepcopy(self.board)
-        poss_copy = deepcopy(self.possible_values)
-
         successes = []
         for index in self.INDEX_RANGE:
             # accumulate all of the possibilities for all cells in col j
@@ -318,13 +315,6 @@ class SudokuBoard:
                         reason = 'Cell ' + str(key) + ' set to ' + str(value) + ' because the possibility was unique to ' + subarea_type + ' ' + str(index) + '.'
                         successes.append(Move(NUMBER_SOLVE, value, key, reason))
                         self.print_reason_to_file(reason)
-        if successes:
-            print('unique candidate: ' + poss_func.__name__)
-            for s in successes:
-                print(s)
-            print(poss_copy)
-            print(board_copy)
-            print(self.board)
 
         return successes
 
@@ -344,31 +334,48 @@ class SudokuBoard:
     # https://www.kristanix.com/sudokuepic/sudoku-solving-techniques.php
     # http://www.sadmansoftware.com/sudoku/solvingtechniques.php
 
-    def sector_line_interaction_generic(self, poss_func, subarea_poss_func):
+    def sector_line_interaction_generic(self, subarea_indices_func, subarea_poss_func):
         """
         Eliminates possibilities within a row outside of a sector if a possibility is unique to row within said sector
         :return: a boolean indicating if any possibilities were successfully eliminated
         """
-        successes = []
-        for sector in self.INDEX_RANGE:
-            area_indices_in_sector = poss_func(sector)
 
+        # determine the function needed to grab the whole line based on the functions provided...
+        get_line_possibilities = None
+        if 'row' in subarea_indices_func.__name__:
+            subarea_type = 'row'
+            get_line_possibilities = self.get_row_possibilities
+        elif 'col' in subarea_indices_func.__name__:
+            subarea_type = 'column'
+            get_line_possibilities = self.get_col_possibilities
+
+        successes = []
+        # for each sector in the puzzle...
+        for sector in self.INDEX_RANGE:
+            # find out what row/column indices are contained within the sector...
+            #   ie sector 2 has row indices (0, 1, 2) or col indices (6, 7, 8)
+            area_indices_in_sector = subarea_indices_func(sector)
+
+            # grab the possibility lists from the intersection of the row indices above and the sector above...
             list_1 = subarea_poss_func(sector, area_indices_in_sector[0])
             list_2 = subarea_poss_func(sector, area_indices_in_sector[1])
             list_3 = subarea_poss_func(sector, area_indices_in_sector[2])
+
+            # for every number value...
             for n in self.VALUE_RANGE:
+                # check to see if that value is unique to only one of the 'intersection subset' lists
                 unique_index = self.unique_to_only_one(n, list_1, list_2, list_3)
-                if unique_index >= 0:
-                    for i, j in product(self.INDEX_RANGE, self.INDEX_RANGE):
-                        if i == area_indices_in_sector[unique_index] and self.sector_lookup(i, j) != sector:
-                            self.possible_values[(i, j)].remove(n)
-                            if poss_func.__name__ == 'get_row_possibilities':
-                                subarea_type = 'row'
-                            elif poss_func.__name__ == 'get_col_possibilities':
-                                subarea_type = 'column'
-                            reason = 'Cell (' + str(i) + ', ' + str(j) + ') had possibility value of ' + str(n) + ' removed because sector ' + str(sector) + ' must ' + 'contain it via a ' + subarea_type + ' interaction.'
+                # if it is unique to only one...
+                if unique_index > -1:
+                    # then grab the whole line
+                    line_possibilities = get_line_possibilities(area_indices_in_sector[unique_index])
+                    for coord, poss in line_possibilities.items():
+                        if self.sector_lookup(coord[0], coord[1]) != sector and n in self.possible_values[coord]:
+                            self.possible_values[coord].remove(n)
+                            reason = 'Cell ' + str(coord) + ' had possibility value of ' + str(n) + ' removed because sector ' + str(sector) + ' must ' + 'contain it via a ' + subarea_type + ' interaction.'
                             self.print_reason_to_file(reason)
-                            successes.append(Move(REMOVE_POSS, n, (i, j), reason))
+                            successes.append(Move(REMOVE_POSS, n, coord, reason))
+
         return successes
 
     def sector_line_interaction(self):
@@ -662,20 +669,33 @@ class SudokuBoard:
     # ------------------------------------------- Helper Functions -------------------------------------------------
 
     @staticmethod
-    def unique_to_only_one(n, list_1, list_2, list_3):
+    def unique_to_only_one(n, poss_dict_1, poss_dict_2, poss_dict_3):
+        # TODO : update doc
         """
         Returns the index of the list passed in if value n is unique to said list (among the 3 lists entered)
         :param n: value to be checked for uniqueness
-        :param list_1: first list
-        :param list_2: second list
-        :param list_3: third list
+        :param poss_dict_1: first list
+        :param poss_dict_2: second list
+        :param poss_dict_3: third list
         :return: index of list which uniquely contains n, -1 if none contain n or if n is in multiple lists
         """
-        if (n in list_1) and (n not in list_2) and (n not in list_3):
+        list_1_poss = []
+        for coord, poss in poss_dict_1.items():
+            list_1_poss.extend(poss)
+
+        list_2_poss = []
+        for coord, poss in poss_dict_2.items():
+            list_2_poss.extend(poss)
+
+        list_3_poss = []
+        for coord, poss in poss_dict_3.items():
+            list_3_poss.extend(poss)
+
+        if (n in list_1_poss) and (n not in list_2_poss) and (n not in list_3_poss):
             return 0
-        elif (n not in list_1) and (n in list_2) and (n not in list_3):
+        elif (n not in list_1_poss) and (n in list_2_poss) and (n not in list_3_poss):
             return 1
-        elif (n not in list_1) and (n not in list_2) and (n in list_3):
+        elif (n not in list_1_poss) and (n not in list_2_poss) and (n in list_3_poss):
             return 2
         else:
             return -1
@@ -880,9 +900,10 @@ class SudokuBoard:
         moves = []
         start_time = datetime.now()
         # print(self)
-        method_progression = [self.sole_candidates, self.unique_candidate, self.naked_subset, self.hidden_subset,
-                              self.sector_sector_interaction, self.sector_line_interaction, self.x_wing,
-                              self.swordfish, self.force_chain]
+        method_progression = [self.sole_candidates, self.unique_candidate, self.sector_line_interaction]
+        # method_progression = [self.sole_candidates, self.unique_candidate, self.sector_line_interaction,
+        #                       self.naked_subset, self.hidden_subset, self.sector_sector_interaction,  self.x_wing,
+        #                       self.swordfish, self.force_chain]
 
         most_complex_function_index = 0
         index = 0

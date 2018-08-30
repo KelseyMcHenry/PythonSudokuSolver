@@ -8,6 +8,7 @@ from itertools import product
 from Move import Move
 from Move import NUMBER_SOLVE, REMOVE_POSS
 
+
 # TODO - write better, more comprehensive, tests
 # TODO - generate sdk files with solutions to compare
 # TODO - convert all "strings" to 'strings'
@@ -178,8 +179,6 @@ class SudokuBoardTestCase(unittest.TestCase):
                                       5, 2, 1, 4, 8, 9, 6, 7, 3,
                                       4, 7, 3, 2, 6, 1, 5, 9, 8]
 
-    
-
     def setUp(self):
         self.blank_board = SudokuBoard()
         # NOTE: the random datasets do not follow Sudoku rules, they are only intended for data access testing
@@ -215,7 +214,7 @@ class SudokuBoardTestCase(unittest.TestCase):
         self.assertEqual(self.blank_board.board, correct)
 
     def test_init_non_empty(self):
-        correct = [[self.random_test_data[(9*j)+i] for i in range(9)] for j in range(9)]
+        correct = [[self.random_test_data[(9 * j) + i] for i in range(9)] for j in range(9)]
         self.assertEqual(self.random_board.board, correct)
 
     def test_init_from_sdk_file(self):
@@ -311,21 +310,23 @@ class SudokuBoardTestCase(unittest.TestCase):
         self.assertEqual(expected, actual)
 
     def test_sector(self):
-        correct = [self.random_board.board[i][j] for i, j in product(range(9), range(9)) if self.random_board.sector_lookup(i, j) == self.random_s]
+        correct = [self.random_board.board[i][j] for i, j in product(range(9), range(9)) if
+                   self.random_board.sector_lookup(i, j) == self.random_s]
         self.assertEqual(self.random_board.sector(self.random_s), correct)
         self.assertEqual(self.test_board_1.sector(0), [1, 0, 0, 0, 6, 0, 0, 0, 4])
         self.assertEqual(self.test_board_2.sector(0), [9, 0, 0, 0, 8, 0, 0, 0, 0])
         self.assertEqual(self.test_board_3.sector(0), [3, 0, 0, 0, 4, 5, 0, 0, 0])
 
     def test_get_possibilities(self):
-        self.assertEqual(self.random_board.get_possibilities(self.random_i, self.random_j), self.random_board.possible_values[(self.random_i, self.random_j)])
+        self.assertEqual(self.random_board.get_possibilities(self.random_i, self.random_j),
+                         self.random_board.possible_values[(self.random_i, self.random_j)])
         self.assertEqual(self.test_board_1.get_possibilities(0, 0), self.test_data_1_poss[(0, 0)])
         self.assertEqual(self.test_board_2.get_possibilities(0, 0), self.test_data_2_poss[(0, 0)])
         self.assertEqual(self.test_board_3.get_possibilities(0, 0), self.test_data_3_poss[(0, 0)])
 
     def test_get_row_possibilities(self):
         self.assertEqual(self.random_board.get_row_possibilities(self.random_i),
-                         {(self.random_i, x):self.random_board.possible_values[(self.random_i, x)] for x in range(9)})
+                         {(self.random_i, x): self.random_board.possible_values[(self.random_i, x)] for x in range(9)})
         self.assertEqual(self.test_board_1.get_row_possibilities(0),
                          {(0, 0): [], (0, 1): [2, 5], (0, 2): [2, 7, 8], (0, 3): [2, 6], (0, 4): [],
                           (0, 5): [2, 4, 6, 8], (0, 6): [], (0, 7): [2, 4, 5, 7], (0, 8): [2, 4, 5, 6, 7]})
@@ -412,19 +413,19 @@ class SudokuBoardTestCase(unittest.TestCase):
         self.assertEqual(self.test_board_1.possible_values, self.test_board_3.possible_values)
 
     def test_unique_to_only_one(self):
-        list_1 = [1, 2, 3]
-        list_2 = [2, 3, 4]
-        list_3 = [5, 6, 7]
+        dict_1 = {(0, 0): [1, 2, 3], (0, 1): [6, 7, 8]}
+        dict_2 = {(0, 0): [2, 3, 4], (0, 1): [6, 7, 8]}
+        dict_3 = {(0, 0): [5, 6, 7], (0, 1): [6, 7, 8]}
         # unique to first list
-        self.assertEqual(SudokuBoard.unique_to_only_one(1, list_1, list_2, list_3), 0)
+        self.assertEqual(SudokuBoard.unique_to_only_one(1, dict_1, dict_2, dict_3), 0)
         # unique to second list
-        self.assertEqual(SudokuBoard.unique_to_only_one(4, list_1, list_2, list_3), 1)
+        self.assertEqual(SudokuBoard.unique_to_only_one(4, dict_1, dict_2, dict_3), 1)
         # unique to third list
-        self.assertEqual(SudokuBoard.unique_to_only_one(7, list_1, list_2, list_3), 2)
+        self.assertEqual(SudokuBoard.unique_to_only_one(5, dict_1, dict_2, dict_3), 2)
         # not in any list
-        self.assertEqual(SudokuBoard.unique_to_only_one(9, list_1, list_2, list_3), -1)
+        self.assertEqual(SudokuBoard.unique_to_only_one(9, dict_1, dict_2, dict_3), -1)
         # not unique
-        self.assertEqual(SudokuBoard.unique_to_only_one(2, list_1, list_2, list_3), -1)
+        self.assertEqual(SudokuBoard.unique_to_only_one(7, dict_1, dict_2, dict_3), -1)
 
     def test_unique_to_two_rows(self):
         # different combination of return values
@@ -682,12 +683,13 @@ class SudokuBoardTestCase(unittest.TestCase):
                                              0, 8, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 5, 8, 4, 0, 0, 0, 1, 0,
                                              4, 0, 0, 3, 0, 0])
 
+        # hand checked success
         actual_moves = unique_row_test_board.unique_candidates_generic(unique_row_test_board.get_row_possibilities)
         expected_moves = [
-             Move(NUMBER_SOLVE, 3, (3, 1), 'Cell (3, 1) set to 3 because the possibility was unique to row 3.'),
-             Move(NUMBER_SOLVE, 2, (5, 0), 'Cell (5, 0) set to 2 because the possibility was unique to row 5.'),
-             Move(NUMBER_SOLVE, 1, (7, 3), 'Cell (7, 3) set to 1 because the possibility was unique to row 7.')]
-        
+            Move(NUMBER_SOLVE, 3, (3, 1), 'Cell (3, 1) set to 3 because the possibility was unique to row 3.'),
+            Move(NUMBER_SOLVE, 2, (5, 0), 'Cell (5, 0) set to 2 because the possibility was unique to row 5.'),
+            Move(NUMBER_SOLVE, 1, (7, 3), 'Cell (7, 3) set to 1 because the possibility was unique to row 7.')]
+
         unique_row_test_board_expected = [[0, 0, 5, 0, 0, 3, 0, 8, 0],
                                           [0, 0, 7, 8, 9, 0, 0, 0, 0],
                                           [1, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -701,25 +703,408 @@ class SudokuBoardTestCase(unittest.TestCase):
         self.assertEqual(actual_moves, expected_moves)
         self.assertEqual(unique_row_test_board.board, unique_row_test_board_expected)
 
+        # trivial 0 move result
+        blank_board_copy = deepcopy(self.blank_board.board)
+        blank_board_poss_copy = deepcopy(self.blank_board.possible_values)
+
+        actual_moves = self.blank_board.unique_candidates_generic(self.blank_board.get_row_possibilities)
+        self.assertEqual(actual_moves, [])
+        self.assertEqual(self.blank_board.board, blank_board_copy)
+        self.assertEqual(self.blank_board.possible_values, blank_board_poss_copy)
+
     def test_unique_candidates_generic_column(self):
-        pass
+        unique_column_test_board = SudokuBoard([0, 0, 5, 0, 0, 3, 0, 8, 0, 0, 0, 7, 8, 9, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+                                                0, 0, 0, 9, 3, 1, 0, 8, 0, 2, 5, 0, 0, 7, 0, 0, 2, 0, 0, 3, 0, 2, 5, 4,
+                                                0, 3, 0, 8, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 5, 8, 4, 0, 0,
+                                                0, 1, 0, 4, 0, 0, 3, 0, 0])
+
+        # hand checked success
+        actual_moves = unique_column_test_board.unique_candidates_generic(
+            unique_column_test_board.get_col_possibilities)
+        expected_moves = [
+            Move(NUMBER_SOLVE, 3, (6, 3), 'Cell (6, 3) set to 3 because the possibility was unique to column 3.'),
+            Move(NUMBER_SOLVE, 1, (0, 4), 'Cell (0, 4) set to 1 because the possibility was unique to column 4.'),
+            Move(NUMBER_SOLVE, 8, (8, 8), 'Cell (8, 8) set to 8 because the possibility was unique to column 8.')]
+
+        unique_column_test_board_expected = [[0, 0, 5, 0, 1, 3, 0, 8, 0],
+                                             [0, 0, 7, 8, 9, 0, 0, 0, 0],
+                                             [1, 0, 0, 0, 0, 0, 0, 0, 0],
+                                             [9, 3, 1, 0, 8, 0, 2, 5, 0],
+                                             [0, 7, 0, 0, 2, 0, 0, 3, 0],
+                                             [2, 5, 4, 0, 3, 0, 8, 0, 7],
+                                             [0, 0, 0, 3, 0, 0, 0, 0, 1],
+                                             [0, 0, 0, 1, 5, 8, 4, 0, 0],
+                                             [0, 1, 0, 4, 0, 0, 3, 0, 8]]
+
+        self.assertEqual(actual_moves, expected_moves)
+        self.assertEqual(unique_column_test_board.board, unique_column_test_board_expected)
+
+        # trivial 0 move result
+        blank_board_copy = deepcopy(self.blank_board.board)
+        blank_board_poss_copy = deepcopy(self.blank_board.possible_values)
+
+        actual_moves = self.blank_board.unique_candidates_generic(self.blank_board.get_col_possibilities)
+        self.assertEqual(actual_moves, [])
+        self.assertEqual(self.blank_board.board, blank_board_copy)
+        self.assertEqual(self.blank_board.possible_values, blank_board_poss_copy)
 
     def test_unique_candidates_generic_sector(self):
-        pass
+        unique_sector_test_board = SudokuBoard([6, 0, 7, 0, 3, 0, 1, 2, 4, 2, 4, 3, 0, 1, 0, 0, 6, 0, 9, 0, 1, 2, 6, 4,
+                                                3, 0, 0, 4, 1, 9, 0, 0, 3, 6, 5, 2, 0, 2, 5, 6, 9, 1, 4, 3, 0, 0, 3, 6,
+                                                4, 2, 5, 0, 9, 1, 3, 9, 4, 1, 0, 2, 5, 0, 6, 1, 6, 8, 0, 5, 0, 2, 4, 3,
+                                                5, 7, 2, 3, 4, 6, 0, 1, 0])
+
+        # hand checked success
+        actual_moves = unique_sector_test_board.unique_candidates_generic(
+            unique_sector_test_board.get_sector_possibilities)
+        expected_moves = [
+            Move(NUMBER_SOLVE, 8, (6, 4), 'Cell (6, 4) set to 8 because the possibility was unique to sector 7.'),
+            Move(NUMBER_SOLVE, 7, (6, 7), 'Cell (6, 7) set to 7 because the possibility was unique to sector 8.')]
+
+        unique_sector_test_board_expected = [[6, 0, 7, 0, 3, 0, 1, 2, 4],
+                                             [2, 4, 3, 0, 1, 0, 0, 6, 0],
+                                             [9, 0, 1, 2, 6, 4, 3, 0, 0],
+                                             [4, 1, 9, 0, 0, 3, 6, 5, 2],
+                                             [0, 2, 5, 6, 9, 1, 4, 3, 0],
+                                             [0, 3, 6, 4, 2, 5, 0, 9, 1],
+                                             [3, 9, 4, 1, 8, 2, 5, 7, 6],
+                                             [1, 6, 8, 0, 5, 0, 2, 4, 3],
+                                             [5, 7, 2, 3, 4, 6, 0, 1, 0]]
+
+        self.assertEqual(actual_moves, expected_moves)
+        self.assertEqual(unique_sector_test_board.board, unique_sector_test_board_expected)
+
+        # trivial 0 move result
+        blank_board_copy = deepcopy(self.blank_board.board)
+        blank_board_poss_copy = deepcopy(self.blank_board.possible_values)
+
+        actual_moves = self.blank_board.unique_candidates_generic(self.blank_board.get_sector_possibilities)
+        self.assertEqual(actual_moves, [])
+        self.assertEqual(self.blank_board.board, blank_board_copy)
+        self.assertEqual(self.blank_board.possible_values, blank_board_poss_copy)
 
     def test_unique_candidates(self):
-        # make sure to bypass / not bypass short circuiting
-        pass
+        # TEST ROW WILL BE EXECUTED
+        unique_row_test_board = SudokuBoard([0, 0, 5, 0, 0, 3, 0, 8, 0, 0, 0, 7, 8, 9, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
+                                             0, 0, 9, 0, 1, 0, 8, 0, 2, 5, 0, 0, 7, 0, 0, 2, 0, 0, 3, 0, 0, 5, 4, 0, 3,
+                                             0, 8, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 5, 8, 4, 0, 0, 0, 1, 0,
+                                             4, 0, 0, 3, 0, 0])
+
+        # hand checked success
+        actual_moves = unique_row_test_board.unique_candidate()
+        expected_moves = [
+            Move(NUMBER_SOLVE, 3, (3, 1), 'Cell (3, 1) set to 3 because the possibility was unique to row 3.'),
+            Move(NUMBER_SOLVE, 2, (5, 0), 'Cell (5, 0) set to 2 because the possibility was unique to row 5.'),
+            Move(NUMBER_SOLVE, 1, (7, 3), 'Cell (7, 3) set to 1 because the possibility was unique to row 7.')]
+
+        unique_row_test_board_expected = [[0, 0, 5, 0, 0, 3, 0, 8, 0],
+                                          [0, 0, 7, 8, 9, 0, 0, 0, 0],
+                                          [1, 0, 0, 0, 0, 0, 0, 0, 0],
+                                          [9, 3, 1, 0, 8, 0, 2, 5, 0],
+                                          [0, 7, 0, 0, 2, 0, 0, 3, 0],
+                                          [2, 5, 4, 0, 3, 0, 8, 0, 7],
+                                          [0, 0, 0, 0, 0, 0, 0, 0, 1],
+                                          [0, 0, 0, 1, 5, 8, 4, 0, 0],
+                                          [0, 1, 0, 4, 0, 0, 3, 0, 0]]
+
+        self.assertEqual(actual_moves, expected_moves)
+        self.assertEqual(unique_row_test_board.board, unique_row_test_board_expected)
+
+        # TEST COLUMN WILL BE EXECUTED
+        unique_column_test_board = SudokuBoard([0, 0, 5, 0, 0, 3, 0, 8, 0, 0, 0, 7, 8, 9, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+                                                0, 0, 0, 9, 3, 1, 0, 8, 0, 2, 5, 0, 0, 7, 0, 0, 2, 0, 0, 3, 0, 2, 5, 4,
+                                                0, 3, 0, 8, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 5, 8, 4, 0, 0,
+                                                0, 1, 0, 4, 0, 0, 3, 0, 0])
+
+        # hand checked success
+        actual_moves = unique_column_test_board.unique_candidate()
+        expected_moves = [
+            Move(NUMBER_SOLVE, 3, (6, 3), 'Cell (6, 3) set to 3 because the possibility was unique to column 3.'),
+            Move(NUMBER_SOLVE, 1, (0, 4), 'Cell (0, 4) set to 1 because the possibility was unique to column 4.'),
+            Move(NUMBER_SOLVE, 8, (8, 8), 'Cell (8, 8) set to 8 because the possibility was unique to column 8.')]
+
+        unique_column_test_board_expected = [[0, 0, 5, 0, 1, 3, 0, 8, 0],
+                                             [0, 0, 7, 8, 9, 0, 0, 0, 0],
+                                             [1, 0, 0, 0, 0, 0, 0, 0, 0],
+                                             [9, 3, 1, 0, 8, 0, 2, 5, 0],
+                                             [0, 7, 0, 0, 2, 0, 0, 3, 0],
+                                             [2, 5, 4, 0, 3, 0, 8, 0, 7],
+                                             [0, 0, 0, 3, 0, 0, 0, 0, 1],
+                                             [0, 0, 0, 1, 5, 8, 4, 0, 0],
+                                             [0, 1, 0, 4, 0, 0, 3, 0, 8]]
+
+        self.assertEqual(actual_moves, expected_moves)
+        self.assertEqual(unique_column_test_board.board, unique_column_test_board_expected)
+
+        # TEST SECTOR WILL BE EXECUTED
+        unique_sector_test_board = SudokuBoard([6, 0, 7, 0, 3, 0, 1, 2, 4, 2, 4, 3, 0, 1, 0, 0, 6, 0, 9, 0, 1, 2, 6, 4,
+                                                3, 0, 0, 4, 1, 9, 0, 0, 3, 6, 5, 2, 0, 2, 5, 6, 9, 1, 4, 3, 0, 0, 3, 6,
+                                                4, 2, 5, 0, 9, 1, 3, 9, 4, 1, 0, 2, 5, 0, 6, 1, 6, 8, 0, 5, 0, 2, 4, 3,
+                                                5, 7, 2, 3, 4, 6, 0, 1, 0])
+
+        # hand checked success
+        actual_moves = unique_sector_test_board.unique_candidate()
+        expected_moves = [
+            Move(NUMBER_SOLVE, 8, (6, 4), 'Cell (6, 4) set to 8 because the possibility was unique to sector 7.'),
+            Move(NUMBER_SOLVE, 7, (6, 7), 'Cell (6, 7) set to 7 because the possibility was unique to sector 8.')]
+
+        unique_sector_test_board_expected = [[6, 0, 7, 0, 3, 0, 1, 2, 4],
+                                             [2, 4, 3, 0, 1, 0, 0, 6, 0],
+                                             [9, 0, 1, 2, 6, 4, 3, 0, 0],
+                                             [4, 1, 9, 0, 0, 3, 6, 5, 2],
+                                             [0, 2, 5, 6, 9, 1, 4, 3, 0],
+                                             [0, 3, 6, 4, 2, 5, 0, 9, 1],
+                                             [3, 9, 4, 1, 8, 2, 5, 7, 6],
+                                             [1, 6, 8, 0, 5, 0, 2, 4, 3],
+                                             [5, 7, 2, 3, 4, 6, 0, 1, 0]]
+
+        self.assertEqual(actual_moves, expected_moves)
+        self.assertEqual(unique_sector_test_board.board, unique_sector_test_board_expected)
+
+        # trivial 0 move result
+        blank_board_copy = deepcopy(self.blank_board.board)
+        blank_board_poss_copy = deepcopy(self.blank_board.possible_values)
+
+        actual_moves = self.blank_board.unique_candidate()
+        self.assertEqual(actual_moves, [])
+        self.assertEqual(self.blank_board.board, blank_board_copy)
+        self.assertEqual(self.blank_board.possible_values, blank_board_poss_copy)
 
     def test_sector_line_interaction_generic_row(self):
-        pass
+        sector_row_interaction = SudokuBoard([0, 9, 0, 6, 7, 0, 0, 0, 5, 7, 5, 1, 0, 0, 9, 0, 8, 6, 0, 3, 6, 5, 8, 0, 0,
+                                              0, 0, 9, 6, 7, 8, 0, 0, 1, 0, 0, 0, 8, 4, 0, 6, 0, 9, 3, 7, 0, 0, 3, 9, 0,
+                                              7, 0, 6, 8, 0, 0, 0, 0, 9, 2, 6, 0, 0, 3, 0, 0, 0, 0, 6, 8, 0, 1, 6, 0, 0,
+                                              0, 0, 8, 0, 2, 0])
+
+        actual_moves = sector_row_interaction.sector_line_interaction_generic(
+            sector_row_interaction.row_indices_in_sector,
+            sector_row_interaction.get_sector_subrow_possibilities)
+
+        expected_moves = [
+            Move(REMOVE_POSS, 2, (1, 6),
+                 'Cell (1, 6) had possibility value of 2 removed because sector 1 must contain it via a row interaction.')
+        ]
+
+        sector_row_interaction_expected_board = [[0, 9, 0, 6, 7, 0, 0, 0, 5],
+                                                 [7, 5, 1, 0, 0, 9, 0, 8, 6],
+                                                 [0, 3, 6, 5, 8, 0, 0, 0, 0],
+                                                 [9, 6, 7, 8, 0, 0, 1, 0, 0],
+                                                 [0, 8, 4, 0, 6, 0, 9, 3, 7],
+                                                 [0, 0, 3, 9, 0, 7, 0, 6, 8],
+                                                 [0, 0, 0, 0, 9, 2, 6, 0, 0],
+                                                 [3, 0, 0, 0, 0, 6, 8, 0, 1],
+                                                 [6, 0, 0, 0, 0, 8, 0, 2, 0]]
+
+        sector_row_interaction_expected_poss = {(0, 0): [2, 4, 8], (0, 1): [], (0, 2): [2, 8], (0, 3): [], (0, 4): [],
+                                                (0, 5): [1, 3, 4], (0, 6): [2, 3, 4], (0, 7): [1, 4], (0, 8): [],
+                                                (1, 0): [], (1, 1): [], (1, 2): [], (1, 3): [2, 3, 4],
+                                                (1, 4): [2, 3, 4], (1, 5): [], (1, 6): [3, 4], (1, 7): [], (1, 8): [],
+                                                (2, 0): [2, 4], (2, 1): [], (2, 2): [], (2, 3): [], (2, 4): [],
+                                                (2, 5): [1, 4], (2, 6): [2, 4, 7], (2, 7): [1, 4, 7, 9],
+                                                (2, 8): [2, 4, 9], (3, 0): [], (3, 1): [], (3, 2): [], (3, 3): [],
+                                                (3, 4): [2, 3, 4, 5], (3, 5): [3, 4, 5], (3, 6): [], (3, 7): [4, 5],
+                                                (3, 8): [2, 4], (4, 0): [1, 2, 5], (4, 1): [], (4, 2): [],
+                                                (4, 3): [1, 2], (4, 4): [], (4, 5): [1, 5], (4, 6): [], (4, 7): [],
+                                                (4, 8): [], (5, 0): [1, 2, 5], (5, 1): [1, 2], (5, 2): [], (5, 3): [],
+                                                (5, 4): [1, 2, 4, 5], (5, 5): [], (5, 6): [2, 4, 5], (5, 7): [],
+                                                (5, 8): [], (6, 0): [1, 4, 5, 8], (6, 1): [1, 4, 7], (6, 2): [5, 8],
+                                                (6, 3): [1, 3, 4, 7], (6, 4): [], (6, 5): [], (6, 6): [],
+                                                (6, 7): [4, 5, 7], (6, 8): [3, 4], (7, 0): [], (7, 1): [2, 4, 7],
+                                                (7, 2): [2, 5, 9], (7, 3): [4, 7], (7, 4): [4, 5], (7, 5): [],
+                                                (7, 6): [], (7, 7): [4, 5, 7, 9], (7, 8): [], (8, 0): [],
+                                                (8, 1): [1, 4, 7], (8, 2): [5, 9], (8, 3): [1, 3, 4, 7],
+                                                (8, 4): [1, 3, 4, 5], (8, 5): [], (8, 6): [3, 4, 5, 7], (8, 7): [],
+                                                (8, 8): [3, 4, 9]}
+
+        self.assertEqual(actual_moves, expected_moves)
+        self.assertEqual(sector_row_interaction.board, sector_row_interaction_expected_board)
+        self.assertEqual(sector_row_interaction.possible_values, sector_row_interaction_expected_poss)
+
+        # trivial 0 move result
+        blank_board_copy = deepcopy(self.blank_board.board)
+        blank_board_poss_copy = deepcopy(self.blank_board.possible_values)
+
+        actual_moves = self.blank_board.sector_line_interaction_generic(
+            self.blank_board.row_indices_in_sector,
+            self.blank_board.get_sector_subrow_possibilities)
+        self.assertEqual(actual_moves, [])
+        self.assertEqual(self.blank_board.board, blank_board_copy)
+        self.assertEqual(self.blank_board.possible_values, blank_board_poss_copy)
 
     def test_sector_line_interaction_generic_column(self):
-        pass
+        sector_col_interaction = SudokuBoard([0, 9, 0, 6, 7, 0, 0, 0, 5, 7, 5, 1, 0, 0, 9, 0, 8, 6, 0, 3, 6, 5, 8, 0, 0,
+                                              0, 0, 9, 6, 7, 8, 0, 0, 1, 0, 0, 0, 8, 4, 0, 6, 0, 9, 3, 7, 0, 0, 3, 9, 0,
+                                              7, 0, 6, 8, 0, 0, 0, 0, 9, 2, 6, 0, 0, 3, 0, 0, 0, 0, 6, 8, 0, 1, 6, 0, 0,
+                                              0, 0, 8, 0, 2, 0])
+
+        actual_moves = sector_col_interaction.sector_line_interaction_generic(
+            sector_col_interaction.col_indices_in_sector,
+            sector_col_interaction.get_sector_subcolumn_possibilities)
+
+        expected_moves = [
+            Move(REMOVE_POSS, 4, (6, 0),
+                 'Cell (6, 0) had possibility value of 4 removed because sector 0 must contain it via a column interaction.'),
+            Move(REMOVE_POSS, 1, (4, 5),
+                 'Cell (4, 5) had possibility value of 1 removed because sector 1 must contain it via a column interaction.'),
+            Move(REMOVE_POSS, 3, (8, 6),
+                 'Cell (8, 6) had possibility value of 3 removed because sector 2 must contain it via a column interaction.'),
+            Move(REMOVE_POSS, 5, (6, 0),
+                 'Cell (6, 0) had possibility value of 5 removed because sector 3 must contain it via a column interaction.'),
+            Move(REMOVE_POSS, 5, (3, 4),
+                 'Cell (3, 4) had possibility value of 5 removed because sector 7 must contain it via a column interaction.'),
+            Move(REMOVE_POSS, 5, (5, 4),
+                 'Cell (5, 4) had possibility value of 5 removed because sector 7 must contain it via a column interaction.'),
+        ]
+
+        sector_col_interaction_expected_board = [[0, 9, 0, 6, 7, 0, 0, 0, 5], [7, 5, 1, 0, 0, 9, 0, 8, 6],
+                                                 [0, 3, 6, 5, 8, 0, 0, 0, 0], [9, 6, 7, 8, 0, 0, 1, 0, 0],
+                                                 [0, 8, 4, 0, 6, 0, 9, 3, 7], [0, 0, 3, 9, 0, 7, 0, 6, 8],
+                                                 [0, 0, 0, 0, 9, 2, 6, 0, 0], [3, 0, 0, 0, 0, 6, 8, 0, 1],
+                                                 [6, 0, 0, 0, 0, 8, 0, 2, 0]]
+
+        sector_col_interaction_expected_poss = {(0, 0): [2, 4, 8], (0, 1): [], (0, 2): [2, 8], (0, 3): [], (0, 4): [],
+                                                (0, 5): [1, 3, 4], (0, 6): [2, 3, 4], (0, 7): [1, 4], (0, 8): [],
+                                                (1, 0): [], (1, 1): [], (1, 2): [], (1, 3): [2, 3, 4],
+                                                (1, 4): [2, 3, 4], (1, 5): [], (1, 6): [2, 3, 4], (1, 7): [],
+                                                (1, 8): [],
+                                                (2, 0): [2, 4], (2, 1): [], (2, 2): [], (2, 3): [], (2, 4): [],
+                                                (2, 5): [1, 4], (2, 6): [2, 4, 7], (2, 7): [1, 4, 7, 9],
+                                                (2, 8): [2, 4, 9], (3, 0): [], (3, 1): [], (3, 2): [], (3, 3): [],
+                                                (3, 4): [2, 3, 4], (3, 5): [3, 4, 5], (3, 6): [], (3, 7): [4, 5],
+                                                (3, 8): [2, 4], (4, 0): [1, 2, 5], (4, 1): [], (4, 2): [],
+                                                (4, 3): [1, 2], (4, 4): [], (4, 5): [5], (4, 6): [], (4, 7): [],
+                                                (4, 8): [], (5, 0): [1, 2, 5], (5, 1): [1, 2], (5, 2): [], (5, 3): [],
+                                                (5, 4): [1, 2, 4], (5, 5): [], (5, 6): [2, 4, 5], (5, 7): [],
+                                                (5, 8): [], (6, 0): [1, 8], (6, 1): [1, 4, 7], (6, 2): [5, 8],
+                                                (6, 3): [1, 3, 4, 7], (6, 4): [], (6, 5): [], (6, 6): [],
+                                                (6, 7): [4, 5, 7], (6, 8): [3, 4], (7, 0): [], (7, 1): [2, 4, 7],
+                                                (7, 2): [2, 5, 9], (7, 3): [4, 7], (7, 4): [4, 5], (7, 5): [],
+                                                (7, 6): [], (7, 7): [4, 5, 7, 9], (7, 8): [], (8, 0): [],
+                                                (8, 1): [1, 4, 7], (8, 2): [5, 9], (8, 3): [1, 3, 4, 7],
+                                                (8, 4): [1, 3, 4, 5], (8, 5): [], (8, 6): [4, 5, 7], (8, 7): [],
+                                                (8, 8): [3, 4, 9]}
+
+        self.assertEqual(actual_moves, expected_moves)
+        self.assertEqual(sector_col_interaction.board, sector_col_interaction_expected_board)
+        self.assertEqual(sector_col_interaction.possible_values, sector_col_interaction_expected_poss)
+
+        # trivial 0 move result
+        blank_board_copy = deepcopy(self.blank_board.board)
+        blank_board_poss_copy = deepcopy(self.blank_board.possible_values)
+
+        actual_moves = self.blank_board.sector_line_interaction_generic(
+            self.blank_board.row_indices_in_sector,
+            self.blank_board.get_sector_subrow_possibilities)
+        self.assertEqual(actual_moves, [])
+        self.assertEqual(self.blank_board.board, blank_board_copy)
+        self.assertEqual(self.blank_board.possible_values, blank_board_poss_copy)
 
     def test_sector_line_interaction(self):
-        # make sure to bypass / not bypass short circuiting
-        pass
+        sector_row_interaction = SudokuBoard([0, 9, 0, 6, 7, 0, 0, 0, 5, 7, 5, 1, 0, 0, 9, 0, 8, 6, 0, 3, 6, 5, 8, 0, 0,
+                                              0, 0, 9, 6, 7, 8, 0, 0, 1, 0, 0, 0, 8, 4, 0, 6, 0, 9, 3, 7, 0, 0, 3, 9, 0,
+                                              7, 0, 6, 8, 0, 0, 0, 0, 9, 2, 6, 0, 0, 3, 0, 0, 0, 0, 6, 8, 0, 1, 6, 0, 0,
+                                              0, 0, 8, 0, 2, 0])
+
+        actual_moves = sector_row_interaction.sector_line_interaction()
+
+        expected_moves = [
+            Move(REMOVE_POSS, 2, (1, 6),
+                 'Cell (1, 6) had possibility value of 2 removed because sector 1 must contain it via a row interaction.')
+        ]
+
+        sector_row_interaction_expected_board = [[0, 9, 0, 6, 7, 0, 0, 0, 5],
+                                                 [7, 5, 1, 0, 0, 9, 0, 8, 6],
+                                                 [0, 3, 6, 5, 8, 0, 0, 0, 0],
+                                                 [9, 6, 7, 8, 0, 0, 1, 0, 0],
+                                                 [0, 8, 4, 0, 6, 0, 9, 3, 7],
+                                                 [0, 0, 3, 9, 0, 7, 0, 6, 8],
+                                                 [0, 0, 0, 0, 9, 2, 6, 0, 0],
+                                                 [3, 0, 0, 0, 0, 6, 8, 0, 1],
+                                                 [6, 0, 0, 0, 0, 8, 0, 2, 0]]
+
+        sector_row_interaction_expected_poss = {(0, 0): [2, 4, 8], (0, 1): [], (0, 2): [2, 8], (0, 3): [], (0, 4): [],
+                                                (0, 5): [1, 3, 4], (0, 6): [2, 3, 4], (0, 7): [1, 4], (0, 8): [],
+                                                (1, 0): [], (1, 1): [], (1, 2): [], (1, 3): [2, 3, 4],
+                                                (1, 4): [2, 3, 4], (1, 5): [], (1, 6): [3, 4], (1, 7): [], (1, 8): [],
+                                                (2, 0): [2, 4], (2, 1): [], (2, 2): [], (2, 3): [], (2, 4): [],
+                                                (2, 5): [1, 4], (2, 6): [2, 4, 7], (2, 7): [1, 4, 7, 9],
+                                                (2, 8): [2, 4, 9], (3, 0): [], (3, 1): [], (3, 2): [], (3, 3): [],
+                                                (3, 4): [2, 3, 4, 5], (3, 5): [3, 4, 5], (3, 6): [], (3, 7): [4, 5],
+                                                (3, 8): [2, 4], (4, 0): [1, 2, 5], (4, 1): [], (4, 2): [],
+                                                (4, 3): [1, 2], (4, 4): [], (4, 5): [1, 5], (4, 6): [], (4, 7): [],
+                                                (4, 8): [], (5, 0): [1, 2, 5], (5, 1): [1, 2], (5, 2): [], (5, 3): [],
+                                                (5, 4): [1, 2, 4, 5], (5, 5): [], (5, 6): [2, 4, 5], (5, 7): [],
+                                                (5, 8): [], (6, 0): [1, 4, 5, 8], (6, 1): [1, 4, 7], (6, 2): [5, 8],
+                                                (6, 3): [1, 3, 4, 7], (6, 4): [], (6, 5): [], (6, 6): [],
+                                                (6, 7): [4, 5, 7], (6, 8): [3, 4], (7, 0): [], (7, 1): [2, 4, 7],
+                                                (7, 2): [2, 5, 9], (7, 3): [4, 7], (7, 4): [4, 5], (7, 5): [],
+                                                (7, 6): [], (7, 7): [4, 5, 7, 9], (7, 8): [], (8, 0): [],
+                                                (8, 1): [1, 4, 7], (8, 2): [5, 9], (8, 3): [1, 3, 4, 7],
+                                                (8, 4): [1, 3, 4, 5], (8, 5): [], (8, 6): [3, 4, 5, 7], (8, 7): [],
+                                                (8, 8): [3, 4, 9]}
+
+        self.assertEqual(actual_moves, expected_moves)
+        self.assertEqual(sector_row_interaction.board, sector_row_interaction_expected_board)
+        self.assertEqual(sector_row_interaction.possible_values, sector_row_interaction_expected_poss)
+
+        sector_col_interaction = sector_row_interaction
+
+        actual_moves = sector_col_interaction.sector_line_interaction()
+
+        expected_moves = [
+            Move(REMOVE_POSS, 4, (6, 0),
+                 'Cell (6, 0) had possibility value of 4 removed because sector 0 must contain it via a column interaction.'),
+            Move(REMOVE_POSS, 1, (4, 5),
+                 'Cell (4, 5) had possibility value of 1 removed because sector 1 must contain it via a column interaction.'),
+            Move(REMOVE_POSS, 3, (8, 6),
+                 'Cell (8, 6) had possibility value of 3 removed because sector 2 must contain it via a column interaction.'),
+            Move(REMOVE_POSS, 5, (6, 0),
+                 'Cell (6, 0) had possibility value of 5 removed because sector 3 must contain it via a column interaction.'),
+            Move(REMOVE_POSS, 5, (3, 4),
+                 'Cell (3, 4) had possibility value of 5 removed because sector 7 must contain it via a column interaction.'),
+            Move(REMOVE_POSS, 5, (5, 4),
+                 'Cell (5, 4) had possibility value of 5 removed because sector 7 must contain it via a column interaction.'),
+        ]
+
+        sector_col_interaction_expected_board = [[0, 9, 0, 6, 7, 0, 0, 0, 5], [7, 5, 1, 0, 0, 9, 0, 8, 6],
+                                                 [0, 3, 6, 5, 8, 0, 0, 0, 0], [9, 6, 7, 8, 0, 0, 1, 0, 0],
+                                                 [0, 8, 4, 0, 6, 0, 9, 3, 7], [0, 0, 3, 9, 0, 7, 0, 6, 8],
+                                                 [0, 0, 0, 0, 9, 2, 6, 0, 0], [3, 0, 0, 0, 0, 6, 8, 0, 1],
+                                                 [6, 0, 0, 0, 0, 8, 0, 2, 0]]
+
+        sector_col_interaction_expected_poss = {(0, 0): [2, 4, 8], (0, 1): [], (0, 2): [2, 8], (0, 3): [], (0, 4): [],
+                                                (0, 5): [1, 3, 4], (0, 6): [2, 3, 4], (0, 7): [1, 4], (0, 8): [],
+                                                (1, 0): [], (1, 1): [], (1, 2): [], (1, 3): [2, 3, 4],
+                                                (1, 4): [2, 3, 4], (1, 5): [], (1, 6): [3, 4], (1, 7): [], (1, 8): [],
+                                                (2, 0): [2, 4], (2, 1): [], (2, 2): [], (2, 3): [], (2, 4): [],
+                                                (2, 5): [1, 4], (2, 6): [2, 4, 7], (2, 7): [1, 4, 7, 9],
+                                                (2, 8): [2, 4, 9], (3, 0): [], (3, 1): [], (3, 2): [], (3, 3): [],
+                                                (3, 4): [2, 3, 4], (3, 5): [3, 4, 5], (3, 6): [], (3, 7): [4, 5],
+                                                (3, 8): [2, 4], (4, 0): [1, 2, 5], (4, 1): [], (4, 2): [],
+                                                (4, 3): [1, 2], (4, 4): [], (4, 5): [5], (4, 6): [], (4, 7): [],
+                                                (4, 8): [], (5, 0): [1, 2, 5], (5, 1): [1, 2], (5, 2): [], (5, 3): [],
+                                                (5, 4): [1, 2, 4], (5, 5): [], (5, 6): [2, 4, 5], (5, 7): [],
+                                                (5, 8): [], (6, 0): [1, 8], (6, 1): [1, 4, 7], (6, 2): [5, 8],
+                                                (6, 3): [1, 3, 4, 7], (6, 4): [], (6, 5): [], (6, 6): [],
+                                                (6, 7): [4, 5, 7], (6, 8): [3, 4], (7, 0): [], (7, 1): [2, 4, 7],
+                                                (7, 2): [2, 5, 9], (7, 3): [4, 7], (7, 4): [4, 5], (7, 5): [],
+                                                (7, 6): [], (7, 7): [4, 5, 7, 9], (7, 8): [], (8, 0): [],
+                                                (8, 1): [1, 4, 7], (8, 2): [5, 9], (8, 3): [1, 3, 4, 7],
+                                                (8, 4): [1, 3, 4, 5], (8, 5): [], (8, 6): [4, 5, 7], (8, 7): [],
+                                                (8, 8): [3, 4, 9]}
+
+        self.assertEqual(actual_moves, expected_moves)
+        self.assertEqual(sector_col_interaction.board, sector_col_interaction_expected_board)
+        self.assertEqual(sector_col_interaction.possible_values, sector_col_interaction_expected_poss)
+
+        # trivial 0 move result
+        blank_board_copy = deepcopy(self.blank_board.board)
+        blank_board_poss_copy = deepcopy(self.blank_board.possible_values)
+
+        actual_moves = self.blank_board.sector_line_interaction()
+        self.assertEqual(actual_moves, [])
+        self.assertEqual(self.blank_board.board, blank_board_copy)
+        self.assertEqual(self.blank_board.possible_values, blank_board_poss_copy)
 
     def test_sector_sector_interaction(self):
         pass
@@ -769,5 +1154,3 @@ class SudokuBoardTestCase(unittest.TestCase):
     def test_solve(self):
         # test valid and invalid
         pass
-
-
