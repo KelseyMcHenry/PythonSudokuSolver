@@ -397,6 +397,7 @@ class SudokuBoard:
         for only two cells in two different blocks, but both cells are in the same column or row
         :return: a boolean indicating if any possibilities were successfully eliminated
         """
+
         successes = []
         right_adjacent = [(x, x + 1) for x in self.INDEX_RANGE if (x + 1) % 3 != 0 and (x + 1) < 9]
         bottom_adjacent = [(x, x + 3) for x in self.INDEX_RANGE if (x + 3) < 9]
@@ -900,7 +901,7 @@ class SudokuBoard:
         moves = []
         start_time = datetime.now()
         # print(self)
-        method_progression = [self.sole_candidates, self.unique_candidate, self.sector_line_interaction]
+        method_progression = [self.sole_candidates, self.unique_candidate, self.sector_sector_interaction]
         # method_progression = [self.sole_candidates, self.unique_candidate, self.sector_line_interaction,
         #                       self.naked_subset, self.hidden_subset, self.sector_sector_interaction,  self.x_wing,
         #                       self.swordfish, self.force_chain]

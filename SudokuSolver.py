@@ -40,9 +40,8 @@ data_1 = [1, 0, 0, 0, 9, 0, 3, 0, 0,
         0, 8, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 9, 4, 0, 0, 0, 0, 0]
 
-# sudoku = SudokuBoard.SudokuBoard([0, 0, 3, 7, 0, 0, 6, 5, 0, 0, 7, 0, 4, 5, 0, 8, 0, 0, 1, 0, 0, 0, 0, 6, 0, 0, 4, 5, 9, 2, 0, 0, 0, 0, 4, 0, 8, 0, 0, 9, 2, 4, 5, 0, 6, 0, 0, 0, 0, 0, 5, 9, 0, 2, 3, 0, 0, 5, 4, 0, 0, 0, 7, 7, 0, 4, 0, 9, 0, 0, 6, 0, 0, 2, 0, 0, 0, 7, 4, 0, 0])
-# sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/block_row_KM_test.sdk')
-sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/blockcolrow5.sdk')
+
+sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/blockblock1.sdk')
 
 
 sudoku.solve()
@@ -51,8 +50,6 @@ print(sudoku)
 
 exit()
 
-# sudoku.solve()
-# print(sudoku)
 
 # sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/blockcolrow5.sdk')
 # sudoku.solve()
