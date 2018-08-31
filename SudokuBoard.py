@@ -519,29 +519,59 @@ class SudokuBoard:
         :return: a boolean indicating if any possibilities were successfully eliminated
         """
 
+        subarea_type = ''
+        if 'row' in poss_func.__name__:
+            subarea_type = 'row'
+        elif 'col' in poss_func.__name__:
+            subarea_type = 'column'
+        elif 'sector' in poss_func.__name__:
+            subarea_type = 'sector'
+
         successes = []
         # for all subset sizes from 2 ... 5
         for subset_size in range(2, 6):
             # for all row/col/sectors depending on poss_func
             for index in self.INDEX_RANGE:
-                # for all possible combinations of 1 ... 9 of size subset_size (without repeats)
-                for values in [list(x) for x in product(self.VALUE_RANGE, repeat=subset_size) if
-                               len(set(x)) == subset_size]:
-                    cells_that_contain_members = []
-                    for coordinate, possibilities in poss_func(index).items():
-                        if any(i in possibilities for i in values):
-                            cells_that_contain_members.append(coordinate)
-                    total_subarea_possibilities = list(chain.from_iterable(poss_func(index).values()))
-                    if all(i in total_subarea_possibilities for i in values):
-                        if len(cells_that_contain_members) == subset_size:
-                            for coordinate, possibilities in poss_func(index).items():
-                                if coordinate in cells_that_contain_members:
-                                    for n in self.VALUE_RANGE:
-                                        if n in possibilities and n not in values:
-                                            possibilities.remove(n)
-                                            reason = 'Cell ' + str(coordinate) + ' had possibility value of ' + str(n) + ' removed because there was a hidden subset at ' + str(cells_that_contain_members) + ' of size ' + str(subset_size) + ' ' + str(values)
-                                            self.print_reason_to_file(reason)
-                                            successes.append(Move(REMOVE_POSS, n, coordinate, reason))
+                poss_dict = poss_func(index)
+                # remove all cells from data structure that are already solved
+                new_poss_dict = {coord: values for coord, values in poss_dict.items() if values}
+
+                # find all combinations of size (subset_size) of the cells which have possibility lists;
+                # specifically the coord values. ie if (0, 0), (0, 1), and (0, 2) are the only cells returned
+                # by poss_func which are not solved, cell_sets_to_try should contain:
+                #   [[(0, 0), (0, 1)], [(0, 0), (0, 2)], [(0, 1), (0, 2)]]
+                cell_sets_to_try = combinations(new_poss_dict, subset_size)
+                for cell_set in cell_sets_to_try:
+                    # list out all of the poss located at these coords ...
+                    list_of_all_poss_in_cell_set = [new_poss_dict[coord] for coord in cell_set]
+                    # flatten this list of lists into a single list containing every possibility
+                    flattened_list_of_all_poss_in_cell_set = [item for sublist in list_of_all_poss_in_cell_set for item
+                                                              in sublist]
+                    # remove duplicates from this flattened list
+                    values_to_check_for = set(flattened_list_of_all_poss_in_cell_set)
+                    # generate pairs, triplets, etc of all the different combinations of values you are looking for
+                    for value_grouping in combinations(values_to_check_for, subset_size):
+                        # if all of the values in value grouping are exclusive to this cell set...
+                        all_values_are_exclusive = True
+                        for value in value_grouping:
+                            for coord, poss in new_poss_dict.items():
+                                if value in poss and coord not in cell_set:
+                                    all_values_are_exclusive = False
+                                    break
+                            if not all_values_are_exclusive:
+                                break
+                        if all_values_are_exclusive:
+                            # then you can remove any other values from the cell set that aren't in the value set
+                            for coord, poss in poss_dict.items():
+                                for value in poss:
+                                    if value not in value_grouping and coord in cell_set:
+                                        self.possible_values[coord].remove(value)
+                                        reason = 'Cell ' + str(coord) + ' had possibility value of ' + str(
+                                            value) + ' removed because there was a hidden subset ' + ' of size ' + str(subset_size) + ' ' + str(
+                                            value_grouping) + ' in ' + subarea_type + ' ' + str(index) + ' at cells ' + str(
+                                            cell_set)
+                                        self.print_reason_to_file(reason)
+                                        successes.append(Move(REMOVE_POSS, value, coord, reason))
 
         return successes
 
@@ -922,7 +952,7 @@ class SudokuBoard:
         moves = []
         start_time = datetime.now()
         # print(self)
-        method_progression = [self.sole_candidates, self.unique_candidate, self.hidden_subset]
+        method_progression = [self.sole_candidates, self.unique_candidate, self.hidden_subset, self.naked_subset, self.sector_sector_interaction, self.sector_line_interaction]
         # method_progression = [self.sole_candidates, self.unique_candidate, self.sector_line_interaction,
         #                       self.naked_subset, self.hidden_subset, self.sector_sector_interaction,  self.x_wing,
         #                       self.swordfish, self.force_chain]
