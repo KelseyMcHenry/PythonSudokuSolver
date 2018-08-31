@@ -1,6 +1,7 @@
 import time
 from itertools import product
 from itertools import chain
+from itertools import combinations
 from datetime import datetime
 from copy import deepcopy
 from Move import Move, REMOVE_POSS, NUMBER_SOLVE
@@ -12,6 +13,7 @@ from Move import Move, REMOVE_POSS, NUMBER_SOLVE
 # TODO: switch over to using formatted strings
 # TODO: split file into board model and solving functions
 # TODO: instead of calling .board, make a function to return the board / same for poss
+# TODO : redo docs
 
 class SudokuBoard:
     """A data structure designed to hold sudoku data"""
@@ -449,30 +451,49 @@ class SudokuBoard:
         :param poss_func: a function which gives either row, col, or sector possibilities.
         :return: a boolean indicating if any possibilities were successfully eliminated
         """
+
+        subarea_type = ''
+        if 'row' in poss_func.__name__:
+            subarea_type = 'row'
+        elif 'col' in poss_func.__name__:
+            subarea_type = 'column'
+        elif 'sector' in poss_func.__name__:
+            subarea_type = 'sector'
+
         successes = []
         # for all subset sizes from 2 ... 5
         for subset_size in range(2, 6):
             # for all row/col/sectors depending on poss_func
             for index in self.INDEX_RANGE:
-                # for all possible combinations of 1 ... 9 of size subset_size (without repeats)
-                for values in [list(x) for x in product(self.VALUE_RANGE, repeat=subset_size) if
-                               len(set(x)) == subset_size]:
-                    cells_that_contain_subset = []
-                    # if the possibilities in cell in said row/col/sector can ONLY be that subset add it to a list
-                    for coordinate, possibilities in poss_func(index).items():
-                        if all(i in possibilities for i in values) and len(possibilities) == subset_size:
-                            cells_that_contain_subset.append(coordinate)
-                    # if only X cells can contain a certain subset of size X, remove the values in said subset from
-                    # all other members of the row/col/sector
-                    if len(cells_that_contain_subset) == subset_size:
-                        for coordinate, possibilities in poss_func(index).items():
-                            if coordinate not in cells_that_contain_subset:
-                                for value in values:
-                                    if value in possibilities:
-                                        possibilities.remove(value)
-                                        reason = 'Cell ' + str(coordinate) + ' had possibility value of ' + str(value) + ' removed because there was a naked subset at ' + str(cells_that_contain_subset) + ' of size ' + str(subset_size)
+                poss_dict = poss_func(index)
+                # remove all cells from data structure that are already solved
+                new_poss_dict = {coord: values for coord, values in poss_dict.items() if values}
+
+                # find all combinations of size (subset_size) of the cells which have possibility lists;
+                # specifically the coord values. ie if (0, 0), (0, 1), and (0, 2) are the only cells returned
+                # by poss_func which are not solved, cell_sets_to_try should contain:
+                #   [[(0, 0), (0, 1)], [(0, 0), (0, 2)], [(0, 1), (0, 2)]]
+                cell_sets_to_try = combinations(new_poss_dict, subset_size)
+                for cell_set in cell_sets_to_try:
+                    # list out all of the poss located at these coords ...
+                    list_of_all_poss_in_cell_set = [new_poss_dict[coord] for coord in cell_set]
+                    # flatten this list of lists into a single list containing every possibility
+                    flattened_list_of_all_poss_in_cell_set = [item for sublist in list_of_all_poss_in_cell_set for item in sublist]
+                    # remove duplicates from this flattened list
+                    values_to_check_for = set(flattened_list_of_all_poss_in_cell_set)
+                    # if these possibilities are of the correct size, you have a match and can eliminate
+                    # the possibilities from the other cells returned in poss_func
+                    if len(values_to_check_for) == subset_size:
+                        for coord, poss in new_poss_dict.items():
+                            if coord not in cell_set:
+                                for value in values_to_check_for:
+                                    if value in self.possible_values[coord]:
+                                        self.possible_values[coord].remove(value)
+                                        reason = 'Cell ' + str(coord) + ' had possibility value of ' + str(value) + ' removed because there was a naked subset at ' + str(cell_set) + ' of size ' + str(subset_size) + ' in ' + subarea_type + ' ' + str(index)
                                         self.print_reason_to_file(reason)
-                                        successes.append(Move(REMOVE_POSS, value, coordinate, reason))
+                                        successes.append(Move(REMOVE_POSS, value, coord, reason))
+            if successes:
+                break
 
         return successes
 
@@ -901,7 +922,7 @@ class SudokuBoard:
         moves = []
         start_time = datetime.now()
         # print(self)
-        method_progression = [self.sole_candidates, self.unique_candidate, self.sector_sector_interaction]
+        method_progression = [self.sole_candidates, self.unique_candidate, self.hidden_subset]
         # method_progression = [self.sole_candidates, self.unique_candidate, self.sector_line_interaction,
         #                       self.naked_subset, self.hidden_subset, self.sector_sector_interaction,  self.x_wing,
         #                       self.swordfish, self.force_chain]

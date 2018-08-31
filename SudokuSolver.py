@@ -41,8 +41,10 @@ data_1 = [1, 0, 0, 0, 9, 0, 3, 0, 0,
         0, 0, 9, 4, 0, 0, 0, 0, 0]
 
 
-sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/blockblock1.sdk')
-
+sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/hiddenquad1.sdk')
+# sudoku = SudokuBoard.SudokuBoard([0, 0, 8, 2, 1, 7, 0, 0, 0, 2, 3, 0, 5, 6, 9, 0, 0, 8, 5, 0, 0, 4, 3, 8, 0, 2, 0,
+#                                        0, 0, 5, 0, 2, 0, 0, 8, 0, 3, 0, 0, 8, 4, 5, 0, 0, 6, 0, 8, 0, 0, 9, 0, 5, 0, 0,
+#                                        0, 4, 0, 6, 0, 1, 0, 0, 9, 0, 0, 0, 3, 0, 2, 0, 1, 4, 0, 0, 0, 9, 8, 4, 7, 0, 0])
 
 sudoku.solve()
 
