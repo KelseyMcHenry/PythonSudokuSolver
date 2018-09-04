@@ -486,31 +486,29 @@ class SudokuBoardTestCase(unittest.TestCase):
 
     def test_eliminate_poss_from_row(self):
         # test board_ 1 > 3 move
-        actual_moves = self.test_board_1.eliminate_possibilities_from_row(0, 7, "test_val")
+        actual_moves = self.test_board_1.eliminate_possibilities_from_row(0, 7, [(0, 0), (0, 2), (4, 0), (4, 2)])
         self.assertEqual(self.test_board_1.get_row_possibilities(0),
-                         {(0, 0): [], (0, 1): [2, 5], (0, 2): [2, 8], (0, 3): [2, 6], (0, 4): [],
+                         {(0, 0): [], (0, 1): [2, 5], (0, 2): [2, 7, 8], (0, 3): [2, 6], (0, 4): [],
                           (0, 5): [2, 4, 6, 8], (0, 6): [], (0, 7): [2, 4, 5], (0, 8): [2, 4, 5, 6]})
         expected_moves = [
-            Move(REMOVE_POSS, 7, (0, 2), str((0, 2)) + ' had possibility value of ' + str(7) +
-                 ' removed because there was ' + 'an x-wing interaction between cells ' + "test_val"),
-            Move(REMOVE_POSS, 7, (0, 7), str((0, 7)) + ' had possibility value of ' + str(7) +
-                 ' removed because there was ' + 'an x-wing interaction between cells ' + "test_val"),
-            Move(REMOVE_POSS, 7, (0, 8), str((0, 8)) + ' had possibility value of ' + str(7) +
-                 ' removed because there was ' + 'an x-wing interaction between cells ' + "test_val")]
+            Move(REMOVE_POSS, 7, (0, 7), 'Row 0 had possibility value of ' + str(7) +
+                 ' removed because there was ' + 'an x-wing interaction between cells ' + str([(0, 0), (0, 2), (4, 0), (4, 2)])),
+            Move(REMOVE_POSS, 7, (0, 8), 'Row 0 had possibility value of ' + str(7) +
+                 ' removed because there was ' + 'an x-wing interaction between cells ' + str([(0, 0), (0, 2), (4, 0), (4, 2)]))]
         self.assertEqual(expected_moves, actual_moves)
 
         # test board_ 2 > 1 move
-        actual_moves = self.test_board_2.eliminate_possibilities_from_row(0, 7, "test_val")
+        actual_moves = self.test_board_2.eliminate_possibilities_from_row(0, 7, [(0, 0), (0, 1), (4, 0), (4, 1)])
         self.assertEqual(self.test_board_2.get_row_possibilities(0),
                          {(0, 0): [], (0, 1): [2, 4, 6], (0, 2): [1, 2], (0, 3): [], (0, 4): [1, 2, 4, 6],
                           (0, 5): [1, 4, 6], (0, 6): [], (0, 7): [], (0, 8): [1]})
         expected_moves = [
-            Move(REMOVE_POSS, 7, (0, 2), str((0, 2)) + ' had possibility value of ' + str(7) +
-                 ' removed because there was ' + 'an x-wing interaction between cells ' + "test_val")]
+            Move(REMOVE_POSS, 7, (0, 2), 'Row 0 had possibility value of ' + str(7) +
+                 ' removed because there was ' + 'an x-wing interaction between cells ' + str([(0, 0), (0, 1), (4, 0), (4, 1)]))]
         self.assertEqual(expected_moves, actual_moves)
 
         # test board_ 3 > 0 moves
-        actual_moves = self.test_board_3.eliminate_possibilities_from_row(0, 9, "test_val")
+        actual_moves = self.test_board_3.eliminate_possibilities_from_row(0, 9, [(0, 0), (0, 1), (4, 0), (4, 1)])
         self.assertEqual(self.test_board_3.get_row_possibilities(0),
                          {(0, 0): [], (0, 1): [1, 2, 8], (0, 2): [7], (0, 3): [], (0, 4): [2, 4, 5, 7],
                           (0, 5): [4, 5], (0, 6): [4, 5], (0, 7): [], (0, 8): [4, 5, 8]})
@@ -518,35 +516,34 @@ class SudokuBoardTestCase(unittest.TestCase):
 
     def test_eliminate_poss_from_col(self):
         # test_board 1 > 3 moves
-        actual_moves = self.test_board_1.eliminate_possibilities_from_column(0, 9, "test_val")
+        actual_moves = self.test_board_1.eliminate_possibilities_from_column(0, 9, [(0, 0), (0, 8), (4, 0), (4, 8)])
         self.assertEqual(self.test_board_1.get_col_possibilities(0),
-                         {(0, 0): [], (1, 0): [5], (2, 0): [7, 8], (3, 0): [], (4, 0): [4, 6],
+                         {(0, 0): [], (1, 0): [5], (2, 0): [7, 8], (3, 0): [], (4, 0): [4, 6, 9],
                           (5, 0): [4, 6, 8], (6, 0): [], (7, 0): [4, 5, 6, 7], (8, 0): [5, 6, 7]})
         expected_moves = [
-            Move(REMOVE_POSS, 9, (1, 0), str((1, 0)) + ' had possibility value of ' + str(9) +
-                 ' removed because there was ' + 'an x-wing interaction between cells ' + "test_val"),
-            Move(REMOVE_POSS, 9, (2, 0), str((2, 0)) + ' had possibility value of ' + str(9) +
-                 ' removed because there was ' + 'an x-wing interaction between cells ' + "test_val"),
-            Move(REMOVE_POSS, 9, (4, 0), str((4, 0)) + ' had possibility value of ' + str(9) +
-                 ' removed because there was ' + 'an x-wing interaction between cells ' + "test_val")]
+            Move(REMOVE_POSS, 9, (1, 0), 'Column 0 had possibility value of ' + str(9) +
+                 ' removed because there was ' + 'an x-wing interaction between cells ' + str([(0, 0), (0, 8), (4, 0), (4, 8)])),
+            Move(REMOVE_POSS, 9, (2, 0), 'Column 0 had possibility value of ' + str(9) +
+                 ' removed because there was ' + 'an x-wing interaction between cells ' + str([(0, 0), (0, 8), (4, 0), (4, 8)]))
+        ]
         self.assertEqual(expected_moves, actual_moves)
 
         # test_board 2 > 3 moves
-        actual_moves = self.test_board_2.eliminate_possibilities_from_column(0, 8, "test_val")
+        actual_moves = self.test_board_2.eliminate_possibilities_from_column(0, 8, [(0, 0), (0, 8), (4, 0), (4, 8)])
         self.assertEqual(self.test_board_2.get_col_possibilities(0),
                          {(0, 0): [], (1, 0): [2, 4, 6], (2, 0): [3, 6], (3, 0): [], (4, 0): [2, 3, 6, 7],
                           (5, 0): [4, 7], (6, 0): [], (7, 0): [2, 3], (8, 0): [2]})
         expected_moves = [
-            Move(REMOVE_POSS, 8, (5, 0), str((5, 0)) + ' had possibility value of ' + str(8) +
-                 ' removed because there was ' + 'an x-wing interaction between cells ' + "test_val"),
-            Move(REMOVE_POSS, 8, (7, 0), str((7, 0)) + ' had possibility value of ' + str(8) +
-                 ' removed because there was ' + 'an x-wing interaction between cells ' + "test_val"),
-            Move(REMOVE_POSS, 8, (8, 0), str((8, 0)) + ' had possibility value of ' + str(8) +
-                 ' removed because there was ' + 'an x-wing interaction between cells ' + "test_val")]
+            Move(REMOVE_POSS, 8, (5, 0), 'Column 0 had possibility value of ' + str(8) +
+                 ' removed because there was ' + 'an x-wing interaction between cells ' + str([(0, 0), (0, 8), (4, 0), (4, 8)])),
+            Move(REMOVE_POSS, 8, (7, 0), 'Column 0 had possibility value of ' + str(8) +
+                 ' removed because there was ' + 'an x-wing interaction between cells ' + str([(0, 0), (0, 8), (4, 0), (4, 8)])),
+            Move(REMOVE_POSS, 8, (8, 0), 'Column 0 had possibility value of ' + str(8) +
+                 ' removed because there was ' + 'an x-wing interaction between cells ' + str([(0, 0), (0, 8), (4, 0), (4, 8)]))]
         self.assertEqual(expected_moves, actual_moves)
 
         # test_board 3 > 0 moves
-        actual_moves = self.test_board_3.eliminate_possibilities_from_column(0, 9, "test_val")
+        actual_moves = self.test_board_3.eliminate_possibilities_from_column(0, 9, [(0, 0), (0, 8), (4, 0), (4, 8)])
         self.assertEqual(self.test_board_3.get_col_possibilities(0),
                          {(0, 0): [], (1, 0): [6, 7], (2, 0): [2, 6, 8], (3, 0): [], (4, 0): [4, 5, 6, 7, 8],
                           (5, 0): [4, 5, 6, 7, 8], (6, 0): [1, 4], (7, 0): [1, 2, 4, 6], (8, 0): [2, 4, 6]})
@@ -1106,6 +1103,18 @@ class SudokuBoardTestCase(unittest.TestCase):
         self.assertEqual(self.blank_board.board, blank_board_copy)
         self.assertEqual(self.blank_board.possible_values, blank_board_poss_copy)
 
+    def test_pointing_tuple_generic_row(self):
+        # TODO
+        pass
+
+    def test_pointing_tuple_generic_column(self):
+        # TODO
+        pass
+
+    def test_pointing_tuple(self):
+        # TODO
+        pass
+
     def test_sector_sector_interaction(self):
         sector_sector_interaction = SudokuBoard(
             [0, 0, 0, 0, 0, 3, 9, 4, 8, 3, 0, 9, 0, 0, 8, 5, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 2, 5, 0, 0, 9, 0, 0, 0, 0, 0,
@@ -1515,20 +1524,406 @@ class SudokuBoardTestCase(unittest.TestCase):
         self.assertEqual(self.blank_board.possible_values, blank_board_poss_copy)
 
     def test_hidden_subset_row(self):
-        pass
+        hidden_subset_row = SudokuBoard(
+            [5, 0, 2, 6, 0, 0, 7, 4, 9, 0, 0, 0, 9, 0, 0, 6, 1, 2, 0, 0, 6, 0, 2, 0, 3, 8, 5,
+             0, 0, 4, 0, 9, 6, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 2, 7, 0, 9, 3, 0,
+             8, 3, 7, 0, 6, 2, 0, 9, 1, 2, 6, 1, 0, 0, 9, 0, 0, 0, 4, 5, 9, 7, 1, 8, 2, 6, 3])
+
+        actual_moves = hidden_subset_row.hidden_subset_generic(hidden_subset_row.get_row_possibilities)
+
+        expected_moves = [
+            Move(REMOVE_POSS, 1, (4, 0),
+                 'Cell (4, 0) had possibility value of 1 removed because there was a hidden subset of size 4 (2, 6, 7, 9) in row 4 at cells ((4, 0), (4, 1), (4, 7), (4, 8))'),
+            Move(REMOVE_POSS, 1, (4, 1),
+                 'Cell (4, 1) had possibility value of 1 removed because there was a hidden subset of size 4 (2, 6, 7, 9) in row 4 at cells ((4, 0), (4, 1), (4, 7), (4, 8))'),
+            Move(REMOVE_POSS, 8, (4, 1),
+                 'Cell (4, 1) had possibility value of 8 removed because there was a hidden subset of size 4 (2, 6, 7, 9) in row 4 at cells ((4, 0), (4, 1), (4, 7), (4, 8))'),
+            Move(REMOVE_POSS, 5, (4, 7),
+                 'Cell (4, 7) had possibility value of 5 removed because there was a hidden subset of size 4 (2, 6, 7, 9) in row 4 at cells ((4, 0), (4, 1), (4, 7), (4, 8))'),
+            Move(REMOVE_POSS, 4, (4, 8),
+                 'Cell (4, 8) had possibility value of 4 removed because there was a hidden subset of size 4 (2, 6, 7, 9) in row 4 at cells ((4, 0), (4, 1), (4, 7), (4, 8))'),
+            Move(REMOVE_POSS, 8, (4, 8),
+                 'Cell (4, 8) had possibility value of 8 removed because there was a hidden subset of size 4 (2, 6, 7, 9) in row 4 at cells ((4, 0), (4, 1), (4, 7), (4, 8))')
+        ]
+
+        hidden_subset_row_expected_board = [[5, 0, 2, 6, 0, 0, 7, 4, 9], [0, 0, 0, 9, 0, 0, 6, 1, 2],
+                                            [0, 0, 6, 0, 2, 0, 3, 8, 5], [0, 0, 4, 0, 9, 6, 1, 0, 0],
+                                            [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 5, 2, 7, 0, 9, 3, 0],
+                                            [8, 3, 7, 0, 6, 2, 0, 9, 1], [2, 6, 1, 0, 0, 9, 0, 0, 0],
+                                            [4, 5, 9, 7, 1, 8, 2, 6, 3]]
+
+        hidden_subset_row_expected_poss = {(0, 0): [], (0, 1): [1, 8], (0, 2): [], (0, 3): [], (0, 4): [3, 8],
+                                           (0, 5): [1, 3], (0, 6): [], (0, 7): [], (0, 8): [], (1, 0): [3, 7],
+                                           (1, 1): [4, 7, 8], (1, 2): [3, 8], (1, 3): [], (1, 4): [3, 4, 5, 8],
+                                           (1, 5): [3, 4, 5, 7], (1, 6): [], (1, 7): [], (1, 8): [], (2, 0): [1, 7, 9],
+                                           (2, 1): [1, 4, 7, 9], (2, 2): [], (2, 3): [1, 4], (2, 4): [],
+                                           (2, 5): [1, 4, 7], (2, 6): [], (2, 7): [], (2, 8): [], (3, 0): [3, 7],
+                                           (3, 1): [2, 7, 8], (3, 2): [], (3, 3): [3, 5, 8], (3, 4): [], (3, 5): [],
+                                           (3, 6): [], (3, 7): [2, 5, 7], (3, 8): [7, 8], (4, 0): [3, 6, 7, 9],
+                                           (4, 1): [2, 7, 9], (4, 2): [3, 8], (4, 3): [1, 3, 4, 5, 8],
+                                           (4, 4): [3, 4, 5, 8], (4, 5): [1, 3, 4, 5], (4, 6): [4, 5, 8],
+                                           (4, 7): [2, 7], (4, 8): [6, 7], (5, 0): [1, 6], (5, 1): [1, 8], (5, 2): [],
+                                           (5, 3): [], (5, 4): [], (5, 5): [1, 4], (5, 6): [], (5, 7): [],
+                                           (5, 8): [4, 6, 8], (6, 0): [], (6, 1): [], (6, 2): [], (6, 3): [4, 5],
+                                           (6, 4): [], (6, 5): [], (6, 6): [4, 5], (6, 7): [], (6, 8): [], (7, 0): [],
+                                           (7, 1): [], (7, 2): [], (7, 3): [3, 4, 5], (7, 4): [3, 4, 5], (7, 5): [],
+                                           (7, 6): [4, 5, 8], (7, 7): [5, 7], (7, 8): [4, 7, 8], (8, 0): [], (8, 1): [],
+                                           (8, 2): [], (8, 3): [], (8, 4): [], (8, 5): [], (8, 6): [], (8, 7): [],
+                                           (8, 8): []}
+
+        self.assertEqual(hidden_subset_row.board, hidden_subset_row_expected_board)
+        self.assertEqual(hidden_subset_row.possible_values, hidden_subset_row_expected_poss)
+        self.assertEqual(actual_moves, expected_moves)
+
+        # trivial 0 move result
+        blank_board_copy = deepcopy(self.blank_board.board)
+        blank_board_poss_copy = deepcopy(self.blank_board.possible_values)
+
+        actual_moves = self.blank_board.hidden_subset_generic(self.blank_board.get_row_possibilities)
+        self.assertEqual(actual_moves, [])
+        self.assertEqual(self.blank_board.board, blank_board_copy)
+        self.assertEqual(self.blank_board.possible_values, blank_board_poss_copy)
 
     def test_hidden_subset_col(self):
-        pass
+        hidden_subset_col = SudokuBoard(
+            [0, 4, 9, 1, 3, 2, 0, 0, 0, 0, 8, 1, 4, 7, 9, 0, 0, 0, 3, 2, 7, 6, 8, 5, 9, 1, 4,
+             0, 9, 6, 0, 5, 1, 8, 0, 0, 0, 7, 5, 0, 2, 8, 0, 0, 0, 0, 3, 8, 0, 4, 6, 0, 0, 5,
+             8, 5, 3, 2, 6, 7, 0, 0, 0, 7, 1, 2, 8, 9, 4, 5, 6, 3, 9, 6, 4, 5, 1, 3, 0, 0, 0]
+        )
+
+        actual_moves = hidden_subset_col.hidden_subset_generic(hidden_subset_col.get_col_possibilities)
+
+        expected_moves = [
+            Move(REMOVE_POSS, 6, (4, 8),
+                 'Cell (4, 8) had possibility value of 6 removed because there was a hidden subset of size 2 (1, 9) in column 8 at cells ((4, 8), (6, 8))')
+        ]
+
+        hidden_subset_col_expected_board = [[0, 4, 9, 1, 3, 2, 0, 0, 0], [0, 8, 1, 4, 7, 9, 0, 0, 0],
+                                            [3, 2, 7, 6, 8, 5, 9, 1, 4], [0, 9, 6, 0, 5, 1, 8, 0, 0],
+                                            [0, 7, 5, 0, 2, 8, 0, 0, 0], [0, 3, 8, 0, 4, 6, 0, 0, 5],
+                                            [8, 5, 3, 2, 6, 7, 0, 0, 0], [7, 1, 2, 8, 9, 4, 5, 6, 3],
+                                            [9, 6, 4, 5, 1, 3, 0, 0, 0]]
+
+        hidden_subset_col_expected_poss = {(0, 0): [5, 6], (0, 1): [], (0, 2): [], (0, 3): [], (0, 4): [], (0, 5): [],
+                                           (0, 6): [6, 7], (0, 7): [5, 7, 8], (0, 8): [6, 7, 8], (1, 0): [5, 6],
+                                           (1, 1): [], (1, 2): [], (1, 3): [], (1, 4): [], (1, 5): [],
+                                           (1, 6): [2, 3, 6], (1, 7): [2, 3, 5], (1, 8): [2, 6], (2, 0): [], (2, 1): [],
+                                           (2, 2): [], (2, 3): [], (2, 4): [], (2, 5): [], (2, 6): [], (2, 7): [],
+                                           (2, 8): [], (3, 0): [2, 4], (3, 1): [], (3, 2): [], (3, 3): [3, 7],
+                                           (3, 4): [], (3, 5): [], (3, 6): [], (3, 7): [2, 3, 4, 7], (3, 8): [2, 7],
+                                           (4, 0): [1, 4], (4, 1): [], (4, 2): [], (4, 3): [3, 9], (4, 4): [],
+                                           (4, 5): [], (4, 6): [1, 3, 4, 6], (4, 7): [3, 4, 9], (4, 8): [1, 9],
+                                           (5, 0): [1, 2], (5, 1): [], (5, 2): [], (5, 3): [7, 9], (5, 4): [],
+                                           (5, 5): [], (5, 6): [1, 2, 7], (5, 7): [2, 7, 9], (5, 8): [], (6, 0): [],
+                                           (6, 1): [], (6, 2): [], (6, 3): [], (6, 4): [], (6, 5): [], (6, 6): [1, 4],
+                                           (6, 7): [4, 9], (6, 8): [1, 9], (7, 0): [], (7, 1): [], (7, 2): [],
+                                           (7, 3): [], (7, 4): [], (7, 5): [], (7, 6): [], (7, 7): [], (7, 8): [],
+                                           (8, 0): [], (8, 1): [], (8, 2): [], (8, 3): [], (8, 4): [], (8, 5): [],
+                                           (8, 6): [2, 7], (8, 7): [2, 7, 8], (8, 8): [2, 7, 8]}
+
+        self.assertEqual(hidden_subset_col.board, hidden_subset_col_expected_board)
+        self.assertEqual(hidden_subset_col.possible_values, hidden_subset_col_expected_poss)
+        self.assertEqual(actual_moves, expected_moves)
+
+        # trivial 0 move result
+        blank_board_copy = deepcopy(self.blank_board.board)
+        blank_board_poss_copy = deepcopy(self.blank_board.possible_values)
+
+        actual_moves = self.blank_board.hidden_subset_generic(self.blank_board.get_col_possibilities)
+        self.assertEqual(actual_moves, [])
+        self.assertEqual(self.blank_board.board, blank_board_copy)
+        self.assertEqual(self.blank_board.possible_values, blank_board_poss_copy)
 
     def test_hidden_subset_sector(self):
-        pass
+        hidden_subset_sector = SudokuBoard(
+            [8, 1, 6, 5, 7, 3, 2, 9, 4, 3, 9, 2, 0, 0, 0, 0, 0, 0, 4, 5, 7, 2, 0, 9, 0, 0, 6,
+             9, 4, 1, 0, 0, 0, 5, 6, 8, 7, 8, 5, 4, 9, 6, 1, 2, 3, 6, 2, 3, 8, 0, 0, 0, 4, 0,
+             2, 7, 9, 0, 0, 0, 0, 0, 1, 1, 3, 8, 0, 0, 0, 0, 7, 0, 5, 6, 4, 0, 0, 0, 0, 8, 2]
+        )
+
+        hidden_subset_sector.set_poss_values(
+            {(0, 0): [], (0, 1): [], (0, 2): [], (0, 3): [], (0, 4): [], (0, 5): [], (0, 6): [], (0, 7): [], (0, 8): [],
+             (1, 0): [], (1, 1): [], (1, 2): [], (1, 3): [1, 6], (1, 4): [1, 4, 6, 8], (1, 5): [1, 4, 8],
+             (1, 6): [7, 8], (1, 7): [1, 5], (1, 8): [5, 7], (2, 0): [], (2, 1): [], (2, 2): [], (2, 3): [],
+             (2, 4): [1, 8], (2, 5): [], (2, 6): [3, 8], (2, 7): [1, 3], (2, 8): [], (3, 0): [], (3, 1): [], (3, 2): [],
+             (3, 3): [3, 7], (3, 4): [2, 3], (3, 5): [2, 7], (3, 6): [], (3, 7): [], (3, 8): [], (4, 0): [], (4, 1): [],
+             (4, 2): [], (4, 3): [], (4, 4): [], (4, 5): [], (4, 6): [], (4, 7): [], (4, 8): [], (5, 0): [], (5, 1): [],
+             (5, 2): [], (5, 3): [], (5, 4): [1, 5], (5, 5): [1, 5], (5, 6): [7, 9], (5, 7): [], (5, 8): [7, 9],
+             (6, 0): [], (6, 1): [], (6, 2): [], (6, 3): [3, 6], (6, 4): [3, 4, 5, 6, 8], (6, 5): [4, 5, 8],
+             (6, 6): [4, 6], (6, 7): [3, 5], (6, 8): [], (7, 0): [], (7, 1): [], (7, 2): [], (7, 3): [6, 9],
+             (7, 4): [2, 4, 5, 6], (7, 5): [2, 4, 5], (7, 6): [4, 6], (7, 7): [], (7, 8): [5, 9], (8, 0): [],
+             (8, 1): [], (8, 2): [], (8, 3): [1, 3, 7, 9], (8, 4): [1, 3], (8, 5): [1, 7], (8, 6): [3, 9], (8, 7): [],
+             (8, 8): []})
+
+        actual_moves = hidden_subset_sector.hidden_subset_generic(hidden_subset_sector.get_sector_possibilities)
+
+        expected_moves = [
+            Move(REMOVE_POSS, 3, (6, 4),
+                 'Cell (6, 4) had possibility value of 3 removed because there was a hidden subset of size 4 (2, 4, 5, 8) in sector 7 at cells ((6, 4), (6, 5), (7, 4), (7, 5))'),
+            Move(REMOVE_POSS, 6, (6, 4),
+                 'Cell (6, 4) had possibility value of 6 removed because there was a hidden subset of size 4 (2, 4, 5, 8) in sector 7 at cells ((6, 4), (6, 5), (7, 4), (7, 5))'),
+            Move(REMOVE_POSS, 6, (7, 4),
+                 'Cell (7, 4) had possibility value of 6 removed because there was a hidden subset of size 4 (2, 4, 5, 8) in sector 7 at cells ((6, 4), (6, 5), (7, 4), (7, 5))')
+        ]
+
+        hidden_subset_sector_expected_board = [[8, 1, 6, 5, 7, 3, 2, 9, 4], [3, 9, 2, 0, 0, 0, 0, 0, 0],
+                                               [4, 5, 7, 2, 0, 9, 0, 0, 6], [9, 4, 1, 0, 0, 0, 5, 6, 8],
+                                               [7, 8, 5, 4, 9, 6, 1, 2, 3], [6, 2, 3, 8, 0, 0, 0, 4, 0],
+                                               [2, 7, 9, 0, 0, 0, 0, 0, 1], [1, 3, 8, 0, 0, 0, 0, 7, 0],
+                                               [5, 6, 4, 0, 0, 0, 0, 8, 2]]
+
+        hidden_subset_sector_expected_poss = {(0, 0): [], (0, 1): [], (0, 2): [], (0, 3): [], (0, 4): [], (0, 5): [],
+                                              (0, 6): [], (0, 7): [], (0, 8): [], (1, 0): [], (1, 1): [], (1, 2): [],
+                                              (1, 3): [1, 6], (1, 4): [1, 4, 6, 8], (1, 5): [1, 4, 8], (1, 6): [7, 8],
+                                              (1, 7): [1, 5], (1, 8): [5, 7], (2, 0): [], (2, 1): [], (2, 2): [],
+                                              (2, 3): [], (2, 4): [1, 8], (2, 5): [], (2, 6): [3, 8], (2, 7): [1, 3],
+                                              (2, 8): [], (3, 0): [], (3, 1): [], (3, 2): [], (3, 3): [3, 7],
+                                              (3, 4): [2, 3], (3, 5): [2, 7], (3, 6): [], (3, 7): [], (3, 8): [],
+                                              (4, 0): [], (4, 1): [], (4, 2): [], (4, 3): [], (4, 4): [], (4, 5): [],
+                                              (4, 6): [], (4, 7): [], (4, 8): [], (5, 0): [], (5, 1): [], (5, 2): [],
+                                              (5, 3): [], (5, 4): [1, 5], (5, 5): [1, 5], (5, 6): [7, 9], (5, 7): [],
+                                              (5, 8): [7, 9], (6, 0): [], (6, 1): [], (6, 2): [], (6, 3): [3, 6],
+                                              (6, 4): [4, 5, 8], (6, 5): [4, 5, 8], (6, 6): [4, 6], (6, 7): [3, 5],
+                                              (6, 8): [], (7, 0): [], (7, 1): [], (7, 2): [], (7, 3): [6, 9],
+                                              (7, 4): [2, 4, 5], (7, 5): [2, 4, 5], (7, 6): [4, 6], (7, 7): [],
+                                              (7, 8): [5, 9], (8, 0): [], (8, 1): [], (8, 2): [], (8, 3): [1, 3, 7, 9],
+                                              (8, 4): [1, 3], (8, 5): [1, 7], (8, 6): [3, 9], (8, 7): [], (8, 8): []}
+
+        self.assertEqual(hidden_subset_sector.board, hidden_subset_sector_expected_board)
+        self.assertEqual(hidden_subset_sector.possible_values, hidden_subset_sector_expected_poss)
+        self.assertEqual(actual_moves, expected_moves)
+
+        # trivial 0 move result
+        blank_board_copy = deepcopy(self.blank_board.board)
+        blank_board_poss_copy = deepcopy(self.blank_board.possible_values)
+
+        actual_moves = self.blank_board.hidden_subset_generic(self.blank_board.get_sector_possibilities)
+        self.assertEqual(actual_moves, [])
+        self.assertEqual(self.blank_board.board, blank_board_copy)
+        self.assertEqual(self.blank_board.possible_values, blank_board_poss_copy)
 
     def test_hidden_subset(self):
-        # make sure to bypass / not bypass short circuiting
-        pass
+        hidden_subset_row = SudokuBoard(
+            [5, 0, 2, 6, 0, 0, 7, 4, 9, 0, 0, 0, 9, 0, 0, 6, 1, 2, 0, 0, 6, 0, 2, 0, 3, 8, 5,
+             0, 0, 4, 0, 9, 6, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 2, 7, 0, 9, 3, 0,
+             8, 3, 7, 0, 6, 2, 0, 9, 1, 2, 6, 1, 0, 0, 9, 0, 0, 0, 4, 5, 9, 7, 1, 8, 2, 6, 3])
+
+        actual_moves = hidden_subset_row.hidden_subset()
+
+        expected_moves = [
+            Move(REMOVE_POSS, 1, (4, 0),
+                 'Cell (4, 0) had possibility value of 1 removed because there was a hidden subset of size 4 (2, 6, 7, 9) in row 4 at cells ((4, 0), (4, 1), (4, 7), (4, 8))'),
+            Move(REMOVE_POSS, 1, (4, 1),
+                 'Cell (4, 1) had possibility value of 1 removed because there was a hidden subset of size 4 (2, 6, 7, 9) in row 4 at cells ((4, 0), (4, 1), (4, 7), (4, 8))'),
+            Move(REMOVE_POSS, 8, (4, 1),
+                 'Cell (4, 1) had possibility value of 8 removed because there was a hidden subset of size 4 (2, 6, 7, 9) in row 4 at cells ((4, 0), (4, 1), (4, 7), (4, 8))'),
+            Move(REMOVE_POSS, 5, (4, 7),
+                 'Cell (4, 7) had possibility value of 5 removed because there was a hidden subset of size 4 (2, 6, 7, 9) in row 4 at cells ((4, 0), (4, 1), (4, 7), (4, 8))'),
+            Move(REMOVE_POSS, 4, (4, 8),
+                 'Cell (4, 8) had possibility value of 4 removed because there was a hidden subset of size 4 (2, 6, 7, 9) in row 4 at cells ((4, 0), (4, 1), (4, 7), (4, 8))'),
+            Move(REMOVE_POSS, 8, (4, 8),
+                 'Cell (4, 8) had possibility value of 8 removed because there was a hidden subset of size 4 (2, 6, 7, 9) in row 4 at cells ((4, 0), (4, 1), (4, 7), (4, 8))')
+        ]
+
+        hidden_subset_row_expected_board = [[5, 0, 2, 6, 0, 0, 7, 4, 9], [0, 0, 0, 9, 0, 0, 6, 1, 2],
+                                            [0, 0, 6, 0, 2, 0, 3, 8, 5], [0, 0, 4, 0, 9, 6, 1, 0, 0],
+                                            [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 5, 2, 7, 0, 9, 3, 0],
+                                            [8, 3, 7, 0, 6, 2, 0, 9, 1], [2, 6, 1, 0, 0, 9, 0, 0, 0],
+                                            [4, 5, 9, 7, 1, 8, 2, 6, 3]]
+
+        hidden_subset_row_expected_poss = {(0, 0): [], (0, 1): [1, 8], (0, 2): [], (0, 3): [], (0, 4): [3, 8],
+                                           (0, 5): [1, 3], (0, 6): [], (0, 7): [], (0, 8): [], (1, 0): [3, 7],
+                                           (1, 1): [4, 7, 8], (1, 2): [3, 8], (1, 3): [], (1, 4): [3, 4, 5, 8],
+                                           (1, 5): [3, 4, 5, 7], (1, 6): [], (1, 7): [], (1, 8): [], (2, 0): [1, 7, 9],
+                                           (2, 1): [1, 4, 7, 9], (2, 2): [], (2, 3): [1, 4], (2, 4): [],
+                                           (2, 5): [1, 4, 7], (2, 6): [], (2, 7): [], (2, 8): [], (3, 0): [3, 7],
+                                           (3, 1): [2, 7, 8], (3, 2): [], (3, 3): [3, 5, 8], (3, 4): [], (3, 5): [],
+                                           (3, 6): [], (3, 7): [2, 5, 7], (3, 8): [7, 8], (4, 0): [3, 6, 7, 9],
+                                           (4, 1): [2, 7, 9], (4, 2): [3, 8], (4, 3): [1, 3, 4, 5, 8],
+                                           (4, 4): [3, 4, 5, 8], (4, 5): [1, 3, 4, 5], (4, 6): [4, 5, 8],
+                                           (4, 7): [2, 7], (4, 8): [6, 7], (5, 0): [1, 6], (5, 1): [1, 8], (5, 2): [],
+                                           (5, 3): [], (5, 4): [], (5, 5): [1, 4], (5, 6): [], (5, 7): [],
+                                           (5, 8): [4, 6, 8], (6, 0): [], (6, 1): [], (6, 2): [], (6, 3): [4, 5],
+                                           (6, 4): [], (6, 5): [], (6, 6): [4, 5], (6, 7): [], (6, 8): [], (7, 0): [],
+                                           (7, 1): [], (7, 2): [], (7, 3): [3, 4, 5], (7, 4): [3, 4, 5], (7, 5): [],
+                                           (7, 6): [4, 5, 8], (7, 7): [5, 7], (7, 8): [4, 7, 8], (8, 0): [], (8, 1): [],
+                                           (8, 2): [], (8, 3): [], (8, 4): [], (8, 5): [], (8, 6): [], (8, 7): [],
+                                           (8, 8): []}
+
+        self.assertEqual(hidden_subset_row.board, hidden_subset_row_expected_board)
+        self.assertEqual(hidden_subset_row.possible_values, hidden_subset_row_expected_poss)
+        self.assertEqual(actual_moves, expected_moves)
+
+        hidden_subset_col = SudokuBoard(
+            [0, 4, 9, 1, 3, 2, 0, 0, 0, 0, 8, 1, 4, 7, 9, 0, 0, 0, 3, 2, 7, 6, 8, 5, 9, 1, 4,
+             0, 9, 6, 0, 5, 1, 8, 0, 0, 0, 7, 5, 0, 2, 8, 0, 0, 0, 0, 3, 8, 0, 4, 6, 0, 0, 5,
+             8, 5, 3, 2, 6, 7, 0, 0, 0, 7, 1, 2, 8, 9, 4, 5, 6, 3, 9, 6, 4, 5, 1, 3, 0, 0, 0]
+        )
+
+        actual_moves = hidden_subset_col.hidden_subset()
+
+        expected_moves = [
+            Move(REMOVE_POSS, 6, (4, 8),
+                 'Cell (4, 8) had possibility value of 6 removed because there was a hidden subset of size 2 (1, 9) in column 8 at cells ((4, 8), (6, 8))')
+        ]
+
+        hidden_subset_col_expected_board = [[0, 4, 9, 1, 3, 2, 0, 0, 0], [0, 8, 1, 4, 7, 9, 0, 0, 0],
+                                            [3, 2, 7, 6, 8, 5, 9, 1, 4], [0, 9, 6, 0, 5, 1, 8, 0, 0],
+                                            [0, 7, 5, 0, 2, 8, 0, 0, 0], [0, 3, 8, 0, 4, 6, 0, 0, 5],
+                                            [8, 5, 3, 2, 6, 7, 0, 0, 0], [7, 1, 2, 8, 9, 4, 5, 6, 3],
+                                            [9, 6, 4, 5, 1, 3, 0, 0, 0]]
+
+        hidden_subset_col_expected_poss = {(0, 0): [5, 6], (0, 1): [], (0, 2): [], (0, 3): [], (0, 4): [], (0, 5): [],
+                                           (0, 6): [6, 7], (0, 7): [5, 7, 8], (0, 8): [6, 7, 8], (1, 0): [5, 6],
+                                           (1, 1): [], (1, 2): [], (1, 3): [], (1, 4): [], (1, 5): [],
+                                           (1, 6): [2, 3, 6], (1, 7): [2, 3, 5], (1, 8): [2, 6], (2, 0): [], (2, 1): [],
+                                           (2, 2): [], (2, 3): [], (2, 4): [], (2, 5): [], (2, 6): [], (2, 7): [],
+                                           (2, 8): [], (3, 0): [2, 4], (3, 1): [], (3, 2): [], (3, 3): [3, 7],
+                                           (3, 4): [], (3, 5): [], (3, 6): [], (3, 7): [2, 3, 4, 7], (3, 8): [2, 7],
+                                           (4, 0): [1, 4], (4, 1): [], (4, 2): [], (4, 3): [3, 9], (4, 4): [],
+                                           (4, 5): [], (4, 6): [1, 3, 4, 6], (4, 7): [3, 4, 9], (4, 8): [1, 9],
+                                           (5, 0): [1, 2], (5, 1): [], (5, 2): [], (5, 3): [7, 9], (5, 4): [],
+                                           (5, 5): [], (5, 6): [1, 2, 7], (5, 7): [2, 7, 9], (5, 8): [], (6, 0): [],
+                                           (6, 1): [], (6, 2): [], (6, 3): [], (6, 4): [], (6, 5): [], (6, 6): [1, 4],
+                                           (6, 7): [4, 9], (6, 8): [1, 9], (7, 0): [], (7, 1): [], (7, 2): [],
+                                           (7, 3): [], (7, 4): [], (7, 5): [], (7, 6): [], (7, 7): [], (7, 8): [],
+                                           (8, 0): [], (8, 1): [], (8, 2): [], (8, 3): [], (8, 4): [], (8, 5): [],
+                                           (8, 6): [2, 7], (8, 7): [2, 7, 8], (8, 8): [2, 7, 8]}
+
+        self.assertEqual(hidden_subset_col.board, hidden_subset_col_expected_board)
+        self.assertEqual(hidden_subset_col.possible_values, hidden_subset_col_expected_poss)
+        self.assertEqual(actual_moves, expected_moves)
+
+        hidden_subset_sector = SudokuBoard(
+            [8, 1, 6, 5, 7, 3, 2, 9, 4, 3, 9, 2, 0, 0, 0, 0, 0, 0, 4, 5, 7, 2, 0, 9, 0, 0, 6,
+             9, 4, 1, 0, 0, 0, 5, 6, 8, 7, 8, 5, 4, 9, 6, 1, 2, 3, 6, 2, 3, 8, 0, 0, 0, 4, 0,
+             2, 7, 9, 0, 0, 0, 0, 0, 1, 1, 3, 8, 0, 0, 0, 0, 7, 0, 5, 6, 4, 0, 0, 0, 0, 8, 2]
+        )
+
+        hidden_subset_sector.set_poss_values(
+            {(0, 0): [], (0, 1): [], (0, 2): [], (0, 3): [], (0, 4): [], (0, 5): [], (0, 6): [], (0, 7): [], (0, 8): [],
+             (1, 0): [], (1, 1): [], (1, 2): [], (1, 3): [1, 6], (1, 4): [1, 4, 6, 8], (1, 5): [1, 4, 8],
+             (1, 6): [7, 8], (1, 7): [1, 5], (1, 8): [5, 7], (2, 0): [], (2, 1): [], (2, 2): [], (2, 3): [],
+             (2, 4): [1, 8], (2, 5): [], (2, 6): [3, 8], (2, 7): [1, 3], (2, 8): [], (3, 0): [], (3, 1): [], (3, 2): [],
+             (3, 3): [3, 7], (3, 4): [2, 3], (3, 5): [2, 7], (3, 6): [], (3, 7): [], (3, 8): [], (4, 0): [], (4, 1): [],
+             (4, 2): [], (4, 3): [], (4, 4): [], (4, 5): [], (4, 6): [], (4, 7): [], (4, 8): [], (5, 0): [], (5, 1): [],
+             (5, 2): [], (5, 3): [], (5, 4): [1, 5], (5, 5): [1, 5], (5, 6): [7, 9], (5, 7): [], (5, 8): [7, 9],
+             (6, 0): [], (6, 1): [], (6, 2): [], (6, 3): [3, 6], (6, 4): [3, 4, 5, 6, 8], (6, 5): [4, 5, 8],
+             (6, 6): [4, 6], (6, 7): [3, 5], (6, 8): [], (7, 0): [], (7, 1): [], (7, 2): [], (7, 3): [6, 9],
+             (7, 4): [2, 4, 5, 6], (7, 5): [2, 4, 5], (7, 6): [4, 6], (7, 7): [], (7, 8): [5, 9], (8, 0): [],
+             (8, 1): [], (8, 2): [], (8, 3): [1, 3, 7, 9], (8, 4): [1, 3], (8, 5): [1, 7], (8, 6): [3, 9], (8, 7): [],
+             (8, 8): []})
+
+        actual_moves = hidden_subset_sector.hidden_subset()
+
+        expected_moves = [
+            Move(REMOVE_POSS, 3, (6, 4),
+                 'Cell (6, 4) had possibility value of 3 removed because there was a hidden subset of size 4 (2, 4, 5, 8) in sector 7 at cells ((6, 4), (6, 5), (7, 4), (7, 5))'),
+            Move(REMOVE_POSS, 6, (6, 4),
+                 'Cell (6, 4) had possibility value of 6 removed because there was a hidden subset of size 4 (2, 4, 5, 8) in sector 7 at cells ((6, 4), (6, 5), (7, 4), (7, 5))'),
+            Move(REMOVE_POSS, 6, (7, 4),
+                 'Cell (7, 4) had possibility value of 6 removed because there was a hidden subset of size 4 (2, 4, 5, 8) in sector 7 at cells ((6, 4), (6, 5), (7, 4), (7, 5))')
+        ]
+
+        hidden_subset_sector_expected_board = [[8, 1, 6, 5, 7, 3, 2, 9, 4], [3, 9, 2, 0, 0, 0, 0, 0, 0],
+                                               [4, 5, 7, 2, 0, 9, 0, 0, 6], [9, 4, 1, 0, 0, 0, 5, 6, 8],
+                                               [7, 8, 5, 4, 9, 6, 1, 2, 3], [6, 2, 3, 8, 0, 0, 0, 4, 0],
+                                               [2, 7, 9, 0, 0, 0, 0, 0, 1], [1, 3, 8, 0, 0, 0, 0, 7, 0],
+                                               [5, 6, 4, 0, 0, 0, 0, 8, 2]]
+
+        hidden_subset_sector_expected_poss = {(0, 0): [], (0, 1): [], (0, 2): [], (0, 3): [], (0, 4): [], (0, 5): [],
+                                              (0, 6): [], (0, 7): [], (0, 8): [], (1, 0): [], (1, 1): [], (1, 2): [],
+                                              (1, 3): [1, 6], (1, 4): [1, 4, 6, 8], (1, 5): [1, 4, 8], (1, 6): [7, 8],
+                                              (1, 7): [1, 5], (1, 8): [5, 7], (2, 0): [], (2, 1): [], (2, 2): [],
+                                              (2, 3): [], (2, 4): [1, 8], (2, 5): [], (2, 6): [3, 8], (2, 7): [1, 3],
+                                              (2, 8): [], (3, 0): [], (3, 1): [], (3, 2): [], (3, 3): [3, 7],
+                                              (3, 4): [2, 3], (3, 5): [2, 7], (3, 6): [], (3, 7): [], (3, 8): [],
+                                              (4, 0): [], (4, 1): [], (4, 2): [], (4, 3): [], (4, 4): [], (4, 5): [],
+                                              (4, 6): [], (4, 7): [], (4, 8): [], (5, 0): [], (5, 1): [], (5, 2): [],
+                                              (5, 3): [], (5, 4): [1, 5], (5, 5): [1, 5], (5, 6): [7, 9], (5, 7): [],
+                                              (5, 8): [7, 9], (6, 0): [], (6, 1): [], (6, 2): [], (6, 3): [3, 6],
+                                              (6, 4): [4, 5, 8], (6, 5): [4, 5, 8], (6, 6): [4, 6], (6, 7): [3, 5],
+                                              (6, 8): [], (7, 0): [], (7, 1): [], (7, 2): [], (7, 3): [6, 9],
+                                              (7, 4): [2, 4, 5], (7, 5): [2, 4, 5], (7, 6): [4, 6], (7, 7): [],
+                                              (7, 8): [5, 9], (8, 0): [], (8, 1): [], (8, 2): [], (8, 3): [1, 3, 7, 9],
+                                              (8, 4): [1, 3], (8, 5): [1, 7], (8, 6): [3, 9], (8, 7): [], (8, 8): []}
+
+        self.assertEqual(hidden_subset_sector.board, hidden_subset_sector_expected_board)
+        self.assertEqual(hidden_subset_sector.possible_values, hidden_subset_sector_expected_poss)
+        self.assertEqual(actual_moves, expected_moves)
+
+        # trivial 0 move result
+        blank_board_copy = deepcopy(self.blank_board.board)
+        blank_board_poss_copy = deepcopy(self.blank_board.possible_values)
+
+        actual_moves = self.blank_board.hidden_subset()
+        self.assertEqual(actual_moves, [])
+        self.assertEqual(self.blank_board.board, blank_board_copy)
+        self.assertEqual(self.blank_board.possible_values, blank_board_poss_copy)
 
     def test_x_wing(self):
-        pass
+        x_wing = SudokuBoard(
+            [7, 0, 6, 2, 3, 9, 0, 1, 4, 1, 0, 2, 6, 0, 4, 7, 0, 3, 0, 4, 3, 0, 7, 1, 0, 2, 0,
+             0, 2, 0, 3, 6, 7, 1, 4, 9, 6, 3, 9, 1, 4, 5, 0, 7, 0, 4, 1, 7, 9, 2, 8, 3, 6, 5,
+             0, 7, 1, 4, 9, 3, 0, 8, 0, 3, 0, 4, 7, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 4, 3, 7]
+        )
+
+        x_wing.set_poss_values(
+            {(0, 0): [], (0, 1): [5, 8], (0, 2): [], (0, 3): [], (0, 4): [], (0, 5): [], (0, 6): [5, 8], (0, 7): [],
+             (0, 8): [], (1, 0): [], (1, 1): [5, 8, 9], (1, 2): [], (1, 3): [], (1, 4): [5, 8], (1, 5): [], (1, 6): [],
+             (1, 7): [5, 9], (1, 8): [], (2, 0): [5, 8, 9], (2, 1): [], (2, 2): [], (2, 3): [5, 8], (2, 4): [],
+             (2, 5): [], (2, 6): [5, 6, 8, 9], (2, 7): [], (2, 8): [6, 8], (3, 0): [5, 8], (3, 1): [], (3, 2): [5, 8],
+             (3, 3): [], (3, 4): [], (3, 5): [], (3, 6): [], (3, 7): [], (3, 8): [], (4, 0): [], (4, 1): [], (4, 2): [],
+             (4, 3): [], (4, 4): [], (4, 5): [], (4, 6): [2, 8], (4, 7): [], (4, 8): [2, 8], (5, 0): [], (5, 1): [],
+             (5, 2): [], (5, 3): [], (5, 4): [], (5, 5): [], (5, 6): [], (5, 7): [], (5, 8): [], (6, 0): [2, 5],
+             (6, 1): [], (6, 2): [], (6, 3): [], (6, 4): [], (6, 5): [], (6, 6): [2, 5, 6], (6, 7): [], (6, 8): [2, 6],
+             (7, 0): [], (7, 1): [5, 6, 8], (7, 2): [], (7, 3): [], (7, 4): [5, 8], (7, 5): [2, 6], (7, 6): [2, 5, 9],
+             (7, 7): [5, 9], (7, 8): [], (8, 0): [2, 9], (8, 1): [6, 9], (8, 2): [5, 8], (8, 3): [5, 8], (8, 4): [],
+             (8, 5): [2, 6], (8, 6): [], (8, 7): [], (8, 8): []})
+
+        actual_moves = x_wing.x_wing()
+
+        expected_moves = [
+            Move(REMOVE_POSS, 5, (1, 1),
+                 'Row 1 had possibility value of 5 removed because there was an x-wing interaction between cells [(1, 4), (1, 7), (7, 4), (7, 7)]'),
+            Move(REMOVE_POSS, 5, (7, 1),
+                 'Row 7 had possibility value of 5 removed because there was an x-wing interaction between cells [(1, 4), (1, 7), (7, 4), (7, 7)]'),
+            Move(REMOVE_POSS, 5, (7, 6),
+                 'Row 7 had possibility value of 5 removed because there was an x-wing interaction between cells [(1, 4), (1, 7), (7, 4), (7, 7)]'),
+            Move(REMOVE_POSS, 8, (0, 1),
+                 'Column 1 had possibility value of 8 removed because there was an x-wing interaction between cells [(7, 1), (7, 4), (1, 1), (1, 4)]')
+        ]
+
+        x_wing_expected_board = [[7, 0, 6, 2, 3, 9, 0, 1, 4], [1, 0, 2, 6, 0, 4, 7, 0, 3], [0, 4, 3, 0, 7, 1, 0, 2, 0],
+                                 [0, 2, 0, 3, 6, 7, 1, 4, 9], [6, 3, 9, 1, 4, 5, 0, 7, 0], [4, 1, 7, 9, 2, 8, 3, 6, 5],
+                                 [0, 7, 1, 4, 9, 3, 0, 8, 0], [3, 0, 4, 7, 0, 0, 0, 0, 1], [0, 0, 0, 0, 1, 0, 4, 3, 7]]
+
+        x_wing_expected_poss = {(0, 0): [], (0, 1): [5], (0, 2): [], (0, 3): [], (0, 4): [], (0, 5): [], (0, 6): [5, 8],
+                                (0, 7): [], (0, 8): [], (1, 0): [], (1, 1): [8, 9], (1, 2): [], (1, 3): [],
+                                (1, 4): [5, 8], (1, 5): [], (1, 6): [], (1, 7): [5, 9], (1, 8): [], (2, 0): [5, 8, 9],
+                                (2, 1): [], (2, 2): [], (2, 3): [5, 8], (2, 4): [], (2, 5): [], (2, 6): [5, 6, 8, 9],
+                                (2, 7): [], (2, 8): [6, 8], (3, 0): [5, 8], (3, 1): [], (3, 2): [5, 8], (3, 3): [],
+                                (3, 4): [], (3, 5): [], (3, 6): [], (3, 7): [], (3, 8): [], (4, 0): [], (4, 1): [],
+                                (4, 2): [], (4, 3): [], (4, 4): [], (4, 5): [], (4, 6): [2, 8], (4, 7): [],
+                                (4, 8): [2, 8], (5, 0): [], (5, 1): [], (5, 2): [], (5, 3): [], (5, 4): [], (5, 5): [],
+                                (5, 6): [], (5, 7): [], (5, 8): [], (6, 0): [2, 5], (6, 1): [], (6, 2): [], (6, 3): [],
+                                (6, 4): [], (6, 5): [], (6, 6): [2, 5, 6], (6, 7): [], (6, 8): [2, 6], (7, 0): [],
+                                (7, 1): [6, 8], (7, 2): [], (7, 3): [], (7, 4): [5, 8], (7, 5): [2, 6], (7, 6): [2, 9],
+                                (7, 7): [5, 9], (7, 8): [], (8, 0): [2, 9], (8, 1): [6, 9], (8, 2): [5, 8],
+                                (8, 3): [5, 8], (8, 4): [], (8, 5): [2, 6], (8, 6): [], (8, 7): [], (8, 8): []}
+
+        self.assertEqual(x_wing.board, x_wing_expected_board)
+        self.assertEqual(x_wing.possible_values, x_wing_expected_poss)
+        self.assertEqual(actual_moves, expected_moves)
+
+        # trivial 0 move result
+        blank_board_copy = deepcopy(self.blank_board.board)
+        blank_board_poss_copy = deepcopy(self.blank_board.possible_values)
+
+        actual_moves = self.blank_board.x_wing()
+        self.assertEqual(actual_moves, [])
+        self.assertEqual(self.blank_board.board, blank_board_copy)
+        self.assertEqual(self.blank_board.possible_values, blank_board_poss_copy)
 
     def test_swordfish_row(self):
         pass
@@ -1537,6 +1932,7 @@ class SudokuBoardTestCase(unittest.TestCase):
         pass
 
     def test_swordfish(self):
+        # TODO : use swordfish3.sdk as it has a 'relaxed definition' use case
         # make sure to bypass / not bypass short circuiting
         pass
 

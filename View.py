@@ -23,7 +23,8 @@ CURSOR_COLOR = "red"
 # TODO: docstrings
 # TODO: button styling
 # TODO: make console read only
-
+# TODO: make it so clicking a reason highlights the cells ala https://www.sudoku-solutions.com/
+# TODO: make reasons their own hoverable cells in the console instead of plaintext
 
 class SudokuView(Frame):
 
@@ -112,6 +113,7 @@ class SudokuView(Frame):
         self.draw_cursor()
 
     def draw_cursor(self):
+        # TODO: hold shift to leave up old cursors
         self.canvas.delete("cursor")
         if self.row >= 0 and self.col >= 0:
             x0 = MARGIN + self.col * SIDE + 1

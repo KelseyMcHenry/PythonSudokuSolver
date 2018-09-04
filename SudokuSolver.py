@@ -31,27 +31,22 @@ from tkinter.font import Font
 #
 # # # # evil
 data_1 = [1, 0, 0, 0, 9, 0, 3, 0, 0,
-        0, 6, 0, 7, 0, 0, 0, 0, 8,
-        0, 0, 4, 0, 0, 5, 0, 0, 0,
-        3, 0, 0, 0, 6, 0, 1, 0, 0,
-        0, 7, 0, 8, 0, 0, 0, 0, 0,
-        0, 0, 5, 0, 0, 0, 0, 9, 0,
-        2, 0, 0, 0, 1, 0, 0, 6, 0,
-        0, 8, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 9, 4, 0, 0, 0, 0, 0]
+          0, 6, 0, 7, 0, 0, 0, 0, 8,
+          0, 0, 4, 0, 0, 5, 0, 0, 0,
+          3, 0, 0, 0, 6, 0, 1, 0, 0,
+          0, 7, 0, 8, 0, 0, 0, 0, 0,
+          0, 0, 5, 0, 0, 0, 0, 9, 0,
+          2, 0, 0, 0, 1, 0, 0, 6, 0,
+          0, 8, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 9, 4, 0, 0, 0, 0, 0]
 
-
-sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/hiddenquad1.sdk')
-# sudoku = SudokuBoard.SudokuBoard([0, 0, 8, 2, 1, 7, 0, 0, 0, 2, 3, 0, 5, 6, 9, 0, 0, 8, 5, 0, 0, 4, 3, 8, 0, 2, 0,
-#                                        0, 0, 5, 0, 2, 0, 0, 8, 0, 3, 0, 0, 8, 4, 5, 0, 0, 6, 0, 8, 0, 0, 9, 0, 5, 0, 0,
-#                                        0, 4, 0, 6, 0, 1, 0, 0, 9, 0, 0, 0, 3, 0, 2, 0, 1, 4, 0, 0, 0, 9, 8, 4, 7, 0, 0])
+sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/swordfish7.sdk')
 
 sudoku.solve()
 
 print(sudoku)
 
 exit()
-
 
 # sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/blockcolrow5.sdk')
 # sudoku.solve()
@@ -72,6 +67,5 @@ console_frame.pack(side=RIGHT, fill=BOTH, expand=1)
 label.pack(side=TOP, fill=X)
 vertical_scrollbar.pack(side=RIGHT, fill=Y)
 text.pack(side=RIGHT, fill=BOTH, expand=1)
-
 
 root.mainloop()
