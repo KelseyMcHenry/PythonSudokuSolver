@@ -281,11 +281,14 @@ class SudokuBoard:
                 queue[coordinate] = value
 
         for coordinate, value in queue.items():
-            self.set(coordinate[0], coordinate[1], value)
-            reason = 'Cell ' + str(coordinate) + ' set to ' + str(
-                value) + ' because it was the only possibility remaining for that cell.'
-            self.print_reason_to_file(reason)
-            successes.append(Move(NUMBER_SOLVE, value, coordinate, reason))
+            try:
+                self.set(coordinate[0], coordinate[1], value)
+                reason = 'Cell ' + str(coordinate) + ' set to ' + str(
+                    value) + ' because it was the only possibility remaining for that cell.'
+                self.print_reason_to_file(reason)
+                successes.append(Move(NUMBER_SOLVE, value, coordinate, reason))
+            except ValueError as e:
+                raise e
 
         return successes
 
@@ -731,7 +734,7 @@ class SudokuBoard:
             values.extend(row)
         attempt_board = SudokuBoard(values=values, printout=False)
         attempt_board.set_poss_values(self.possible_values)
-        for coord, poss in attempt_board.possible_values.items():
+        for coord, poss in self.possible_values.items():
             if len(poss) > 1:
                 value_to_try = poss[0]
                 try:
@@ -739,14 +742,18 @@ class SudokuBoard:
                     print("Forcing chain on " + str(coord) + " with value " + str(value_to_try))
                     # print(attempt_board)
                     try:
-                        successes = attempt_board.solve()
-                        if not successes:
-                            successes = []
-                            self.possible_values[coord].remove(value_to_try)
-                            reason = str(coord) + ' had possibility value of ' + str(
-                                value_to_try) + ' removed due to trial and error'
-                            self.print_reason_to_file(reason)
-                            successes.append(Move(REMOVE_POSS, value_to_try, coord, reason))
+                        temp_successes = attempt_board.solve()
+                        if temp_successes:
+                            successes.extend(temp_successes)
+
+                        # if not successes:
+                        #     successes = []
+                        #     self.possible_values[coord].remove(value_to_try)
+                        #     reason = str(coord) + ' had possibility value of ' + str(
+                        #         value_to_try) + ' removed due to trial and error'
+                        #     self.print_reason_to_file(reason)
+                        #     successes.append(Move(REMOVE_POSS, value_to_try, coord, reason))
+                        #     return successes
                     except ValueError:
                         if value_to_try in self.possible_values[coord]:
                             self.possible_values[coord].remove(value_to_try)
@@ -1004,7 +1011,10 @@ class SudokuBoard:
         index = 0
         while index < len(method_progression):
             # print(method_progression[index].__name__)
-            successes = method_progression[index]()
+            try:
+                successes = method_progression[index]()
+            except ValueError as e:
+                raise e
             moves.extend(successes)
             if self.is_solved():
                 end_time = datetime.now()
