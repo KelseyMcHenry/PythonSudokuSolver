@@ -18,3 +18,6 @@ class Move:
     def __str__(self):
         return f"Move({self.operation}, {self.number}, {self.move_pos}, '{self.reason}')"
         # return f'OP: {self.operation}, POS: {self.move_pos}, VAL: {self.number}, REASON: {self.reason}'
+
+    def __repr__(self):
+        return self.__str__()

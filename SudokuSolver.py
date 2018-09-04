@@ -40,7 +40,7 @@ data_1 = [1, 0, 0, 0, 9, 0, 3, 0, 0,
           0, 8, 0, 0, 0, 0, 0, 0, 0,
           0, 0, 9, 4, 0, 0, 0, 0, 0]
 
-sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/swordfish7.sdk')
+sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/colouring1.sdk')
 
 sudoku.solve()
 

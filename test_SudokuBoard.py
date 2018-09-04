@@ -10,7 +10,6 @@ from Move import NUMBER_SOLVE, REMOVE_POSS
 
 
 # TODO - write better, more comprehensive, tests
-# TODO - generate sdk files with solutions to compare
 # TODO - convert all "strings" to 'strings'
 # TODO - make sure pass / fail covered as well as all outcomes
 # TODO - make sure Moves are returned correctly.
@@ -492,9 +491,11 @@ class SudokuBoardTestCase(unittest.TestCase):
                           (0, 5): [2, 4, 6, 8], (0, 6): [], (0, 7): [2, 4, 5], (0, 8): [2, 4, 5, 6]})
         expected_moves = [
             Move(REMOVE_POSS, 7, (0, 7), 'Row 0 had possibility value of ' + str(7) +
-                 ' removed because there was ' + 'an x-wing interaction between cells ' + str([(0, 0), (0, 2), (4, 0), (4, 2)])),
+                 ' removed because there was ' + 'an x-wing interaction between cells ' + str(
+                [(0, 0), (0, 2), (4, 0), (4, 2)])),
             Move(REMOVE_POSS, 7, (0, 8), 'Row 0 had possibility value of ' + str(7) +
-                 ' removed because there was ' + 'an x-wing interaction between cells ' + str([(0, 0), (0, 2), (4, 0), (4, 2)]))]
+                 ' removed because there was ' + 'an x-wing interaction between cells ' + str(
+                [(0, 0), (0, 2), (4, 0), (4, 2)]))]
         self.assertEqual(expected_moves, actual_moves)
 
         # test board_ 2 > 1 move
@@ -504,7 +505,8 @@ class SudokuBoardTestCase(unittest.TestCase):
                           (0, 5): [1, 4, 6], (0, 6): [], (0, 7): [], (0, 8): [1]})
         expected_moves = [
             Move(REMOVE_POSS, 7, (0, 2), 'Row 0 had possibility value of ' + str(7) +
-                 ' removed because there was ' + 'an x-wing interaction between cells ' + str([(0, 0), (0, 1), (4, 0), (4, 1)]))]
+                 ' removed because there was ' + 'an x-wing interaction between cells ' + str(
+                [(0, 0), (0, 1), (4, 0), (4, 1)]))]
         self.assertEqual(expected_moves, actual_moves)
 
         # test board_ 3 > 0 moves
@@ -522,9 +524,11 @@ class SudokuBoardTestCase(unittest.TestCase):
                           (5, 0): [4, 6, 8], (6, 0): [], (7, 0): [4, 5, 6, 7], (8, 0): [5, 6, 7]})
         expected_moves = [
             Move(REMOVE_POSS, 9, (1, 0), 'Column 0 had possibility value of ' + str(9) +
-                 ' removed because there was ' + 'an x-wing interaction between cells ' + str([(0, 0), (0, 8), (4, 0), (4, 8)])),
+                 ' removed because there was ' + 'an x-wing interaction between cells ' + str(
+                [(0, 0), (0, 8), (4, 0), (4, 8)])),
             Move(REMOVE_POSS, 9, (2, 0), 'Column 0 had possibility value of ' + str(9) +
-                 ' removed because there was ' + 'an x-wing interaction between cells ' + str([(0, 0), (0, 8), (4, 0), (4, 8)]))
+                 ' removed because there was ' + 'an x-wing interaction between cells ' + str(
+                [(0, 0), (0, 8), (4, 0), (4, 8)]))
         ]
         self.assertEqual(expected_moves, actual_moves)
 
@@ -535,11 +539,14 @@ class SudokuBoardTestCase(unittest.TestCase):
                           (5, 0): [4, 7], (6, 0): [], (7, 0): [2, 3], (8, 0): [2]})
         expected_moves = [
             Move(REMOVE_POSS, 8, (5, 0), 'Column 0 had possibility value of ' + str(8) +
-                 ' removed because there was ' + 'an x-wing interaction between cells ' + str([(0, 0), (0, 8), (4, 0), (4, 8)])),
+                 ' removed because there was ' + 'an x-wing interaction between cells ' + str(
+                [(0, 0), (0, 8), (4, 0), (4, 8)])),
             Move(REMOVE_POSS, 8, (7, 0), 'Column 0 had possibility value of ' + str(8) +
-                 ' removed because there was ' + 'an x-wing interaction between cells ' + str([(0, 0), (0, 8), (4, 0), (4, 8)])),
+                 ' removed because there was ' + 'an x-wing interaction between cells ' + str(
+                [(0, 0), (0, 8), (4, 0), (4, 8)])),
             Move(REMOVE_POSS, 8, (8, 0), 'Column 0 had possibility value of ' + str(8) +
-                 ' removed because there was ' + 'an x-wing interaction between cells ' + str([(0, 0), (0, 8), (4, 0), (4, 8)]))]
+                 ' removed because there was ' + 'an x-wing interaction between cells ' + str(
+                [(0, 0), (0, 8), (4, 0), (4, 8)]))]
         self.assertEqual(expected_moves, actual_moves)
 
         # test_board 3 > 0 moves
@@ -570,12 +577,12 @@ class SudokuBoardTestCase(unittest.TestCase):
                          {(0, 0): [], (0, 1): [2, 5], (0, 2): [2, 7, 8], (0, 3): [6], (0, 4): [],
                           (0, 5): [4, 6, 8], (0, 6): [], (0, 7): [4, 5, 7], (0, 8): [2, 4, 5, 6, 7]})
         expected_moves = [
-            Move(REMOVE_POSS, 2, (0, 3), str((0, 3)) + ' had possibility value of ' + str(2) +
-                 ' removed because there was ' + 'a swordfish interaction between rows ' + str((1, 2, 8))),
-            Move(REMOVE_POSS, 2, (0, 5), str((0, 5)) + ' had possibility value of ' + str(2) +
-                 ' removed because there was ' + 'a swordfish interaction between rows ' + str((1, 2, 8))),
-            Move(REMOVE_POSS, 2, (0, 7), str((0, 7)) + ' had possibility value of ' + str(2) +
-                 ' removed because there was ' + 'a swordfish interaction between rows ' + str((1, 2, 8)))]
+            Move(REMOVE_POSS, 2, (0, 3), 'Row 0 ' + str((0, 3)) + ' had possibility value of ' + str(2) +
+                 ' removed because there was ' + 'a swordfish interaction between columns ' + str((1, 2, 8))),
+            Move(REMOVE_POSS, 2, (0, 5), 'Row 0 ' + str((0, 5)) + ' had possibility value of ' + str(2) +
+                 ' removed because there was ' + 'a swordfish interaction between columns ' + str((1, 2, 8))),
+            Move(REMOVE_POSS, 2, (0, 7), 'Row 0 ' + str((0, 7)) + ' had possibility value of ' + str(2) +
+                 ' removed because there was ' + 'a swordfish interaction between columns ' + str((1, 2, 8)))]
         self.assertEqual(expected_moves, actual_moves)
 
         # test_board 2 > 1 move
@@ -584,8 +591,8 @@ class SudokuBoardTestCase(unittest.TestCase):
                          {(0, 0): [], (0, 1): [2, 4, 6], (0, 2): [1, 2, 7], (0, 3): [], (0, 4): [1, 2, 4, 6],
                           (0, 5): [4, 6], (0, 6): [], (0, 7): [], (0, 8): [1]})
         expected_moves = [
-            Move(REMOVE_POSS, 1, (0, 5), str((0, 5)) + ' had possibility value of ' + str(1) +
-                 ' removed because there was ' + 'a swordfish interaction between rows ' + str((2, 4, 8)))]
+            Move(REMOVE_POSS, 1, (0, 5), 'Row 0 ' + str((0, 5)) + ' had possibility value of ' + str(1) +
+                 ' removed because there was ' + 'a swordfish interaction between columns ' + str((2, 4, 8)))]
         self.assertEqual(expected_moves, actual_moves)
 
         # test_board 3 > 2 moves
@@ -594,10 +601,10 @@ class SudokuBoardTestCase(unittest.TestCase):
                          {(0, 0): [], (0, 1): [1, 8], (0, 2): [7], (0, 3): [], (0, 4): [4, 5, 7],
                           (0, 5): [4, 5], (0, 6): [4, 5], (0, 7): [], (0, 8): [4, 5, 8]})
         expected_moves = [
-            Move(REMOVE_POSS, 2, (0, 1), str((0, 1)) + ' had possibility value of ' + str(2) +
-                 ' removed because there was ' + 'a swordfish interaction between rows ' + str((0, 2, 3))),
-            Move(REMOVE_POSS, 2, (0, 4), str((0, 4)) + ' had possibility value of ' + str(2) +
-                 ' removed because there was ' + 'a swordfish interaction between rows ' + str((0, 2, 3)))]
+            Move(REMOVE_POSS, 2, (0, 1), 'Row 0 ' + str((0, 1)) + ' had possibility value of ' + str(2) +
+                 ' removed because there was ' + 'a swordfish interaction between columns ' + str((0, 2, 3))),
+            Move(REMOVE_POSS, 2, (0, 4), 'Row 0 ' + str((0, 4)) + ' had possibility value of ' + str(2) +
+                 ' removed because there was ' + 'a swordfish interaction between columns ' + str((0, 2, 3)))]
         self.assertEqual(expected_moves, actual_moves)
 
     def test_eliminate_possibilities_from_col_swordfish(self):
@@ -614,8 +621,9 @@ class SudokuBoardTestCase(unittest.TestCase):
                          {(0, 0): [], (1, 0): [2, 4, 6], (2, 0): [3, 6], (3, 0): [], (4, 0): [2, 3, 6, 7],
                           (5, 0): [4, 7, 8], (6, 0): [], (7, 0): [3, 8], (8, 0): [2, 8]})
         expected_moves = [
-            Move(REMOVE_POSS, 2, (7, 0), str((7, 0)) + ' had possibility value of ' + str(2) +
-                 ' removed because there was ' + 'a swordfish interaction between columns ' + str((1, 4, 8)))]
+            Move(REMOVE_POSS, 2, (7, 0), 'Column 0 ' + str((7, 0)) + ' had possibility value of ' + str(2) +
+                 ' removed because there was ' + 'a swordfish interaction between rows ' + str((1, 4, 8)))]
+
         self.assertEqual(expected_moves, actual_moves)
 
         # test_board 3 > 3 moves
@@ -624,12 +632,12 @@ class SudokuBoardTestCase(unittest.TestCase):
                          {(0, 0): [], (1, 0): [7], (2, 0): [2, 8], (3, 0): [], (4, 0): [4, 5, 7, 8],
                           (5, 0): [4, 5, 6, 7, 8], (6, 0): [1, 4], (7, 0): [1, 2, 4, 6], (8, 0): [2, 4, 6]})
         expected_moves = [
-            Move(REMOVE_POSS, 6, (1, 0), str((1, 0)) + ' had possibility value of ' + str(6) +
-                 ' removed because there was ' + 'a swordfish interaction between columns ' + str((5, 7, 8))),
-            Move(REMOVE_POSS, 6, (2, 0), str((2, 0)) + ' had possibility value of ' + str(6) +
-                 ' removed because there was ' + 'a swordfish interaction between columns ' + str((5, 7, 8))),
-            Move(REMOVE_POSS, 6, (4, 0), str((4, 0)) + ' had possibility value of ' + str(6) +
-                 ' removed because there was ' + 'a swordfish interaction between columns ' + str((5, 7, 8)))]
+            Move(REMOVE_POSS, 6, (1, 0), 'Column 0 ' + str((1, 0)) + ' had possibility value of ' + str(6) +
+                 ' removed because there was ' + 'a swordfish interaction between rows ' + str((5, 7, 8))),
+            Move(REMOVE_POSS, 6, (2, 0), 'Column 0 ' + str((2, 0)) + ' had possibility value of ' + str(6) +
+                 ' removed because there was ' + 'a swordfish interaction between rows ' + str((5, 7, 8))),
+            Move(REMOVE_POSS, 6, (4, 0), 'Column 0 ' + str((4, 0)) + ' had possibility value of ' + str(6) +
+                 ' removed because there was ' + 'a swordfish interaction between rows ' + str((5, 7, 8)))]
         self.assertEqual(expected_moves, actual_moves)
 
     def test_print_reason_to_file(self):
@@ -670,9 +678,6 @@ class SudokuBoardTestCase(unittest.TestCase):
         actual_moves = self.test_board_1.sole_candidates()
         self.assertEqual([], actual_moves)
         self.assertEqual(temp_board, self.test_board_1.board)
-
-    # /////////////////// TODO //////////////////////
-    # ******************** test pass and fail *****************
 
     def test_unique_candidates_generic_row(self):
         unique_row_test_board = SudokuBoard([0, 0, 5, 0, 0, 3, 0, 8, 0, 0, 0, 7, 8, 9, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
@@ -1926,19 +1931,251 @@ class SudokuBoardTestCase(unittest.TestCase):
         self.assertEqual(self.blank_board.possible_values, blank_board_poss_copy)
 
     def test_swordfish_row(self):
-        pass
+        swordfish_row = SudokuBoard(
+            [0, 0, 8, 0, 9, 0, 1, 4, 5, 5, 3, 1, 6, 4, 0, 0, 0, 0, 4, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0,
+             0, 5, 3, 0, 1, 0, 6, 0, 4, 0, 0, 0, 4, 0, 6, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 7, 4, 2, 0,
+             8, 7, 9, 2, 6, 4, 3, 5, 1])
+
+        swordfish_row.set_poss_values(
+            {(0, 0): [2, 6, 7], (0, 1): [2, 6], (0, 2): [], (0, 3): [3, 7], (0, 4): [], (0, 5): [2, 3], (0, 6): [],
+             (0, 7): [], (0, 8): [], (1, 0): [], (1, 1): [], (1, 2): [], (1, 3): [], (1, 4): [], (1, 5): [2, 8],
+             (1, 6): [2, 7, 8, 9], (1, 7): [7, 8, 9], (1, 8): [2, 8, 9], (2, 0): [], (2, 1): [], (2, 2): [2, 7],
+             (2, 3): [1, 5, 7, 8], (2, 4): [2, 5, 7, 8], (2, 5): [1, 2, 8], (2, 6): [2, 8], (2, 7): [3, 6],
+             (2, 8): [3, 6], (3, 0): [1, 2, 6, 7, 9], (3, 1): [1, 2, 4, 6, 8], (3, 2): [4, 6], (3, 3): [3, 7, 8, 9],
+             (3, 4): [2, 3, 7, 8], (3, 5): [], (3, 6): [2, 7, 8, 9], (3, 7): [1, 3, 7, 8, 9], (3, 8): [2, 3, 8, 9],
+             (4, 0): [2, 7, 9], (4, 1): [], (4, 2): [], (4, 3): [7, 8, 9], (4, 4): [], (4, 5): [2, 8, 9], (4, 6): [],
+             (4, 7): [7, 8, 9], (4, 8): [], (5, 0): [1, 2, 7, 9], (5, 1): [1, 2, 8], (5, 2): [2, 7], (5, 3): [],
+             (5, 4): [2, 3, 7, 8], (5, 5): [], (5, 6): [], (5, 7): [1, 3, 7, 8, 9], (5, 8): [2, 3, 8, 9],
+             (6, 0): [1, 2, 3, 6], (6, 1): [1, 2, 4, 6], (6, 2): [4, 5, 6], (6, 3): [1, 3, 5, 8, 9], (6, 4): [3, 5, 8],
+             (6, 5): [1, 3, 8, 9], (6, 6): [8, 9], (6, 7): [6, 8, 9], (6, 8): [], (7, 0): [1, 3, 6], (7, 1): [1, 6],
+             (7, 2): [5, 6], (7, 3): [1, 3, 5, 8, 9], (7, 4): [3, 5, 8], (7, 5): [], (7, 6): [], (7, 7): [],
+             (7, 8): [6, 8, 9], (8, 0): [], (8, 1): [], (8, 2): [], (8, 3): [], (8, 4): [], (8, 5): [], (8, 6): [],
+             (8, 7): [], (8, 8): []}
+        )
+
+        actual_moves = swordfish_row.swordfish_generic(swordfish_row.get_row_possibilities,
+                                                       swordfish_row.eliminate_possibilities_from_column_swordfish)
+
+        expected_moves = [
+            Move(REMOVE_POSS, 2, (3, 0), 'Column 0 (3, 0) had possibility value of 2 removed because there was a swordfish interaction between rows (0, 4, 6)'),
+            Move(REMOVE_POSS, 2, (5, 0), 'Column 0 (5, 0) had possibility value of 2 removed because there was a swordfish interaction between rows (0, 4, 6)'),
+            Move(REMOVE_POSS, 2, (3, 1), 'Column 1 (3, 1) had possibility value of 2 removed because there was a swordfish interaction between rows (0, 4, 6)'),
+            Move(REMOVE_POSS, 2, (5, 1), 'Column 1 (5, 1) had possibility value of 2 removed because there was a swordfish interaction between rows (0, 4, 6)'),
+            Move(REMOVE_POSS, 2, (1, 5), 'Column 5 (1, 5) had possibility value of 2 removed because there was a swordfish interaction between rows (0, 4, 6)'),
+            Move(REMOVE_POSS, 2, (2, 5), 'Column 5 (2, 5) had possibility value of 2 removed because there was a swordfish interaction between rows (0, 4, 6)')
+        ]
+
+        swordfish_row_expected_board = [[0, 0, 8, 0, 9, 0, 1, 4, 5], [5, 3, 1, 6, 4, 0, 0, 0, 0], [4, 9, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 5, 0, 0, 0], [0, 5, 3, 0, 1, 0, 6, 0, 4], [0, 0, 0, 4, 0, 6, 5, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 7], [0, 0, 0, 0, 0, 7, 4, 2, 0], [8, 7, 9, 2, 6, 4, 3, 5, 1]]
+
+        swordfish_row_expected_poss = {(0, 0): [2, 6, 7], (0, 1): [2, 6], (0, 2): [], (0, 3): [3, 7], (0, 4): [], (0, 5): [2, 3], (0, 6): [], (0, 7): [], (0, 8): [], (1, 0): [], (1, 1): [], (1, 2): [], (1, 3): [], (1, 4): [], (1, 5): [8], (1, 6): [2, 7, 8, 9], (1, 7): [7, 8, 9], (1, 8): [2, 8, 9], (2, 0): [], (2, 1): [], (2, 2): [2, 7], (2, 3): [1, 5, 7, 8], (2, 4): [2, 5, 7, 8], (2, 5): [1, 8], (2, 6): [2, 8], (2, 7): [3, 6], (2, 8): [3, 6], (3, 0): [1, 6, 7, 9], (3, 1): [1, 4, 6, 8], (3, 2): [4, 6], (3, 3): [3, 7, 8, 9], (3, 4): [2, 3, 7, 8], (3, 5): [], (3, 6): [2, 7, 8, 9], (3, 7): [1, 3, 7, 8, 9], (3, 8): [2, 3, 8, 9], (4, 0): [2, 7, 9], (4, 1): [], (4, 2): [], (4, 3): [7, 8, 9], (4, 4): [], (4, 5): [2, 8, 9], (4, 6): [], (4, 7): [7, 8, 9], (4, 8): [], (5, 0): [1, 7, 9], (5, 1): [1, 8], (5, 2): [2, 7], (5, 3): [], (5, 4): [2, 3, 7, 8], (5, 5): [], (5, 6): [], (5, 7): [1, 3, 7, 8, 9], (5, 8): [2, 3, 8, 9], (6, 0): [1, 2, 3, 6], (6, 1): [1, 2, 4, 6], (6, 2): [4, 5, 6], (6, 3): [1, 3, 5, 8, 9], (6, 4): [3, 5, 8], (6, 5): [1, 3, 8, 9], (6, 6): [8, 9], (6, 7): [6, 8, 9], (6, 8): [], (7, 0): [1, 3, 6], (7, 1): [1, 6], (7, 2): [5, 6], (7, 3): [1, 3, 5, 8, 9], (7, 4): [3, 5, 8], (7, 5): [], (7, 6): [], (7, 7): [], (7, 8): [6, 8, 9], (8, 0): [], (8, 1): [], (8, 2): [], (8, 3): [], (8, 4): [], (8, 5): [], (8, 6): [], (8, 7): [], (8, 8): []}
+
+        self.assertEqual(swordfish_row.board, swordfish_row_expected_board)
+        self.assertEqual(swordfish_row.possible_values, swordfish_row_expected_poss)
+        self.assertEqual(actual_moves, expected_moves)
+
+        # trivial 0 move result
+        blank_board_copy = deepcopy(self.blank_board.board)
+        blank_board_poss_copy = deepcopy(self.blank_board.possible_values)
+
+        actual_moves = self.blank_board.swordfish_generic(swordfish_row.get_row_possibilities,
+                                                       swordfish_row.eliminate_possibilities_from_column_swordfish)
+        self.assertEqual(actual_moves, [])
+        self.assertEqual(self.blank_board.board, blank_board_copy)
+        self.assertEqual(self.blank_board.possible_values, blank_board_poss_copy)
 
     def test_swordfish_col(self):
-        pass
+        swordfish_column = SudokuBoard(
+            [0, 0, 0, 4, 7, 9, 6, 2, 0, 0, 0, 4, 0, 0, 0, 3, 9, 5, 9, 2, 6, 0, 0, 0, 0, 0, 0,
+             0, 3, 1, 0, 0, 0, 0, 6, 9, 0, 0, 0, 9, 3, 6, 0, 0, 0, 0, 0, 9, 0, 0, 0, 2, 8, 3,
+             0, 5, 0, 8, 9, 4, 7, 1, 6, 4, 0, 8, 0, 0, 0, 9, 5, 2, 0, 9, 7, 0, 5, 2, 0, 3, 0]
+        )
+
+        swordfish_column.set_poss_values(
+            {(0, 0): [3, 5], (0, 1): [1, 8], (0, 2): [3, 5], (0, 3): [], (0, 4): [], (0, 5): [], (0, 6): [], (0, 7): [],
+             (0, 8): [1, 8], (1, 0): [1, 7, 8], (1, 1): [1, 7, 8], (1, 2): [], (1, 3): [2, 6], (1, 4): [2, 6],
+             (1, 5): [1, 8], (1, 6): [], (1, 7): [], (1, 8): [], (2, 0): [], (2, 1): [], (2, 2): [], (2, 3): [3, 5],
+             (2, 4): [1, 8], (2, 5): [3, 5], (2, 6): [1, 4, 8], (2, 7): [4, 7], (2, 8): [1, 4, 7, 8], (3, 0): [5, 7],
+             (3, 1): [], (3, 2): [], (3, 3): [2, 5, 7], (3, 4): [2, 4, 8], (3, 5): [5, 7, 8], (3, 6): [4, 5],
+             (3, 7): [], (3, 8): [], (4, 0): [2, 5, 8], (4, 1): [4, 8], (4, 2): [2, 5], (4, 3): [], (4, 4): [],
+             (4, 5): [], (4, 6): [1, 4, 5], (4, 7): [4, 7], (4, 8): [1, 4, 7], (5, 0): [5, 6, 7], (5, 1): [4, 6, 7],
+             (5, 2): [], (5, 3): [1, 5, 7], (5, 4): [1, 4], (5, 5): [1, 5, 7], (5, 6): [], (5, 7): [], (5, 8): [],
+             (6, 0): [2, 3], (6, 1): [], (6, 2): [2, 3], (6, 3): [], (6, 4): [], (6, 5): [], (6, 6): [], (6, 7): [],
+             (6, 8): [], (7, 0): [], (7, 1): [1, 6], (7, 2): [], (7, 3): [3, 7], (7, 4): [1, 6], (7, 5): [3, 7],
+             (7, 6): [], (7, 7): [], (7, 8): [], (8, 0): [1, 6], (8, 1): [], (8, 2): [], (8, 3): [1, 6], (8, 4): [],
+             (8, 5): [], (8, 6): [4, 8], (8, 7): [], (8, 8): [4, 8]}
+
+        )
+
+        actual_moves = swordfish_column.swordfish_generic(swordfish_column.get_col_possibilities,
+                                                       swordfish_column.eliminate_possibilities_from_row_swordfish)
+
+        expected_moves = [
+            Move(REMOVE_POSS, 1, (1, 1), 'Row 1 (1, 1) had possibility value of 1 removed because there was a swordfish interaction between columns (0, 3, 5)'),
+            Move(REMOVE_POSS, 1, (5, 4), 'Row 5 (5, 4) had possibility value of 1 removed because there was a swordfish interaction between columns (0, 3, 5)')
+        ]
+
+        swordfish_row_expected_board = [[0, 0, 0, 4, 7, 9, 6, 2, 0], [0, 0, 4, 0, 0, 0, 3, 9, 5], [9, 2, 6, 0, 0, 0, 0, 0, 0], [0, 3, 1, 0, 0, 0, 0, 6, 9], [0, 0, 0, 9, 3, 6, 0, 0, 0], [0, 0, 9, 0, 0, 0, 2, 8, 3], [0, 5, 0, 8, 9, 4, 7, 1, 6], [4, 0, 8, 0, 0, 0, 9, 5, 2], [0, 9, 7, 0, 5, 2, 0, 3, 0]]
+
+
+        swordfish_row_expected_poss = {(0, 0): [3, 5], (0, 1): [1, 8], (0, 2): [3, 5], (0, 3): [], (0, 4): [], (0, 5): [], (0, 6): [], (0, 7): [], (0, 8): [1, 8], (1, 0): [1, 7, 8], (1, 1): [7, 8], (1, 2): [], (1, 3): [2, 6], (1, 4): [2, 6], (1, 5): [1, 8], (1, 6): [], (1, 7): [], (1, 8): [], (2, 0): [], (2, 1): [], (2, 2): [], (2, 3): [3, 5], (2, 4): [1, 8], (2, 5): [3, 5], (2, 6): [1, 4, 8], (2, 7): [4, 7], (2, 8): [1, 4, 7, 8], (3, 0): [5, 7], (3, 1): [], (3, 2): [], (3, 3): [2, 5, 7], (3, 4): [2, 4, 8], (3, 5): [5, 7, 8], (3, 6): [4, 5], (3, 7): [], (3, 8): [], (4, 0): [2, 5, 8], (4, 1): [4, 8], (4, 2): [2, 5], (4, 3): [], (4, 4): [], (4, 5): [], (4, 6): [1, 4, 5], (4, 7): [4, 7], (4, 8): [1, 4, 7], (5, 0): [5, 6, 7], (5, 1): [4, 6, 7], (5, 2): [], (5, 3): [1, 5, 7], (5, 4): [4], (5, 5): [1, 5, 7], (5, 6): [], (5, 7): [], (5, 8): [], (6, 0): [2, 3], (6, 1): [], (6, 2): [2, 3], (6, 3): [], (6, 4): [], (6, 5): [], (6, 6): [], (6, 7): [], (6, 8): [], (7, 0): [], (7, 1): [1, 6], (7, 2): [], (7, 3): [3, 7], (7, 4): [1, 6], (7, 5): [3, 7], (7, 6): [], (7, 7): [], (7, 8): [], (8, 0): [1, 6], (8, 1): [], (8, 2): [], (8, 3): [1, 6], (8, 4): [], (8, 5): [], (8, 6): [4, 8], (8, 7): [], (8, 8): [4, 8]}
+
+        self.assertEqual(swordfish_column.board, swordfish_row_expected_board)
+        self.assertEqual(swordfish_column.possible_values, swordfish_row_expected_poss)
+        self.assertEqual(actual_moves, expected_moves)
+
+        # trivial 0 move result
+        blank_board_copy = deepcopy(self.blank_board.board)
+        blank_board_poss_copy = deepcopy(self.blank_board.possible_values)
+
+        actual_moves = self.blank_board.swordfish_generic(swordfish_column.get_row_possibilities,
+                                                          swordfish_column.eliminate_possibilities_from_column_swordfish)
+        self.assertEqual(actual_moves, [])
+        self.assertEqual(self.blank_board.board, blank_board_copy)
+        self.assertEqual(self.blank_board.possible_values, blank_board_poss_copy)
 
     def test_swordfish(self):
-        # TODO : use swordfish3.sdk as it has a 'relaxed definition' use case
-        # make sure to bypass / not bypass short circuiting
-        pass
+        swordfish_row = SudokuBoard(
+            [0, 0, 8, 0, 9, 0, 1, 4, 5, 5, 3, 1, 6, 4, 0, 0, 0, 0, 4, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0,
+             0, 5, 3, 0, 1, 0, 6, 0, 4, 0, 0, 0, 4, 0, 6, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 7, 4, 2, 0,
+             8, 7, 9, 2, 6, 4, 3, 5, 1])
+
+        swordfish_row.set_poss_values(
+            {(0, 0): [2, 6, 7], (0, 1): [2, 6], (0, 2): [], (0, 3): [3, 7], (0, 4): [], (0, 5): [2, 3], (0, 6): [],
+             (0, 7): [], (0, 8): [], (1, 0): [], (1, 1): [], (1, 2): [], (1, 3): [], (1, 4): [], (1, 5): [2, 8],
+             (1, 6): [2, 7, 8, 9], (1, 7): [7, 8, 9], (1, 8): [2, 8, 9], (2, 0): [], (2, 1): [], (2, 2): [2, 7],
+             (2, 3): [1, 5, 7, 8], (2, 4): [2, 5, 7, 8], (2, 5): [1, 2, 8], (2, 6): [2, 8], (2, 7): [3, 6],
+             (2, 8): [3, 6], (3, 0): [1, 2, 6, 7, 9], (3, 1): [1, 2, 4, 6, 8], (3, 2): [4, 6], (3, 3): [3, 7, 8, 9],
+             (3, 4): [2, 3, 7, 8], (3, 5): [], (3, 6): [2, 7, 8, 9], (3, 7): [1, 3, 7, 8, 9], (3, 8): [2, 3, 8, 9],
+             (4, 0): [2, 7, 9], (4, 1): [], (4, 2): [], (4, 3): [7, 8, 9], (4, 4): [], (4, 5): [2, 8, 9], (4, 6): [],
+             (4, 7): [7, 8, 9], (4, 8): [], (5, 0): [1, 2, 7, 9], (5, 1): [1, 2, 8], (5, 2): [2, 7], (5, 3): [],
+             (5, 4): [2, 3, 7, 8], (5, 5): [], (5, 6): [], (5, 7): [1, 3, 7, 8, 9], (5, 8): [2, 3, 8, 9],
+             (6, 0): [1, 2, 3, 6], (6, 1): [1, 2, 4, 6], (6, 2): [4, 5, 6], (6, 3): [1, 3, 5, 8, 9], (6, 4): [3, 5, 8],
+             (6, 5): [1, 3, 8, 9], (6, 6): [8, 9], (6, 7): [6, 8, 9], (6, 8): [], (7, 0): [1, 3, 6], (7, 1): [1, 6],
+             (7, 2): [5, 6], (7, 3): [1, 3, 5, 8, 9], (7, 4): [3, 5, 8], (7, 5): [], (7, 6): [], (7, 7): [],
+             (7, 8): [6, 8, 9], (8, 0): [], (8, 1): [], (8, 2): [], (8, 3): [], (8, 4): [], (8, 5): [], (8, 6): [],
+             (8, 7): [], (8, 8): []}
+        )
+
+        actual_moves = swordfish_row.swordfish()
+
+        expected_moves = [
+            Move(REMOVE_POSS, 2, (3, 0),
+                 'Column 0 (3, 0) had possibility value of 2 removed because there was a swordfish interaction between rows (0, 4, 6)'),
+            Move(REMOVE_POSS, 2, (5, 0),
+                 'Column 0 (5, 0) had possibility value of 2 removed because there was a swordfish interaction between rows (0, 4, 6)'),
+            Move(REMOVE_POSS, 2, (3, 1),
+                 'Column 1 (3, 1) had possibility value of 2 removed because there was a swordfish interaction between rows (0, 4, 6)'),
+            Move(REMOVE_POSS, 2, (5, 1),
+                 'Column 1 (5, 1) had possibility value of 2 removed because there was a swordfish interaction between rows (0, 4, 6)'),
+            Move(REMOVE_POSS, 2, (1, 5),
+                 'Column 5 (1, 5) had possibility value of 2 removed because there was a swordfish interaction between rows (0, 4, 6)'),
+            Move(REMOVE_POSS, 2, (2, 5),
+                 'Column 5 (2, 5) had possibility value of 2 removed because there was a swordfish interaction between rows (0, 4, 6)')
+        ]
+
+        swordfish_row_expected_board = [[0, 0, 8, 0, 9, 0, 1, 4, 5], [5, 3, 1, 6, 4, 0, 0, 0, 0],
+                                        [4, 9, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 5, 0, 0, 0],
+                                        [0, 5, 3, 0, 1, 0, 6, 0, 4], [0, 0, 0, 4, 0, 6, 5, 0, 0],
+                                        [0, 0, 0, 0, 0, 0, 0, 0, 7], [0, 0, 0, 0, 0, 7, 4, 2, 0],
+                                        [8, 7, 9, 2, 6, 4, 3, 5, 1]]
+
+        swordfish_row_expected_poss = {(0, 0): [2, 6, 7], (0, 1): [2, 6], (0, 2): [], (0, 3): [3, 7], (0, 4): [],
+                                       (0, 5): [2, 3], (0, 6): [], (0, 7): [], (0, 8): [], (1, 0): [], (1, 1): [],
+                                       (1, 2): [], (1, 3): [], (1, 4): [], (1, 5): [8], (1, 6): [2, 7, 8, 9],
+                                       (1, 7): [7, 8, 9], (1, 8): [2, 8, 9], (2, 0): [], (2, 1): [], (2, 2): [2, 7],
+                                       (2, 3): [1, 5, 7, 8], (2, 4): [2, 5, 7, 8], (2, 5): [1, 8], (2, 6): [2, 8],
+                                       (2, 7): [3, 6], (2, 8): [3, 6], (3, 0): [1, 6, 7, 9], (3, 1): [1, 4, 6, 8],
+                                       (3, 2): [4, 6], (3, 3): [3, 7, 8, 9], (3, 4): [2, 3, 7, 8], (3, 5): [],
+                                       (3, 6): [2, 7, 8, 9], (3, 7): [1, 3, 7, 8, 9], (3, 8): [2, 3, 8, 9],
+                                       (4, 0): [2, 7, 9], (4, 1): [], (4, 2): [], (4, 3): [7, 8, 9], (4, 4): [],
+                                       (4, 5): [2, 8, 9], (4, 6): [], (4, 7): [7, 8, 9], (4, 8): [], (5, 0): [1, 7, 9],
+                                       (5, 1): [1, 8], (5, 2): [2, 7], (5, 3): [], (5, 4): [2, 3, 7, 8], (5, 5): [],
+                                       (5, 6): [], (5, 7): [1, 3, 7, 8, 9], (5, 8): [2, 3, 8, 9], (6, 0): [1, 2, 3, 6],
+                                       (6, 1): [1, 2, 4, 6], (6, 2): [4, 5, 6], (6, 3): [1, 3, 5, 8, 9],
+                                       (6, 4): [3, 5, 8], (6, 5): [1, 3, 8, 9], (6, 6): [8, 9], (6, 7): [6, 8, 9],
+                                       (6, 8): [], (7, 0): [1, 3, 6], (7, 1): [1, 6], (7, 2): [5, 6],
+                                       (7, 3): [1, 3, 5, 8, 9], (7, 4): [3, 5, 8], (7, 5): [], (7, 6): [], (7, 7): [],
+                                       (7, 8): [6, 8, 9], (8, 0): [], (8, 1): [], (8, 2): [], (8, 3): [], (8, 4): [],
+                                       (8, 5): [], (8, 6): [], (8, 7): [], (8, 8): []}
+
+        self.assertEqual(swordfish_row.board, swordfish_row_expected_board)
+        self.assertEqual(swordfish_row.possible_values, swordfish_row_expected_poss)
+        self.assertEqual(actual_moves, expected_moves)
+
+        swordfish_column = SudokuBoard(
+            [0, 0, 0, 4, 7, 9, 6, 2, 0, 0, 0, 4, 0, 0, 0, 3, 9, 5, 9, 2, 6, 0, 0, 0, 0, 0, 0,
+             0, 3, 1, 0, 0, 0, 0, 6, 9, 0, 0, 0, 9, 3, 6, 0, 0, 0, 0, 0, 9, 0, 0, 0, 2, 8, 3,
+             0, 5, 0, 8, 9, 4, 7, 1, 6, 4, 0, 8, 0, 0, 0, 9, 5, 2, 0, 9, 7, 0, 5, 2, 0, 3, 0]
+        )
+
+        swordfish_column.set_poss_values(
+            {(0, 0): [3, 5], (0, 1): [1, 8], (0, 2): [3, 5], (0, 3): [], (0, 4): [], (0, 5): [], (0, 6): [], (0, 7): [],
+             (0, 8): [1, 8], (1, 0): [1, 7, 8], (1, 1): [1, 7, 8], (1, 2): [], (1, 3): [2, 6], (1, 4): [2, 6],
+             (1, 5): [1, 8], (1, 6): [], (1, 7): [], (1, 8): [], (2, 0): [], (2, 1): [], (2, 2): [], (2, 3): [3, 5],
+             (2, 4): [1, 8], (2, 5): [3, 5], (2, 6): [1, 4, 8], (2, 7): [4, 7], (2, 8): [1, 4, 7, 8], (3, 0): [5, 7],
+             (3, 1): [], (3, 2): [], (3, 3): [2, 5, 7], (3, 4): [2, 4, 8], (3, 5): [5, 7, 8], (3, 6): [4, 5],
+             (3, 7): [], (3, 8): [], (4, 0): [2, 5, 8], (4, 1): [4, 8], (4, 2): [2, 5], (4, 3): [], (4, 4): [],
+             (4, 5): [], (4, 6): [1, 4, 5], (4, 7): [4, 7], (4, 8): [1, 4, 7], (5, 0): [5, 6, 7], (5, 1): [4, 6, 7],
+             (5, 2): [], (5, 3): [1, 5, 7], (5, 4): [1, 4], (5, 5): [1, 5, 7], (5, 6): [], (5, 7): [], (5, 8): [],
+             (6, 0): [2, 3], (6, 1): [], (6, 2): [2, 3], (6, 3): [], (6, 4): [], (6, 5): [], (6, 6): [], (6, 7): [],
+             (6, 8): [], (7, 0): [], (7, 1): [1, 6], (7, 2): [], (7, 3): [3, 7], (7, 4): [1, 6], (7, 5): [3, 7],
+             (7, 6): [], (7, 7): [], (7, 8): [], (8, 0): [1, 6], (8, 1): [], (8, 2): [], (8, 3): [1, 6], (8, 4): [],
+             (8, 5): [], (8, 6): [4, 8], (8, 7): [], (8, 8): [4, 8]}
+
+        )
+
+        actual_moves = swordfish_column.swordfish()
+
+        expected_moves = [
+            Move(REMOVE_POSS, 1, (1, 1),
+                 'Row 1 (1, 1) had possibility value of 1 removed because there was a swordfish interaction between columns (0, 3, 5)'),
+            Move(REMOVE_POSS, 1, (5, 4),
+                 'Row 5 (5, 4) had possibility value of 1 removed because there was a swordfish interaction between columns (0, 3, 5)')
+        ]
+
+        swordfish_row_expected_board = [[0, 0, 0, 4, 7, 9, 6, 2, 0], [0, 0, 4, 0, 0, 0, 3, 9, 5],
+                                        [9, 2, 6, 0, 0, 0, 0, 0, 0], [0, 3, 1, 0, 0, 0, 0, 6, 9],
+                                        [0, 0, 0, 9, 3, 6, 0, 0, 0], [0, 0, 9, 0, 0, 0, 2, 8, 3],
+                                        [0, 5, 0, 8, 9, 4, 7, 1, 6], [4, 0, 8, 0, 0, 0, 9, 5, 2],
+                                        [0, 9, 7, 0, 5, 2, 0, 3, 0]]
+
+        swordfish_row_expected_poss = {(0, 0): [3, 5], (0, 1): [1, 8], (0, 2): [3, 5], (0, 3): [], (0, 4): [],
+                                       (0, 5): [], (0, 6): [], (0, 7): [], (0, 8): [1, 8], (1, 0): [1, 7, 8],
+                                       (1, 1): [7, 8], (1, 2): [], (1, 3): [2, 6], (1, 4): [2, 6], (1, 5): [1, 8],
+                                       (1, 6): [], (1, 7): [], (1, 8): [], (2, 0): [], (2, 1): [], (2, 2): [],
+                                       (2, 3): [3, 5], (2, 4): [1, 8], (2, 5): [3, 5], (2, 6): [1, 4, 8],
+                                       (2, 7): [4, 7], (2, 8): [1, 4, 7, 8], (3, 0): [5, 7], (3, 1): [], (3, 2): [],
+                                       (3, 3): [2, 5, 7], (3, 4): [2, 4, 8], (3, 5): [5, 7, 8], (3, 6): [4, 5],
+                                       (3, 7): [], (3, 8): [], (4, 0): [2, 5, 8], (4, 1): [4, 8], (4, 2): [2, 5],
+                                       (4, 3): [], (4, 4): [], (4, 5): [], (4, 6): [1, 4, 5], (4, 7): [4, 7],
+                                       (4, 8): [1, 4, 7], (5, 0): [5, 6, 7], (5, 1): [4, 6, 7], (5, 2): [],
+                                       (5, 3): [1, 5, 7], (5, 4): [4], (5, 5): [1, 5, 7], (5, 6): [], (5, 7): [],
+                                       (5, 8): [], (6, 0): [2, 3], (6, 1): [], (6, 2): [2, 3], (6, 3): [], (6, 4): [],
+                                       (6, 5): [], (6, 6): [], (6, 7): [], (6, 8): [], (7, 0): [], (7, 1): [1, 6],
+                                       (7, 2): [], (7, 3): [3, 7], (7, 4): [1, 6], (7, 5): [3, 7], (7, 6): [],
+                                       (7, 7): [], (7, 8): [], (8, 0): [1, 6], (8, 1): [], (8, 2): [], (8, 3): [1, 6],
+                                       (8, 4): [], (8, 5): [], (8, 6): [4, 8], (8, 7): [], (8, 8): [4, 8]}
+
+        self.assertEqual(swordfish_column.board, swordfish_row_expected_board)
+        self.assertEqual(swordfish_column.possible_values, swordfish_row_expected_poss)
+        self.assertEqual(actual_moves, expected_moves)
+
+        # trivial 0 move result
+        blank_board_copy = deepcopy(self.blank_board.board)
+        blank_board_poss_copy = deepcopy(self.blank_board.possible_values)
+
+        actual_moves = self.blank_board.swordfish()
+        self.assertEqual(actual_moves, [])
+        self.assertEqual(self.blank_board.board, blank_board_copy)
+        self.assertEqual(self.blank_board.possible_values, blank_board_poss_copy)
 
     def test_force_chain(self):
         pass
 
     def test_solve(self):
-        # test valid and invalid
-        pass
+        for root, dirs, filenames in os.walk('TestCases'):
+            for f in filenames:
+                sudoku = SudokuBoard(file_path='TestCases/' + f, printout=False)
+                sudoku.solve()
+                self.assertTrue(sudoku.is_solved())
+                del sudoku

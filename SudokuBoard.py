@@ -675,12 +675,7 @@ class SudokuBoard:
 
         return successes
 
-    def swordfish_generic(self, poss_func, opp_poss_func, poss_eliminator_func):
-
-        before_board = deepcopy(self.board)
-        before_poss = deepcopy(self.possible_values)
-
-
+    def swordfish_generic(self, poss_func, poss_eliminator_func):
         if poss_func.__name__ == 'get_row_possibilities':
             subarea_type = 'row'
             opposite_subarea = 'column'
@@ -694,10 +689,6 @@ class SudokuBoard:
         index_triplets = [(a, b, c) for a, b, c in product(self.INDEX_RANGE, repeat=3) if a != b and b != c and a != c]
         # grab 3 rows
         for triplet in index_triplets:
-            if subarea_type == 'row' and triplet == (0, 4, 6):
-                print('here')
-                print(before_board)
-                print(before_poss)
             # grab the set of possibilities for each row/col
             sets_of_poss = (poss_func(triplet[0]), poss_func(triplet[1]), poss_func(triplet[2]))
             # for a given value
@@ -720,19 +711,11 @@ class SudokuBoard:
                             self.print_reason_to_file(reason)
                             successes.extend(moves)
 
-        if successes:
-            print(before_board)
-            print(before_poss)
-            for s in successes:
-                print(s)
-            print(self.board)
-            print(self.possible_values)
-
         return successes
 
     def swordfish(self):
-        return self.swordfish_generic(self.get_row_possibilities, self.get_col_possibilities, self.eliminate_possibilities_from_column_swordfish) or \
-               self.swordfish_generic(self.get_col_possibilities, self.get_row_possibilities, self.eliminate_possibilities_from_row_swordfish)
+        return self.swordfish_generic(self.get_row_possibilities,  self.eliminate_possibilities_from_column_swordfish) or \
+               self.swordfish_generic(self.get_col_possibilities,  self.eliminate_possibilities_from_row_swordfish)
 
     def force_chain(self):
         """
@@ -753,29 +736,29 @@ class SudokuBoard:
                 value_to_try = poss[0]
                 try:
                     attempt_board.set(coord[0], coord[1], value_to_try)
-                    # print("Forcing chain on " + str(coord) + " with value " + str(value_to_try))
+                    print("Forcing chain on " + str(coord) + " with value " + str(value_to_try))
                     # print(attempt_board)
                     try:
-                        # TODO : make solve return list of moves
-                        moves = attempt_board.solve()
+                        successes = attempt_board.solve()
+                        if not successes:
+                            successes = []
+                            self.possible_values[coord].remove(value_to_try)
+                            reason = str(coord) + ' had possibility value of ' + str(
+                                value_to_try) + ' removed due to trial and error'
+                            self.print_reason_to_file(reason)
+                            successes.append(Move(REMOVE_POSS, value_to_try, coord, reason))
                     except ValueError:
-                        if value_to_try in self.possible_values[(coord[0], coord[1])]:
-                            self.possible_values[(coord[0], coord[1])].remove(value_to_try)
+                        if value_to_try in self.possible_values[coord]:
+                            self.possible_values[coord].remove(value_to_try)
                             reason = str(coord) + ' had possibility value of ' + str(value_to_try) + ' removed due to trial and error'
                             self.print_reason_to_file(reason)
                             successes.append(Move(REMOVE_POSS, value_to_try, coord, reason))
-                            # return success
-                    else:
-                        successes.extend(moves)
-                        self.board = deepcopy(attempt_board.board)
-                        # return success
                 except ValueError:
-                    if value_to_try in self.possible_values[(coord[0], coord[1])]:
-                        self.possible_values[(coord[0], coord[1])].remove(value_to_try)
+                    if value_to_try in self.possible_values[coord]:
+                        self.possible_values[coord].remove(value_to_try)
                         reason = str(coord) + ' had possibility value of ' + str(value_to_try) + ' removed due to trial and error'
                         self.print_reason_to_file(reason)
                         successes.append(Move(REMOVE_POSS, value_to_try, coord, reason))
-                        # return success
 
         return successes
 
@@ -972,7 +955,7 @@ class SudokuBoard:
         for coord, values in possibilities.items():
             if value in values and coord[1] not in exclusion_triplet:
                 self.possible_values[coord].remove(value)
-                reason = 'Row ' + str(row) + ' (' + str(coord) + ') had possibility value of ' + str(value) + ' removed because there was a swordfish interaction between columns ' + str(exclusion_triplet)
+                reason = 'Row ' + str(row) + ' ' + str(coord) + ' had possibility value of ' + str(value) + ' removed because there was a swordfish interaction between columns ' + str(exclusion_triplet)
                 moves.append(Move(REMOVE_POSS, value, coord, reason))
 
         return moves
@@ -990,7 +973,7 @@ class SudokuBoard:
         for coord, values in possibilities.items():
             if value in values and coord[0] not in exclusion_triplet:
                 self.possible_values[coord].remove(value)
-                reason = 'Column ' + str(col) + ' had possibility value of ' + str(value) + ' removed because there was a swordfish interaction between rows ' + str(exclusion_triplet)
+                reason = 'Column ' + str(col) + ' ' + str(coord) + ' had possibility value of ' + str(value) + ' removed because there was a swordfish interaction between rows ' + str(exclusion_triplet)
                 moves.append(Move(REMOVE_POSS, value, coord, reason))
 
         return moves
@@ -1013,15 +996,14 @@ class SudokuBoard:
         moves = []
         start_time = datetime.now()
         # print(self)
-        method_progression = [self.sole_candidates, self.unique_candidate, self.pointing_tuple, self.naked_subset, self.hidden_subset, self.sector_line_interaction, self.sector_sector_interaction, self.swordfish]
-        # method_progression = [self.sole_candidates, self.unique_candidate, self.sector_line_interaction,
-        #                       self.naked_subset, self.hidden_subset, self.sector_sector_interaction,  self.x_wing,
-        #                       self.swordfish, self.force_chain]
+        method_progression = [self.sole_candidates, self.unique_candidate, self.sector_line_interaction,
+                              self.naked_subset, self.hidden_subset, self.sector_sector_interaction,
+                              self.swordfish, self.x_wing, self.force_chain]
 
         most_complex_function_index = 0
         index = 0
         while index < len(method_progression):
-            print(method_progression[index].__name__)
+            # print(method_progression[index].__name__)
             successes = method_progression[index]()
             moves.extend(successes)
             if self.is_solved():
