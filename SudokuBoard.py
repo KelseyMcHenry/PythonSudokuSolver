@@ -22,6 +22,7 @@ class SudokuBoard:
 
     INDEX_RANGE = range(9)
     VALUE_RANGE = range(1, 10)
+    call_stack_depth = 0
 
     # -------------------------------------- Python Reserved Functions  --------------------------------------------
 
@@ -250,7 +251,7 @@ class SudokuBoard:
                 if value in self.possible_values[(x, y)]:
                     self.possible_values[(x, y)].remove(value)
             if self.board[x][y] == 0 and len(self.get_possibilities(x, y)) == 0:
-                raise ValueError('Invalid cell set at ' + str((x, y)))
+                raise ValueError('Invalid cell value of ' + str(value) + ' cannot be set at ' + str((x, y)))
 
     def set_poss_values(self, possibilities):
         """
@@ -725,47 +726,66 @@ class SudokuBoard:
         Takes the first available unsolved cell performs a recursive "guess-n-check" in an attempt to remove
         possibilities. For each value it tries it solves a copy of the puzzle either to completion or
         until a contradiction is met. Upon finding a contradiction it goes back to the original and removes that value.
-        Upon completing the puzzle, it copies the completed results back to the current puzzle
+        Upon completing the puzzle, it copies the completed results back to the current puzzle.
+
+        NOTE: This method is the "nuclear option" and should be avoided until you have solved the puzzle as far as you
+        can or else it could run until the heat death of the universe.... or just exceed the recursion limit.
+
         :return: a boolean indicating if any possibilities were successfully eliminated
         """
+
+        before_board = deepcopy(self.board)
+        before_poss = deepcopy(self.possible_values)
+
         successes = []
         values = []
         for row in self.board:
             values.extend(row)
-        attempt_board = SudokuBoard(values=values, printout=False)
-        attempt_board.set_poss_values(self.possible_values)
+
+        # for every cell...
         for coord, poss in self.possible_values.items():
+            # if that cell has any possibilities in it...
             if len(poss) > 1:
+                # create a copy of the board in its current state...
+                attempt_board = SudokuBoard(values=values, printout=False)
+                attempt_board.set_poss_values(deepcopy(self.possible_values))
+                # go through all the possible values for the cell ...
                 value_to_try = poss[0]
                 try:
+                    # in the 'alternate universe' copy, try to set that value
                     attempt_board.set(coord[0], coord[1], value_to_try)
-                    print("Forcing chain on " + str(coord) + " with value " + str(value_to_try))
-                    # print(attempt_board)
+                    print("Forcing chain on " + str(coord) + " with value " + str(value_to_try) + '....')
                     try:
+                        # attempt to solve the 'alternate universe' puzzle under the assumption that it is correct.
                         temp_successes = attempt_board.solve()
                         if temp_successes:
                             successes.extend(temp_successes)
+                    except ValueError as e:
+                        if self.call_stack_depth == 1:
+                            if value_to_try in self.possible_values[coord]:
+                                self.possible_values[coord].remove(value_to_try)
+                                reason = str(coord) + ' had possibility value of ' + str(value_to_try) + ' removed due to trial and error. ' + str(e)
+                                self.print_reason_to_file(reason)
+                                successes.append(Move(REMOVE_POSS, value_to_try, coord, reason))
+                                return successes
+                        else:
+                            print('Returning from depth: ' + str(self.call_stack_depth))
+                            self.call_stack_depth -= 1
+                            return []
+                except ValueError as e:
+                    # if setting the value on your 'alternate universe' puzzle ran into problems,
+                    # you have reached a contradiction. NOTE: you should not hit this when the call stack depth = 1
+                    # otherwise your solver is broken!
 
-                        # if not successes:
-                        #     successes = []
-                        #     self.possible_values[coord].remove(value_to_try)
-                        #     reason = str(coord) + ' had possibility value of ' + str(
-                        #         value_to_try) + ' removed due to trial and error'
-                        #     self.print_reason_to_file(reason)
-                        #     successes.append(Move(REMOVE_POSS, value_to_try, coord, reason))
-                        #     return successes
-                    except ValueError:
+                    if self.call_stack_depth == 1:
                         if value_to_try in self.possible_values[coord]:
                             self.possible_values[coord].remove(value_to_try)
-                            reason = str(coord) + ' had possibility value of ' + str(value_to_try) + ' removed due to trial and error'
+                            reason = str(coord) + ' had possibility value of ' + str(value_to_try) + ' removed due to trial and error. ' + str(e)
                             self.print_reason_to_file(reason)
                             successes.append(Move(REMOVE_POSS, value_to_try, coord, reason))
-                except ValueError:
-                    if value_to_try in self.possible_values[coord]:
-                        self.possible_values[coord].remove(value_to_try)
-                        reason = str(coord) + ' had possibility value of ' + str(value_to_try) + ' removed due to trial and error'
-                        self.print_reason_to_file(reason)
-                        successes.append(Move(REMOVE_POSS, value_to_try, coord, reason))
+                    else:
+                        print('Returning from depth: ' + str(self.call_stack_depth))
+                        return []
 
         return successes
 
@@ -1000,19 +1020,23 @@ class SudokuBoard:
         """
         Solves the sudoku puzzle
         """
+        self.call_stack_depth += 1
         moves = []
         start_time = datetime.now()
-        # print(self)
+        print(self)
+        # TODO XWING
         method_progression = [self.sole_candidates, self.unique_candidate, self.sector_line_interaction,
                               self.naked_subset, self.hidden_subset, self.sector_sector_interaction,
-                              self.swordfish, self.x_wing, self.force_chain]
+                              self.swordfish, self.force_chain]
 
         most_complex_function_index = 0
         index = 0
         while index < len(method_progression):
-            # print(method_progression[index].__name__)
+            print(method_progression[index].__name__)
             try:
                 successes = method_progression[index]()
+                if successes:
+                    print(self)
             except ValueError as e:
                 raise e
             moves.extend(successes)
@@ -1023,7 +1047,7 @@ class SudokuBoard:
                     print('Completed ' + self.file_path_name + ' in ' + str(diff[0]) + ' minutes and ' + str(diff[1])
                           + ' seconds, with the most complex function used being '
                           + str(method_progression[most_complex_function_index].__name__) + '.')
-                return
+                return moves
             else:
                 if not successes:
                     index += 1
