@@ -251,6 +251,7 @@ class SudokuBoard:
                 if value in self.possible_values[(x, y)]:
                     self.possible_values[(x, y)].remove(value)
             if self.board[x][y] == 0 and len(self.get_possibilities(x, y)) == 0:
+                print('Contradiction reached.')
                 raise ValueError('Invalid cell value of ' + str(value) + ' cannot be set at ' + str((x, y)))
 
     def set_poss_values(self, possibilities):
@@ -734,9 +735,6 @@ class SudokuBoard:
         :return: a boolean indicating if any possibilities were successfully eliminated
         """
 
-        before_board = deepcopy(self.board)
-        before_poss = deepcopy(self.possible_values)
-
         successes = []
         values = []
         for row in self.board:
@@ -747,6 +745,9 @@ class SudokuBoard:
             # if that cell has any possibilities in it...
             if len(poss) > 1:
                 # create a copy of the board in its current state...
+                # printout = False is set so that the attempt board does not try to print to the
+                # reasons file before they can be confirmed as correct. Correct moves will be passed up to the
+                # top level function call
                 attempt_board = SudokuBoard(values=values, printout=False)
                 attempt_board.set_poss_values(deepcopy(self.possible_values))
                 # go through all the possible values for the cell ...
@@ -757,35 +758,32 @@ class SudokuBoard:
                     print("Forcing chain on " + str(coord) + " with value " + str(value_to_try) + '....')
                     try:
                         # attempt to solve the 'alternate universe' puzzle under the assumption that it is correct.
+                        attempt_board.call_stack_depth = self.call_stack_depth + 1
                         temp_successes = attempt_board.solve()
-                        if temp_successes:
-                            successes.extend(temp_successes)
+                        if temp_successes and self.call_stack_depth == 1 and attempt_board.is_solved():
+                            return temp_successes
                     except ValueError as e:
-                        if self.call_stack_depth == 1:
+                        # if the "solve" throws a Value Error that is because it ran into a contradiction at some point
+                        # if we are at the original guess (because solve can still call force_chain and have several
+                        # layers of guesses running)
+                        if self.call_stack_depth == 0:
+                            # remove the offending guess from the possible values and return the relevant move
                             if value_to_try in self.possible_values[coord]:
                                 self.possible_values[coord].remove(value_to_try)
                                 reason = str(coord) + ' had possibility value of ' + str(value_to_try) + ' removed due to trial and error. ' + str(e)
                                 self.print_reason_to_file(reason)
-                                successes.append(Move(REMOVE_POSS, value_to_try, coord, reason))
-                                return successes
+                                return [Move(REMOVE_POSS, value_to_try, coord, reason)]
                         else:
+                            # pass the
                             print('Returning from depth: ' + str(self.call_stack_depth))
-                            self.call_stack_depth -= 1
-                            return []
+                            raise e
                 except ValueError as e:
                     # if setting the value on your 'alternate universe' puzzle ran into problems,
-                    # you have reached a contradiction. NOTE: you should not hit this when the call stack depth = 1
-                    # otherwise your solver is broken!
-
-                    if self.call_stack_depth == 1:
-                        if value_to_try in self.possible_values[coord]:
-                            self.possible_values[coord].remove(value_to_try)
-                            reason = str(coord) + ' had possibility value of ' + str(value_to_try) + ' removed due to trial and error. ' + str(e)
-                            self.print_reason_to_file(reason)
-                            successes.append(Move(REMOVE_POSS, value_to_try, coord, reason))
-                    else:
-                        print('Returning from depth: ' + str(self.call_stack_depth))
-                        return []
+                    # you have reached a contradiction, but that means the error had to have been made previously,
+                    # and the responsible guess is still on the stack. The solution is to pass the error back up to that
+                    # function call.
+                    print('Returning from depth: ' + str(self.call_stack_depth))
+                    raise e
 
         return successes
 
@@ -1020,7 +1018,9 @@ class SudokuBoard:
         """
         Solves the sudoku puzzle
         """
-        self.call_stack_depth += 1
+        print('Call Depth: ' + str(self.call_stack_depth))
+        if self.is_solved():
+            return
         moves = []
         start_time = datetime.now()
         print(self)
@@ -1036,9 +1036,11 @@ class SudokuBoard:
             try:
                 successes = method_progression[index]()
                 if successes:
-                    print(self)
+                    for s in successes:
+                        print(s)
             except ValueError as e:
-                raise e
+                if self.call_stack_depth != 0:
+                    raise e
             moves.extend(successes)
             if self.is_solved():
                 end_time = datetime.now()
@@ -1058,7 +1060,7 @@ class SudokuBoard:
 
         end_time = datetime.now()
         diff = divmod((end_time - start_time).total_seconds(), 60)
-        if self.file_path_name:
+        if self.file_path_name and self.call_stack_depth == 0:
             print('Unable to complete ' + self.file_path_name + ' in ' + str(diff[0]) + ' minutes and ' + str(
                 diff[1]) + ' seconds.')
             print(self)

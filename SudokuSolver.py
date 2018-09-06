@@ -52,6 +52,7 @@ for move in moves:
 
 print(sudoku.board)
 print(sudoku.possible_values)
+print(sudoku)
 
 exit()
 
