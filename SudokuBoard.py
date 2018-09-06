@@ -763,20 +763,13 @@ class SudokuBoard:
                         if temp_successes and self.call_stack_depth == 1 and attempt_board.is_solved():
                             return temp_successes
                     except ValueError as e:
-                        # if the "solve" throws a Value Error that is because it ran into a contradiction at some point
-                        # if we are at the original guess (because solve can still call force_chain and have several
-                        # layers of guesses running)
-                        if self.call_stack_depth == 0:
-                            # remove the offending guess from the possible values and return the relevant move
-                            if value_to_try in self.possible_values[coord]:
-                                self.possible_values[coord].remove(value_to_try)
-                                reason = str(coord) + ' had possibility value of ' + str(value_to_try) + ' removed due to trial and error. ' + str(e)
-                                self.print_reason_to_file(reason)
-                                return [Move(REMOVE_POSS, value_to_try, coord, reason)]
-                        else:
-                            # pass the
-                            print('Returning from depth: ' + str(self.call_stack_depth))
-                            raise e
+                        # if the "solve" function throws a Value Error that is because it ran into a contradiction at some point
+                        # remove the offending guess from the possible values and return the relevant move
+                        if value_to_try in self.possible_values[coord]:
+                            self.possible_values[coord].remove(value_to_try)
+                            reason = str(coord) + ' had possibility value of ' + str(value_to_try) + ' removed due to trial and error. ' + str(e)
+                            self.print_reason_to_file(reason)
+                            return [Move(REMOVE_POSS, value_to_try, coord, reason)]
                 except ValueError as e:
                     # if setting the value on your 'alternate universe' puzzle ran into problems,
                     # you have reached a contradiction, but that means the error had to have been made previously,
