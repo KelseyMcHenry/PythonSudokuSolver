@@ -40,7 +40,7 @@ data_1 = [1, 0, 0, 0, 9, 0, 3, 0, 0,
           0, 8, 0, 0, 0, 0, 0, 0, 0,
           0, 0, 9, 4, 0, 0, 0, 0, 0]
 
-sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/forcingchain1.sdk')
+sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/multicolouring4.sdk')
 print(sudoku.board)
 print(sudoku.possible_values)
 moves = sudoku.solve()

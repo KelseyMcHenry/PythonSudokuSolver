@@ -751,32 +751,32 @@ class SudokuBoard:
                 attempt_board = SudokuBoard(values=values, printout=False)
                 attempt_board.set_poss_values(deepcopy(self.possible_values))
                 # go through all the possible values for the cell ...
-                value_to_try = poss[0]
-                try:
-                    # in the 'alternate universe' copy, try to set that value
-                    attempt_board.set(coord[0], coord[1], value_to_try)
-                    print("Forcing chain on " + str(coord) + " with value " + str(value_to_try) + '....')
+                for value_to_try in poss:
                     try:
-                        # attempt to solve the 'alternate universe' puzzle under the assumption that it is correct.
-                        attempt_board.call_stack_depth = self.call_stack_depth + 1
-                        temp_successes = attempt_board.solve()
-                        if temp_successes and self.call_stack_depth == 1 and attempt_board.is_solved():
-                            return temp_successes
+                        # in the 'alternate universe' copy, try to set that value
+                        attempt_board.set(coord[0], coord[1], value_to_try)
+                        print("Forcing chain on " + str(coord) + " with value " + str(value_to_try) + '....')
+                        try:
+                            # attempt to solve the 'alternate universe' puzzle under the assumption that it is correct.
+                            attempt_board.call_stack_depth = self.call_stack_depth + 1
+                            temp_successes = attempt_board.solve()
+                            if temp_successes and self.call_stack_depth == 1 and attempt_board.is_solved():
+                                return temp_successes
+                        except ValueError as e:
+                            # if the "solve" function throws a Value Error that is because it ran into a contradiction at some point
+                            # remove the offending guess from the possible values and return the relevant move
+                            if value_to_try in self.possible_values[coord]:
+                                self.possible_values[coord].remove(value_to_try)
+                                reason = str(coord) + ' had possibility value of ' + str(value_to_try) + ' removed due to trial and error. ' + str(e)
+                                self.print_reason_to_file(reason)
+                                return [Move(REMOVE_POSS, value_to_try, coord, reason)]
                     except ValueError as e:
-                        # if the "solve" function throws a Value Error that is because it ran into a contradiction at some point
-                        # remove the offending guess from the possible values and return the relevant move
-                        if value_to_try in self.possible_values[coord]:
-                            self.possible_values[coord].remove(value_to_try)
-                            reason = str(coord) + ' had possibility value of ' + str(value_to_try) + ' removed due to trial and error. ' + str(e)
-                            self.print_reason_to_file(reason)
-                            return [Move(REMOVE_POSS, value_to_try, coord, reason)]
-                except ValueError as e:
-                    # if setting the value on your 'alternate universe' puzzle ran into problems,
-                    # you have reached a contradiction, but that means the error had to have been made previously,
-                    # and the responsible guess is still on the stack. The solution is to pass the error back up to that
-                    # function call.
-                    print('Returning from depth: ' + str(self.call_stack_depth))
-                    raise e
+                        # if setting the value on your 'alternate universe' puzzle ran into problems,
+                        # you have reached a contradiction, but that means the error had to have been made previously,
+                        # and the responsible guess is still on the stack. The solution is to pass the error back up to that
+                        # function call.
+                        print('Returning from depth: ' + str(self.call_stack_depth))
+                        raise e
 
         return successes
 
@@ -1020,7 +1020,7 @@ class SudokuBoard:
         # TODO XWING
         method_progression = [self.sole_candidates, self.unique_candidate, self.sector_line_interaction,
                               self.naked_subset, self.hidden_subset, self.sector_sector_interaction,
-                              self.swordfish, self.force_chain]
+                              self.swordfish, self.x_wing, self.force_chain]
 
         most_complex_function_index = 0
         index = 0
