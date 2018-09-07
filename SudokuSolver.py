@@ -1,4 +1,4 @@
-import SudokuBoard
+from SudokuBoard import SudokuBoard
 import os
 from View import SudokuView
 from tkinter import Tk, Frame, RIGHT, Scrollbar, X, Y, Text, BOTH, WORD, Label, TOP, LEFT, font
@@ -40,7 +40,8 @@ data_1 = [1, 0, 0, 0, 9, 0, 3, 0, 0,
           0, 8, 0, 0, 0, 0, 0, 0, 0,
           0, 0, 9, 4, 0, 0, 0, 0, 0]
 
-sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/multicolouring4.sdk')
+sudoku = SudokuBoard(file_path='TestCases/pointingtuple2.sdk')
+# sudoku = SudokuBoard([0, 3, 0, 7, 8, 1, 0, 5, 0, 7, 0, 0, 2, 3, 9, 6, 8, 0, 0, 0, 0, 6, 5, 4, 0, 7, 3, 5, 0, 0, 0, 0, 7, 3, 9, 8, 3, 1, 7, 9, 2, 8, 5, 4, 6, 4, 8, 9, 3, 6, 5, 7, 1, 2, 0, 0, 0, 0, 0, 2, 0, 3, 0, 1, 0, 0, 0, 0, 3, 0, 6, 0, 0, 0, 3, 0, 0, 6, 4, 2, 7])
 print(sudoku.board)
 print(sudoku.possible_values)
 moves = sudoku.solve()
@@ -56,13 +57,13 @@ print(sudoku)
 
 exit()
 
-# sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/blockcolrow5.sdk')
+# sudoku = SudokuBoard(file_path='TestCases/blockcolrow5.sdk')
 # sudoku.solve()
 # print(sudoku)
 
 # for root, dirs, filenames in os.walk('TestCases'):
 #     for f in filenames:
-#         sudoku = SudokuBoard.SudokuBoard(file_path='TestCases/' + f, printout=True)
+#         sudoku = SudokuBoard(file_path='TestCases/' + f, printout=True)
 #         sudoku.solve()
 
 root = Tk()

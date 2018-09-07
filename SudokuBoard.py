@@ -454,6 +454,8 @@ class SudokuBoard:
             subarea_type = 'row'
         elif 'col' in poss_func.__name__:
             subarea_type = 'column'
+        else:
+            raise Exception
 
         successes = []
 
@@ -1017,9 +1019,9 @@ class SudokuBoard:
         moves = []
         start_time = datetime.now()
         print(self)
-        # TODO XWING
-        method_progression = [self.sole_candidates, self.unique_candidate, self.sector_line_interaction,
-                              self.naked_subset, self.hidden_subset, self.sector_sector_interaction,
+        method_progression = [self.sole_candidates, self.unique_candidate, self.pointing_tuple,
+                              self.sector_line_interaction, self.sector_sector_interaction,
+                              self.naked_subset, self.hidden_subset,
                               self.swordfish, self.x_wing, self.force_chain]
 
         most_complex_function_index = 0
