@@ -1002,6 +1002,7 @@ class SudokuBoard:
             self.file.write(s + '\n')
 
     def solve(self):
+        print("solve")
         """
         Solves the sudoku puzzle
         """

@@ -1,9 +1,15 @@
+from copy import deepcopy
 from tkinter import Tk, Canvas, Frame, Button, BOTH, TOP, BOTTOM, LEFT
+from tkinter import Tk, Frame, RIGHT, Scrollbar, X, Y, Text, BOTH, WORD, Label, TOP, LEFT, font
 from tkinter.font import Font
 from UserSudokuModel import UserBoard
 from SudokuBoard import SudokuBoard
 from Move import NUMBER_SOLVE, REMOVE_POSS
 import time
+from multiprocessing.pool import ThreadPool
+from threading import Thread
+from itertools import chain
+
 
 # http://newcoder.io/gui/part-3/
 # http://wiki.tcl.tk/37701
@@ -12,7 +18,7 @@ MARGIN = 20  # Pixels around the board
 SIDE = 50  # Width of every board cell.
 WIDTH = HEIGHT = MARGIN * 2 + SIDE * 9  # Width and height of the whole board
 
-MAJOR_LINE_COLOR = "blue"
+MAJOR_LINE_COLOR = "steel blue"
 MINOR_LINE_COLOR = "gray"
 
 ORIGINAL_NUMBER = "black"
@@ -31,18 +37,32 @@ AI_POSS_REDUCING_CURSOR = 'orange red'
 # TODO: make it so clicking a reason highlights the cells ala https://www.sudoku-solutions.com/
 # TODO: make reasons their own hoverable cells in the console instead of plaintext
 
+
 class SudokuView(Frame):
 
-    def __init__(self, parent, game, text, console_scrollbar):
+    def __init__(self, game):
+
+        root = Tk()
+        console_frame = Frame(master=root)
+        vertical_scrollbar = Scrollbar(console_frame)
+        text = Text(console_frame, height=2, width=130, wrap=WORD)
+        text.config(yscrollcommand=vertical_scrollbar.set)
+        vertical_scrollbar.config(command=text.yview)
+        label = Label(console_frame, text="Console: ", anchor="w")
+        console_frame.pack(side=RIGHT, fill=BOTH, expand=1)
+        label.pack(side=TOP, fill=X)
+        vertical_scrollbar.pack(side=RIGHT, fill=Y)
+        text.pack(side=RIGHT, fill=BOTH, expand=1)
+
         self.game_model = game
+        self.solve_model = SudokuBoard(list(chain.from_iterable(game.board)))
         self.user_board = UserBoard(game, poss_dict=game.possible_values)
-        self.parent = parent
         self.console = text
-        self.console_scrollbar = console_scrollbar
-        Frame.__init__(self, parent)
+        self.console_scrollbar = vertical_scrollbar
+        Frame.__init__(self, root)
 
         self.row, self.col = 0, 0
-        self.parent.title("Sudoku Solver")
+        root.title("Sudoku Solver")
         self.pack(fill=BOTH, side=LEFT)
         self.canvas = Canvas(self, width=WIDTH, height=HEIGHT)
         self.canvas.pack(fill=BOTH, side=TOP)
@@ -50,10 +70,12 @@ class SudokuView(Frame):
         clear_button = Button(self, text="Clear Answers", command=self.clear_answers)
         clear_button.pack(fill=BOTH, side=BOTTOM)
 
-        hint_button = Button(self, text="Hint", command=self.hint)
-        hint_button.pack(fill=BOTH, side=BOTTOM)
+        self.hint_button = Button(self, text="Hint", command=self.hint)
+        self.hint_button['state'] = 'disabled'
+        self.hint_button.pack(fill=BOTH, side=BOTTOM)
 
         self.solve_button = Button(self, text="Solve", command=self.solve)
+        self.solve_button['state'] = 'disabled'
         self.solve_button.pack(fill=BOTH, side=BOTTOM)
 
         new_puzzle_button = Button(self, text="New Puzzle", command=self.new_puzzle)
@@ -66,22 +88,32 @@ class SudokuView(Frame):
         self.canvas.bind("<Key>", self.key_pressed)
         self.canvas.bind("<FocusOut>", self.clear_cursor)
         self.moves = []
+        thread = Thread(target=self.async_solve_model)
+        thread.start()
+        root.mainloop()
+        thread.join()
+
+    def async_solve_model(self):
+        pool = ThreadPool(processes=1)
+        async_return = pool.apply_async(self.solve_model.solve, callback=self.solve_finished)
+        self.moves = async_return.get()
 
     def draw_grid(self):
         for i in range(10):
             color = MAJOR_LINE_COLOR if i % 3 == 0 else MINOR_LINE_COLOR
+            width = 2 if i % 3 == 0 else 1
 
             x0 = MARGIN + i * SIDE
             y0 = MARGIN
             x1 = MARGIN + i * SIDE
             y1 = HEIGHT - MARGIN
-            self.canvas.create_line(x0, y0, x1, y1, fill=color)
+            self.canvas.create_line(x0, y0, x1, y1, fill=color, width=width)
 
             x0 = MARGIN
             y0 = MARGIN + i * SIDE
             x1 = WIDTH - MARGIN
             y1 = MARGIN + i * SIDE
-            self.canvas.create_line(x0, y0, x1, y1, fill=color)
+            self.canvas.create_line(x0, y0, x1, y1, fill=color, width=width)
 
     def draw_puzzle(self):
         self.canvas.delete("numbers")
@@ -189,10 +221,9 @@ class SudokuView(Frame):
     def solve(self):
         self.solve_button['state'] = 'disabled'
         if not self.moves:
-            self.moves = self.game_model.solve()
-            self.moves = self.moves[::-1]
-            self.solve_to_screen()
-
+            self.moves = self.solve_model.solve()
+        self.moves = self.moves[::-1]
+        self.solve_to_screen()
 
     def solve_to_screen(self):
         if len(self.moves) == 0:
@@ -202,6 +233,7 @@ class SudokuView(Frame):
         else:
             move = self.moves.pop()
             self.row, self.col = move.get_pos()
+            print(move)
             if move.get_operation() == NUMBER_SOLVE:
                 self.draw_cursor(AI_SOLVING_CURSOR)
                 poss_updates = self.user_board.code_set(move.get_pos()[0], move.get_pos()[1], move.get_number())
@@ -227,3 +259,9 @@ class SudokuView(Frame):
     def clear_cursor(self, event):
         self.row, self.col = -1, -1
         self.draw_cursor(CURSOR_COLOR)
+
+    def solve_finished(self, moves):
+        print('done')
+        self.hint_button['state'] = 'normal'
+        self.solve_button['state'] = 'normal'
+
