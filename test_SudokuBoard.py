@@ -1159,9 +1159,9 @@ class SudokuBoardTestCase(unittest.TestCase):
         blank_board_copy = deepcopy(self.blank_board.board)
         blank_board_poss_copy = deepcopy(self.blank_board.possible_values)
 
-        actual_moves = self.blank_board.pointing_tuple_generic(pointing_tuple_row.get_row_possibilities,
-                                                                 pointing_tuple_row.get_sector_subrow_possibilities,
-                                                                 pointing_tuple_row.row_indices_in_sector)
+        actual_moves = self.blank_board.pointing_tuple_generic(self.blank_board.get_row_possibilities,
+                                                               self.blank_board.get_sector_subrow_possibilities,
+                                                               self.blank_board.row_indices_in_sector)
         self.assertEqual(actual_moves, [])
         self.assertEqual(self.blank_board.board, blank_board_copy)
         self.assertEqual(self.blank_board.possible_values, blank_board_poss_copy)
@@ -1191,9 +1191,6 @@ class SudokuBoardTestCase(unittest.TestCase):
             Move(REMOVE_POSS, 6, (1, 6),
                  'column 0 ((1, 6)) had possibility value of 6 removed due to a pointing tuple in sector 8')
         ]
-
-        print(pointing_tuple_col.board)
-        print(pointing_tuple_col.possible_values)
 
         pointing_tuple_col_board = [[0, 9, 0, 0, 0, 7, 0, 5, 0], [0, 5, 0, 8, 0, 0, 0, 0, 0],
                                     [1, 4, 0, 0, 5, 0, 2, 0, 0], [7, 0, 4, 0, 9, 0, 0, 0, 0],
@@ -1226,9 +1223,9 @@ class SudokuBoardTestCase(unittest.TestCase):
         blank_board_copy = deepcopy(self.blank_board.board)
         blank_board_poss_copy = deepcopy(self.blank_board.possible_values)
 
-        actual_moves = self.blank_board.pointing_tuple_generic(pointing_tuple_col.get_col_possibilities,
-                                                                 pointing_tuple_col.get_sector_subcolumn_possibilities,
-                                                                 pointing_tuple_col.col_indices_in_sector)
+        actual_moves = self.blank_board.pointing_tuple_generic(self.blank_board.get_col_possibilities,
+                                                               self.blank_board.get_sector_subcolumn_possibilities,
+                                                               self.blank_board.col_indices_in_sector)
         self.assertEqual(actual_moves, [])
         self.assertEqual(self.blank_board.board, blank_board_copy)
         self.assertEqual(self.blank_board.possible_values, blank_board_poss_copy)
@@ -2354,10 +2351,11 @@ class SudokuBoardTestCase(unittest.TestCase):
         self.assertTrue(force_chain.board, force_chain_expected_board)
 
     def test_solve(self):
-        pass
-        # for root, dirs, filenames in os.walk('TestCases'):
-        #     for f in filenames:
-        #         sudoku = SudokuBoard(file_path='TestCases/' + f, printout=False)
-        #         sudoku.solve()
-        #         self.assertTrue(sudoku.is_solved())
-        #         del sudoku
+        # pass
+        for root, dirs, filenames in os.walk('TestCases'):
+            for f in filenames:
+                with self.subTest(file=f):
+                    sudoku = SudokuBoard(file_path='TestCases/' + f, printout=False)
+                    sudoku.solve()
+                    self.assertTrue(sudoku.is_solved())
+                    del sudoku

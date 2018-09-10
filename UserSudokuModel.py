@@ -1,5 +1,7 @@
 from copy import deepcopy
-
+from itertools import chain, product
+from SudokuBoard import SudokuBoard
+from Move import Move, REMOVE_POSS
 
 class UserBoard:
     def __init__(self, board, poss_dict=None):
@@ -16,6 +18,16 @@ class UserBoard:
     def set(self, x, y, value):
         self.board[x][y] = value
 
+    def code_set(self, x, y, value):
+        moves = []
+        self.board[x][y] = value
+        indices = product(SudokuBoard.INDEX_RANGE, SudokuBoard.INDEX_RANGE)
+        for x_index, y_index in indices:
+            if x_index == x or y_index == y or SudokuBoard.sector_lookup(x_index, y_index) == SudokuBoard.sector_lookup(x, y) and type(self.board[x][y]) is list:
+                moves.append(Move(REMOVE_POSS, (x_index, y_index), value, f'The value {value} was eliminated from the possibilities at {x_index, y_index} because we determined {x, y} to be {value}'))
+
+        return moves
+
     def add_possibility(self, x, y, value):
         if value == 0:
             return
@@ -28,4 +40,7 @@ class UserBoard:
         self.board[x][y].remove(value)
         if len(self.board[x][y]) == 1:
             self.board[x][y] = self.board[x][y].pop()
+
+    def set_board(self, board):
+        self.board = board
 

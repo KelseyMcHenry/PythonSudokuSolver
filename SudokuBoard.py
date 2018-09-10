@@ -80,9 +80,6 @@ class SudokuBoard:
                                    if self.sector_lookup(i, j) == self.sector_lookup(coordinate[0], coordinate[1])])):
                     self.possible_values[coordinate].append(n)
 
-        # print(self.board)
-        # print(self.possible_values)
-
     def __del__(self):
         self.file.close()
 
@@ -251,7 +248,6 @@ class SudokuBoard:
                 if value in self.possible_values[(x, y)]:
                     self.possible_values[(x, y)].remove(value)
             if self.board[x][y] == 0 and len(self.get_possibilities(x, y)) == 0:
-                print('Contradiction reached.')
                 raise ValueError('Invalid cell value of ' + str(value) + ' cannot be set at ' + str((x, y)))
 
     def set_poss_values(self, possibilities):
@@ -467,15 +463,13 @@ class SudokuBoard:
             for value in self.VALUE_RANGE:
                 index_to_remove_value_from = self.unique_to_only_one(value, subarea_poss_func(sector, subarea_1), subarea_poss_func(sector, subarea_2), subarea_poss_func(sector, subarea_3))
                 if index_to_remove_value_from >= 0:
+
                     for coord, poss in poss_func(area_indices_in_sector[index_to_remove_value_from]).items():
                         if self.sector_lookup(coord[0], coord[1]) != sector:
                             if value in self.possible_values[coord]:
                                 self.possible_values[coord].remove(value)
                                 reason = subarea_type + ' ' + str(index_to_remove_value_from) + ' (' + str(coord) + ') had possibility value of ' + str(value) + ' removed due to a pointing tuple in sector ' + str(sector)
                                 successes.append(Move(REMOVE_POSS, value, coord, reason))
-        if successes:
-            for s in successes:
-                print(s)
 
         return successes
 
@@ -757,12 +751,11 @@ class SudokuBoard:
                     try:
                         # in the 'alternate universe' copy, try to set that value
                         attempt_board.set(coord[0], coord[1], value_to_try)
-                        print("Forcing chain on " + str(coord) + " with value " + str(value_to_try) + '....')
                         try:
                             # attempt to solve the 'alternate universe' puzzle under the assumption that it is correct.
                             attempt_board.call_stack_depth = self.call_stack_depth + 1
                             temp_successes = attempt_board.solve()
-                            if temp_successes and self.call_stack_depth == 1 and attempt_board.is_solved():
+                            if temp_successes and self.call_stack_depth == 1 and self.is_solved():
                                 return temp_successes
                         except ValueError as e:
                             # if the "solve" function throws a Value Error that is because it ran into a contradiction at some point
@@ -777,7 +770,6 @@ class SudokuBoard:
                         # you have reached a contradiction, but that means the error had to have been made previously,
                         # and the responsible guess is still on the stack. The solution is to pass the error back up to that
                         # function call.
-                        print('Returning from depth: ' + str(self.call_stack_depth))
                         raise e
 
         return successes
@@ -1013,12 +1005,10 @@ class SudokuBoard:
         """
         Solves the sudoku puzzle
         """
-        print('Call Depth: ' + str(self.call_stack_depth))
         if self.is_solved():
             return
         moves = []
         start_time = datetime.now()
-        print(self)
         method_progression = [self.sole_candidates, self.unique_candidate, self.pointing_tuple,
                               self.sector_line_interaction, self.sector_sector_interaction,
                               self.naked_subset, self.hidden_subset,
@@ -1027,12 +1017,8 @@ class SudokuBoard:
         most_complex_function_index = 0
         index = 0
         while index < len(method_progression):
-            print(method_progression[index].__name__)
             try:
                 successes = method_progression[index]()
-                if successes:
-                    for s in successes:
-                        print(s)
             except ValueError as e:
                 if self.call_stack_depth != 0:
                     raise e
@@ -1058,6 +1044,5 @@ class SudokuBoard:
         if self.file_path_name and self.call_stack_depth == 0:
             print('Unable to complete ' + self.file_path_name + ' in ' + str(diff[0]) + ' minutes and ' + str(
                 diff[1]) + ' seconds.')
-            print(self)
 
         return moves

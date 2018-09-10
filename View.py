@@ -1,6 +1,9 @@
 from tkinter import Tk, Canvas, Frame, Button, BOTH, TOP, BOTTOM, LEFT
 from tkinter.font import Font
 from UserSudokuModel import UserBoard
+from SudokuBoard import SudokuBoard
+from Move import NUMBER_SOLVE, REMOVE_POSS
+import time
 
 # http://newcoder.io/gui/part-3/
 # http://wiki.tcl.tk/37701
@@ -47,8 +50,8 @@ class SudokuView(Frame):
         hint_button = Button(self, text="Hint", command=self.hint)
         hint_button.pack(fill=BOTH, side=BOTTOM)
 
-        solve_button = Button(self, text="Solve", command=self.solve)
-        solve_button.pack(fill=BOTH, side=BOTTOM)
+        self.solve_button = Button(self, text="Solve", command=self.solve)
+        self.solve_button.pack(fill=BOTH, side=BOTTOM)
 
         new_puzzle_button = Button(self, text="New Puzzle", command=self.new_puzzle)
         new_puzzle_button.pack(fill=BOTH, side=BOTTOM)
@@ -59,6 +62,7 @@ class SudokuView(Frame):
         self.canvas.bind("<Button-1>", self.cell_clicked)
         self.canvas.bind("<Key>", self.key_pressed)
         self.canvas.bind("<FocusOut>", self.clear_cursor)
+        self.moves = []
 
     def draw_grid(self):
         for i in range(10):
@@ -180,8 +184,30 @@ class SudokuView(Frame):
         pass
 
     def solve(self):
-        # TODO solve the whole thing and dump the reasons to the console
-        pass
+        self.solve_button['state'] = 'disabled'
+        if not self.moves:
+            self.moves = self.game_model.solve()
+            self.moves = self.moves[::-1]
+            self.solve_to_screen()
+
+    def solve_to_screen(self):
+        if len(self.moves) == 0:
+            return
+        else:
+            move = self.moves.pop()
+            if move.get_operation() == NUMBER_SOLVE:
+                poss_updates = self.user_board.code_set(move.get_pos()[0], move.get_pos()[1], move.get_number())
+                print(poss_updates)
+                if poss_updates:
+                    poss_updates.extend(self.moves)
+                    self.moves = poss_updates
+                print(self.moves)
+            else:
+                self.user_board.remove_possibility(move.get_pos()[0], move.get_pos()[1], move.get_number())
+            self.write_to_console(move.reason)
+            self.draw_puzzle()
+
+            self.after(200, self.solve_to_screen)
 
     def new_puzzle(self):
         # TODO
