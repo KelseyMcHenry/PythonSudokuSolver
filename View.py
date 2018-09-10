@@ -19,6 +19,8 @@ ORIGINAL_NUMBER = "black"
 ENTERED_NUMBER = "sea green"
 
 CURSOR_COLOR = "red"
+AI_SOLVING_CURSOR = 'dark slate gray'
+AI_POSS_REDUCING_CURSOR = 'orange red'
 
 # TODO: async pass the original puzzle to the solver, when it returns set a flag.
     # TODO: disable solve and hint buttons until it returns
@@ -31,11 +33,12 @@ CURSOR_COLOR = "red"
 
 class SudokuView(Frame):
 
-    def __init__(self, parent, game, text):
+    def __init__(self, parent, game, text, console_scrollbar):
         self.game_model = game
         self.user_board = UserBoard(game, poss_dict=game.possible_values)
         self.parent = parent
         self.console = text
+        self.console_scrollbar = console_scrollbar
         Frame.__init__(self, parent)
 
         self.row, self.col = 0, 0
@@ -114,9 +117,9 @@ class SudokuView(Frame):
             else:
                 self.row, self.col = row, col
 
-        self.draw_cursor()
+        self.draw_cursor(CURSOR_COLOR)
 
-    def draw_cursor(self):
+    def draw_cursor(self, color):
         # TODO: hold shift to leave up old cursors
         self.canvas.delete("cursor")
         if self.row >= 0 and self.col >= 0:
@@ -124,7 +127,7 @@ class SudokuView(Frame):
             y0 = MARGIN + self.row * SIDE + 1
             x1 = MARGIN + (self.col + 1) * SIDE - 1
             y1 = MARGIN + (self.row + 1) * SIDE - 1
-            self.canvas.create_rectangle(x0, y0, x1, y1, outline=CURSOR_COLOR, tags="cursor")
+            self.canvas.create_rectangle(x0, y0, x1, y1, outline=color, tags="cursor", width=2)
 
     def key_pressed(self, event):
         # if self.user_board.is_solved():
@@ -149,7 +152,7 @@ class SudokuView(Frame):
 
             # self.col, self.row = -1, -1
             self.draw_puzzle()
-            self.draw_cursor()
+            self.draw_cursor(CURSOR_COLOR)
             # if self.user_board.check_win():
             #     self.draw_victory()
 
@@ -190,24 +193,27 @@ class SudokuView(Frame):
             self.moves = self.moves[::-1]
             self.solve_to_screen()
 
+
     def solve_to_screen(self):
         if len(self.moves) == 0:
+            self.canvas.delete("cursor")
+            self.write_to_console("SOLVED!")
             return
         else:
             move = self.moves.pop()
+            self.row, self.col = move.get_pos()
             if move.get_operation() == NUMBER_SOLVE:
+                self.draw_cursor(AI_SOLVING_CURSOR)
                 poss_updates = self.user_board.code_set(move.get_pos()[0], move.get_pos()[1], move.get_number())
-                print(poss_updates)
                 if poss_updates:
-                    poss_updates.extend(self.moves)
-                    self.moves = poss_updates
-                print(self.moves)
+                    self.moves.extend(poss_updates)
             else:
+                self.draw_cursor(AI_POSS_REDUCING_CURSOR)
                 self.user_board.remove_possibility(move.get_pos()[0], move.get_pos()[1], move.get_number())
             self.write_to_console(move.reason)
             self.draw_puzzle()
 
-            self.after(200, self.solve_to_screen)
+            self.after(50, self.solve_to_screen)
 
     def new_puzzle(self):
         # TODO
@@ -216,7 +222,8 @@ class SudokuView(Frame):
 
     def write_to_console(self, text):
         self.console.insert('end', text + '\n')
+        self.console.see('end')
 
     def clear_cursor(self, event):
         self.row, self.col = -1, -1
-        self.draw_cursor()
+        self.draw_cursor(CURSOR_COLOR)
