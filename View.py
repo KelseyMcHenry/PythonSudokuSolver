@@ -24,9 +24,10 @@ MINOR_LINE_COLOR = "gray"
 ORIGINAL_NUMBER = "black"
 ENTERED_NUMBER = "sea green"
 
-CURSOR_COLOR = "red"
+CURSOR_COLOR = "MediumOrchid4"
 AI_SOLVING_CURSOR = 'dark slate gray'
 AI_POSS_REDUCING_CURSOR = 'orange red'
+ERROR_CURSOR_COLOR = 'red'
 
 # TODO: async pass the original puzzle to the solver, when it returns set a flag.
     # TODO: disable solve and hint buttons until it returns
@@ -154,6 +155,7 @@ class SudokuView(Frame):
     def draw_cursor(self, color):
         # TODO: hold shift to leave up old cursors
         self.canvas.delete("cursor")
+        self.canvas.delete("error_indicator")
         if self.row >= 0 and self.col >= 0:
             x0 = MARGIN + self.col * SIDE + 1
             y0 = MARGIN + self.row * SIDE + 1
@@ -209,6 +211,15 @@ class SudokuView(Frame):
 
     def hint(self):
         # TODO
+        # check the user model to see if any direct contradictions have been made accidentally...
+        coords = list(self.user_board.check_for_simple_contradiction())
+        print(coords)
+        if coords:
+            self.draw_error_line_cursor(coords[0], coords[1], ERROR_CURSOR_COLOR)
+        # Row, col, sector
+
+        # check the user model to see if any cells have missing possibilities
+
         # check and see if any cells are incorrect, possibilities or solutions; if so highlight them and say so.
         #   possibly attempt to explain why it is wrong?
 
@@ -265,3 +276,51 @@ class SudokuView(Frame):
         self.hint_button['state'] = 'normal'
         self.solve_button['state'] = 'normal'
 
+    def draw_error_line_cursor(self, coord1, coord2, color):
+        # TODO: hold shift to leave up old cursors
+        self.canvas.delete("cursor")
+        self.canvas.delete("error_indicator")
+        if coord1[0] >= 0 and coord1[1] >= 0:
+            x0 = MARGIN + coord1[1] * SIDE + 1
+            y0 = MARGIN + coord1[0] * SIDE + 1
+            x1 = MARGIN + (coord1[1] + 1) * SIDE - 1
+            y1 = MARGIN + (coord1[0] + 1) * SIDE - 1
+            self.canvas.create_oval(x0, y0, x1, y1, outline=color, tags="error_indicator", width=2)
+        if coord2[0] >= 0 and coord2[1] >= 0:
+            x0 = MARGIN + coord2[1] * SIDE + 1
+            y0 = MARGIN + coord2[0] * SIDE + 1
+            x1 = MARGIN + (coord2[1] + 1) * SIDE - 1
+            y1 = MARGIN + (coord2[0] + 1) * SIDE - 1
+            self.canvas.create_oval(x0, y0, x1, y1, outline=color, tags="error_indicator", width=2)
+        # draw line between the two
+        if coord1[0] == coord2[0]:
+            #row
+            print("row")
+            left = None
+            right = None
+            if coord1[1] < coord2[1]:
+                left = coord1
+                right = coord2
+            else:
+                left = coord2
+                right = coord1
+            x0 = MARGIN + (left[1] + 1) * SIDE + 1
+            y0 = MARGIN + (left[0] + .5) * SIDE + 1
+            x1 = MARGIN + (right[1]) * SIDE
+            y1 = MARGIN + (right[0] + .5) * SIDE - 1
+            self.canvas.create_line(x0, y0, x1, y1, tags="error_indicator", fill=color, width=2)
+        elif coord1[1] == coord2[1]:
+            # column
+            top = None
+            bottom = None
+            if coord1[0] < coord2[0]:
+                top = coord1
+                bottom = coord2
+            else:
+                top = coord2
+                bottom = coord1
+            x0 = MARGIN + (top[1] + .5) * SIDE + 1
+            y0 = MARGIN + (top[0] + 1) * SIDE + 1
+            x1 = MARGIN + (bottom[1] + .5) * SIDE
+            y1 = MARGIN + (bottom[0]) * SIDE
+            self.canvas.create_line(x0, y0, x1, y1, tags="error_indicator", fill=color, width=2)
