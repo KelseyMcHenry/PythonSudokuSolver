@@ -17,6 +17,7 @@ from itertools import chain
 MARGIN = 20  # Pixels around the board
 SIDE = 50  # Width of every board cell.
 WIDTH = HEIGHT = MARGIN * 2 + SIDE * 9  # Width and height of the whole board
+SECTOR = 3 * SIDE
 
 MAJOR_LINE_COLOR = "steel blue"
 MINOR_LINE_COLOR = "gray"
@@ -211,14 +212,26 @@ class SudokuView(Frame):
 
     def hint(self):
         # TODO
-        # check the user model to see if any direct contradictions have been made accidentally...
-        coords = list(self.user_board.check_for_simple_contradiction())
-        print(coords)
-        if coords:
-            self.draw_error_line_cursor(coords[0], coords[1], ERROR_CURSOR_COLOR)
-        # Row, col, sector
+        # check the user model to see if any direct contradictions have been made accidentally and highglight them...
+        result = self.user_board.check_for_simple_contradiction()
+        if result:
+            coords = list(result[0])
+            type = result[1]
+            print(coords)
+            print(type)
+            if coords and type != "sector":
+                self.draw_error_line_highlight(coords[0], coords[1], ERROR_CURSOR_COLOR)
+            elif coords:
+                self.draw_error_sector(coords[0], coords[1], SudokuBoard.sector_lookup(coords[0][0], coords[0][1]), ERROR_CURSOR_COLOR)
+            return
+
+        # check if any possibilities can be easily removed.
+        self.user_board.check_for_poss_to_eliminate_easily()
+
+
 
         # check the user model to see if any cells have missing possibilities
+
 
         # check and see if any cells are incorrect, possibilities or solutions; if so highlight them and say so.
         #   possibly attempt to explain why it is wrong?
@@ -275,23 +288,21 @@ class SudokuView(Frame):
         print('done')
         self.hint_button['state'] = 'normal'
         self.solve_button['state'] = 'normal'
+    
+    def draw_error_number_highlight(self, coord, color):
+        if coord[0] >= 0 and coord[1] >= 0:
+            x0 = MARGIN + coord[1] * SIDE + 1
+            y0 = MARGIN + coord[0] * SIDE + 1
+            x1 = MARGIN + (coord[1] + 1) * SIDE - 1
+            y1 = MARGIN + (coord[0] + 1) * SIDE - 1
+            self.canvas.create_oval(x0, y0, x1, y1, outline=color, tags="error_indicator", width=2)
 
-    def draw_error_line_cursor(self, coord1, coord2, color):
+    def draw_error_line_highlight(self, coord1, coord2, color):
         # TODO: hold shift to leave up old cursors
         self.canvas.delete("cursor")
         self.canvas.delete("error_indicator")
-        if coord1[0] >= 0 and coord1[1] >= 0:
-            x0 = MARGIN + coord1[1] * SIDE + 1
-            y0 = MARGIN + coord1[0] * SIDE + 1
-            x1 = MARGIN + (coord1[1] + 1) * SIDE - 1
-            y1 = MARGIN + (coord1[0] + 1) * SIDE - 1
-            self.canvas.create_oval(x0, y0, x1, y1, outline=color, tags="error_indicator", width=2)
-        if coord2[0] >= 0 and coord2[1] >= 0:
-            x0 = MARGIN + coord2[1] * SIDE + 1
-            y0 = MARGIN + coord2[0] * SIDE + 1
-            x1 = MARGIN + (coord2[1] + 1) * SIDE - 1
-            y1 = MARGIN + (coord2[0] + 1) * SIDE - 1
-            self.canvas.create_oval(x0, y0, x1, y1, outline=color, tags="error_indicator", width=2)
+        self.draw_error_number_highlight(coord1, color)
+        self.draw_error_number_highlight(coord2, color)
         # draw line between the two
         if coord1[0] == coord2[0]:
             #row
@@ -304,13 +315,14 @@ class SudokuView(Frame):
             else:
                 left = coord2
                 right = coord1
-            x0 = MARGIN + (left[1] + 1) * SIDE + 1
-            y0 = MARGIN + (left[0] + .5) * SIDE + 1
+            x0 = MARGIN + (left[1] + 1) * SIDE
+            y0 = MARGIN + (left[0] + .5) * SIDE
             x1 = MARGIN + (right[1]) * SIDE
-            y1 = MARGIN + (right[0] + .5) * SIDE - 1
+            y1 = MARGIN + (right[0] + .5) * SIDE
             self.canvas.create_line(x0, y0, x1, y1, tags="error_indicator", fill=color, width=2)
         elif coord1[1] == coord2[1]:
             # column
+            print("column")
             top = None
             bottom = None
             if coord1[0] < coord2[0]:
@@ -319,8 +331,23 @@ class SudokuView(Frame):
             else:
                 top = coord2
                 bottom = coord1
-            x0 = MARGIN + (top[1] + .5) * SIDE + 1
-            y0 = MARGIN + (top[0] + 1) * SIDE + 1
+            x0 = MARGIN + (top[1] + .5) * SIDE
+            y0 = MARGIN + (top[0] + 1) * SIDE
             x1 = MARGIN + (bottom[1] + .5) * SIDE
-            y1 = MARGIN + (bottom[0]) * SIDE
+            y1 = MARGIN + (bottom[0]) * SIDE + 1
             self.canvas.create_line(x0, y0, x1, y1, tags="error_indicator", fill=color, width=2)
+        
+    def draw_error_sector(self, coord1, coord2, sector, color):
+        self.canvas.delete("cursor")
+        self.canvas.delete("error_indicator")
+        self.draw_error_number_highlight(coord1, color)
+        self.draw_error_number_highlight(coord2, color)
+        self.draw_error_sector_highlight(sector, color)
+
+    def draw_error_sector_highlight(self, sector, color):
+        x0 = MARGIN + (sector % 3) * SECTOR
+        y0 = MARGIN + (sector // 3) * SECTOR
+        x1 = x0 + SECTOR
+        y1 = y0 + SECTOR
+        self.canvas.create_rectangle(x0, y0, x1, y1, outline=color, width=2, tags="error_indicator")
+

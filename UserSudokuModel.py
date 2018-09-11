@@ -51,11 +51,31 @@ class UserBoard:
     def get_sudoku_object(self):
         return SudokuBoard(chain.from_iterable(self.board))
 
+    def check_for_poss_to_eliminate_easily(self):
+        user_input_map = {(x, y): self.board[x][y] for x, y in product(SudokuBoard.INDEX_RANGE, SudokuBoard.INDEX_RANGE)}
+        for index in SudokuBoard.INDEX_RANGE:
+            user_input_map_row = {coord: val for coord, val in user_input_map.items() if coord[0] == index}
+            user_input_map_column = {coord: val for coord, val in user_input_map.items() if coord[1] == index}
+            user_input_map_sector = {coord: val for coord, val in user_input_map.items() if
+                                     SudokuBoard.sector_lookup(coord[0], coord[1]) == index}
+
+            print(user_input_map_row)
+            user_input_map_row_concrete = {val for val in user_input_map_row.values() if type(val) is int}
+            print(user_input_map_row_concrete)
+            user_input_map_row_poss = {coord: set(val) for coord, val in user_input_map_row.items() if type(val) is list}
+            print(user_input_map_row_poss)
+            row_intersections = {coord: set.intersection(user_input_map_row_concrete, val) for coord, val in user_input_map_row_poss.items() if len(set.intersection(user_input_map_row_concrete, val)) > 0}
+            print(row_intersections)
+
+            if row_intersections:
+                return
+
+
     def check_for_simple_contradiction(self):
         user_input_map = {(x, y): self.board[x][y] if type(self.board[x][y]) is int else 0 for x, y in product(SudokuBoard.INDEX_RANGE, SudokuBoard.INDEX_RANGE)}
         for index in SudokuBoard.INDEX_RANGE:
-            user_input_map_row = {coord: val for coord, val in user_input_map.items() if coord[1] == index}
-            user_input_map_column = {coord: val for coord, val in user_input_map.items() if coord[0] == index}
+            user_input_map_row = {coord: val for coord, val in user_input_map.items() if coord[0] == index}
+            user_input_map_column = {coord: val for coord, val in user_input_map.items() if coord[1] == index}
             user_input_map_sector = {coord: val for coord, val in user_input_map.items() if SudokuBoard.sector_lookup(coord[0], coord[1]) == index}
             
             row_value_counts = {val: list(user_input_map_row.values()).count(val) for val in user_input_map_row.values() if val != 0}
@@ -70,12 +90,13 @@ class UserBoard:
             offending_column_coords = {coord: val for coord, val in user_input_map_column.items() if val in column_duplicates.keys()}
             offending_sector_coords = {coord: val for coord, val in user_input_map_sector.items() if val in sector_duplicates.keys()}
 
+            # TODO: make contradiction object, return first one
             if offending_row_coords:
-                return offending_row_coords.keys()
+                return offending_row_coords.keys(), "row"
             elif offending_column_coords:
-                return offending_column_coords.keys()
+                return offending_column_coords.keys(), "column"
             elif offending_sector_coords:
-                return offending_sector_coords.keys()
+                return offending_sector_coords.keys(), "sector"
         return []
 
 
