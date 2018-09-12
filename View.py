@@ -214,7 +214,6 @@ class SudokuView(Frame):
         # TODO
         # check for any blank cells
         coords = self.user_board.check_for_blank_cells()
-        print(coords)
         if coords:
             for coord in coords:
                 self.draw_error_cell_highlight(coord, ERROR_CURSOR_COLOR)
