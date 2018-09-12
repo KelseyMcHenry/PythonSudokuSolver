@@ -3,6 +3,7 @@ from itertools import chain, product
 from SudokuBoard import SudokuBoard
 from Move import Move, REMOVE_POSS
 
+
 class UserBoard:
     def __init__(self, board, poss_dict=None):
         self.board = deepcopy(board.board)
@@ -51,56 +52,52 @@ class UserBoard:
     def get_sudoku_object(self):
         return SudokuBoard(chain.from_iterable(self.board))
 
+    def check_for_blank_cells(self):
+        return [(x, y) for x, y in product(SudokuBoard.INDEX_RANGE, SudokuBoard.INDEX_RANGE) if self.board[x][y] == [] or self.board[x][y] == 0]
+
     def check_for_poss_to_eliminate_easily(self):
         user_input_map = {(x, y): self.board[x][y] for x, y in product(SudokuBoard.INDEX_RANGE, SudokuBoard.INDEX_RANGE)}
+        offending_coord_pairs = []
         for index in SudokuBoard.INDEX_RANGE:
-            user_input_map_row = {coord: val for coord, val in user_input_map.items() if coord[0] == index}
-            user_input_map_column = {coord: val for coord, val in user_input_map.items() if coord[1] == index}
-            user_input_map_sector = {coord: val for coord, val in user_input_map.items() if
-                                     SudokuBoard.sector_lookup(coord[0], coord[1]) == index}
-
-            print(user_input_map_row)
-            user_input_map_row_concrete = {val for val in user_input_map_row.values() if type(val) is int}
-            print(user_input_map_row_concrete)
-            user_input_map_row_poss = {coord: set(val) for coord, val in user_input_map_row.items() if type(val) is list}
-            print(user_input_map_row_poss)
-            row_intersections = {coord: set.intersection(user_input_map_row_concrete, val) for coord, val in user_input_map_row_poss.items() if len(set.intersection(user_input_map_row_concrete, val)) > 0}
-            print(row_intersections)
-
-            if row_intersections:
-                return
-
+            sub_area_solved_numbers = [
+                {coord: val for coord, val in user_input_map.items() if coord[0] == index and type(val) is int},
+                {coord: val for coord, val in user_input_map.items() if coord[1] == index and type(val) is int},
+                {coord: val for coord, val in user_input_map.items() if SudokuBoard.sector_lookup(coord[0], coord[1]) == index and type(val) is int}]
+            sub_area_poss = [
+                {coord: val for coord, val in user_input_map.items() if coord[0] == index and type(val) is list},
+                {coord: val for coord, val in user_input_map.items() if coord[1] == index and type(val) is list},
+                {coord: val for coord, val in user_input_map.items() if SudokuBoard.sector_lookup(coord[0], coord[1]) == index and type(val) is list}]
+            for sub_area_index in range(len(sub_area_solved_numbers)):
+                for coord_solved, value in sub_area_solved_numbers[sub_area_index].items():
+                    for coord_poss, sublist in sub_area_poss[sub_area_index].items():
+                        if value in sublist:
+                            offending_coord_pairs.append(coord_poss)
+                            offending_coord_pairs.append(coord_solved)
+                            offending_coord_pairs.append(value)
+                            return offending_coord_pairs
 
     def check_for_simple_contradiction(self):
-        # FIXME RETURN FIRST PAIR, USE LOOPS NOT COMPREHENSIONS
         user_input_map = {(x, y): self.board[x][y] if type(self.board[x][y]) is int else 0 for x, y in product(SudokuBoard.INDEX_RANGE, SudokuBoard.INDEX_RANGE)}
+        counts = {number: 0 for number in SudokuBoard.VALUE_RANGE}
+        offending_coord_pairs = []
         for index in SudokuBoard.INDEX_RANGE:
-            user_input_map_row = {coord: val for coord, val in user_input_map.items() if coord[0] == index}
-            row_value_counts = {val: list(user_input_map_row.values()).count(val) for val in user_input_map_row.values() if val != 0}
-            row_duplicates = {val: count for val, count in row_value_counts.items() if count > 1}
-            offending_row_coords = {coord: val for coord, val in user_input_map_row.items() if val in row_duplicates.keys()}
-            if offending_row_coords:
-                return offending_row_coords.keys(), "row"
+            sub_area_solved_numbers = [{coord: val for coord, val in user_input_map.items() if coord[0] == index and type(val) is int and val != 0},
+                                       {coord: val for coord, val in user_input_map.items() if coord[1] == index and type(val) is int and val != 0},
+                                       {coord: val for coord, val in user_input_map.items() if SudokuBoard.sector_lookup(coord[0], coord[1]) == index and type(val) is int and val != 0}]
+            for sub_area in sub_area_solved_numbers:
+                for value in SudokuBoard.VALUE_RANGE:
+                    for coord, number in sub_area.items():
+                        if number == value:
+                            counts[number] += 1
+                            offending_coord_pairs.append(coord)
+                            if counts[number] > 1:
+                                if len(offending_coord_pairs) == 2:
+                                    print(offending_coord_pairs)
+                                    return offending_coord_pairs
+                    offending_coord_pairs.clear()
+                counts = {number: 0 for number in SudokuBoard.VALUE_RANGE}
 
-        for index in SudokuBoard.INDEX_RANGE:
-            user_input_map_column = {coord: val for coord, val in user_input_map.items() if coord[1] == index}
-            column_value_counts = {val: list(user_input_map_column.values()).count(val) for val in user_input_map_column.values() if val != 0}
-            column_duplicates = {val: count for val, count in column_value_counts.items() if count > 1}
-            offending_column_coords = {coord: val for coord, val in user_input_map_column.items() if val in column_duplicates.keys()}
-            if offending_column_coords:
-                return offending_column_coords.keys(), "column"
 
-        for index in SudokuBoard.INDEX_RANGE:
-            user_input_map_sector = {coord: val for coord, val in user_input_map.items() if SudokuBoard.sector_lookup(coord[0], coord[1]) == index}
-            sector_value_counts = {val: list(user_input_map_sector.values()).count(val) for val in user_input_map_sector.values() if val != 0}
-            sector_duplicates = {val: count for val, count in sector_value_counts.items() if count > 1}
-            offending_sector_coords = {coord: val for coord, val in user_input_map_sector.items() if
-                                       val in sector_duplicates.keys()}
-            if offending_sector_coords:
-                return offending_sector_coords.keys(), "sector"
-
-            # TODO: make contradiction object, return first one
-        return []
 
 
 
