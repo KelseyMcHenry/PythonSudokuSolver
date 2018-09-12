@@ -30,14 +30,17 @@ AI_SOLVING_CURSOR = 'dark slate gray'
 AI_POSS_REDUCING_CURSOR = 'orange red'
 ERROR_CURSOR_COLOR = 'red'
 
-# TODO: async pass the original puzzle to the solver, when it returns set a flag.
-    # TODO: disable solve and hint buttons until it returns
-# TODO: add an option to 'handhold' and not allow them to add incorrect possibilities
 # TODO: docstrings
 # TODO: button styling
 # TODO: make console read only
 # TODO: make it so clicking a reason highlights the cells ala https://www.sudoku-solutions.com/
 # TODO: make reasons their own hoverable cells in the console instead of plaintext
+
+
+
+# TODO: Support mid puzzle solving - upgrade hint to solve from the point at which the user is at.
+# TODO: as part of the above, create a function which verifies what the user has entered up to this point before passing it to the solver
+# TODO: copy board to console?
 
 
 class SudokuView(Frame):
@@ -237,9 +240,6 @@ class SudokuView(Frame):
             self.draw_error_sector(coords[0], coords[1], SudokuBoard.sector_lookup(coords[0][0], coords[0][1]), ERROR_CURSOR_COLOR, value=coords[2])
             return
 
-        # check the user model to see if any cells have missing possibilities
-
-
         # check and see if any cells are incorrect, possibilities or solutions; if so highlight them and say so.
         #   possibly attempt to explain why it is wrong?
 
@@ -328,7 +328,6 @@ class SudokuView(Frame):
         # draw line between the two
         if coord1[0] == coord2[0]:
             #row
-            print("row")
             left = None
             right = None
             if coord1[1] < coord2[1]:
@@ -344,7 +343,6 @@ class SudokuView(Frame):
             self.canvas.create_line(x0, y0, x1, y1, tags="error_indicator", fill=color, width=1)
         elif coord1[1] == coord2[1]:
             # column
-            print("column")
             top = None
             bottom = None
             if coord1[0] < coord2[0]:
