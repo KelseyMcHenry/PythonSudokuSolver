@@ -5,7 +5,7 @@ from tkinter import Tk, Frame, RIGHT, Scrollbar, X, Y, Text, BOTH, WORD, Label, 
 from tkinter.font import Font
 
 if __name__ == '__main__':
-    sudoku = SudokuBoard(file_path=r'TestCases/hiddenpair1.sdk')
+    sudoku = SudokuBoard(file_path=r'TestCases/blockcolrow4.sdk')
     sudoku_view = SudokuView(sudoku)
 
 

@@ -8,8 +8,7 @@ from Move import NUMBER_SOLVE, REMOVE_POSS
 import time
 from multiprocessing.pool import ThreadPool
 from threading import Thread
-from itertools import chain
-
+from itertools import chain, product
 
 # http://newcoder.io/gui/part-3/
 # http://wiki.tcl.tk/37701
@@ -168,9 +167,7 @@ class SudokuView(Frame):
             self.canvas.create_rectangle(x0, y0, x1, y1, outline=color, tags="cursor", width=2)
 
     def key_pressed(self, event):
-        # if self.user_board.is_solved():
-        #     return
-        if self.row >= 0 and self.col >= 0 and event.char in "1234567890":
+        if event.char and self.row >= 0 and self.col >= 0 and event.char in "1234567890":
             val = int(event.char)
             cell = self.user_board.get(self.row, self.col)
             if type(cell) == int and cell == self.game_model.get(self.row, self.col) and cell != 0:
@@ -193,6 +190,19 @@ class SudokuView(Frame):
             self.draw_cursor(CURSOR_COLOR)
             # if self.user_board.check_win():
             #     self.draw_victory()
+        elif event.keycode == 37 and self.col > 0:
+            self.col -= 1
+            self.draw_cursor(CURSOR_COLOR)
+        elif event.keycode == 39 and self.col < 8:
+            self.col += 1
+            self.draw_cursor(CURSOR_COLOR)
+        elif event.keycode == 38 and self.row > 0:
+            self.row -= 1
+            self.draw_cursor(CURSOR_COLOR)
+        elif event.keycode == 40 and self.row < 8:
+            self.row += 1
+            self.draw_cursor(CURSOR_COLOR)
+
 
     def draw_victory(self):
         # TODO: Don't particularly like this, look into changing it
@@ -220,34 +230,47 @@ class SudokuView(Frame):
         if coords:
             for coord in coords:
                 self.draw_error_cell_highlight(coord, ERROR_CURSOR_COLOR)
+                self.write_to_console(f'HINT: fill in the possible values that could be in {coord}')
             return
 
         # check the user model to see if any direct contradictions have been made accidentally and highglight them...
         coords = self.user_board.check_for_simple_contradiction()
         if coords and SudokuBoard.sector_lookup(coords[0][0], coords[0][1]) != SudokuBoard.sector_lookup(coords[1][0], coords[1][1]):
             self.draw_error_line_highlight(coords[0], coords[1], ERROR_CURSOR_COLOR)
+            self.write_to_console(f'HINT: {coords[0]} and {coords[1]} contradict')
             return
         elif coords:
             self.draw_error_sector(coords[0], coords[1], SudokuBoard.sector_lookup(coords[0][0], coords[0][1]), ERROR_CURSOR_COLOR)
+            self.write_to_console(f'HINT: {coords[0]} and {coords[1]} contradict')
             return
+
+        # check and see if any cells are incorrect, possibilities or solutions; if so highlight them and say so.
+        for x, y in product(SudokuBoard.INDEX_RANGE, SudokuBoard.INDEX_RANGE):
+            if type(self.user_board.get(x, y)) is int and self.solve_model.get(x, y) != self.user_board.get(x, y):
+                self.draw_error_cell_highlight((x, y), ERROR_CURSOR_COLOR)
+                self.write_to_console(f'HINT: {(x, y)} is incorrect, reevaluate your method you used to find it')
+                return
 
         # check if any possibilities can be easily removed.
         coords = self.user_board.check_for_poss_to_eliminate_easily()
         if coords and SudokuBoard.sector_lookup(coords[0][0], coords[0][1]) != SudokuBoard.sector_lookup(coords[1][0], coords[1][1]):
             self.draw_error_line_highlight(coords[0], coords[1], ERROR_CURSOR_COLOR, value=coords[2])
+            self.write_to_console(f'HINT: the {coords[2]} in {coords[0]} can be removed because of the {coords[2]} in {coords[1]}')
             return
         elif coords:
             self.draw_error_sector(coords[0], coords[1], SudokuBoard.sector_lookup(coords[0][0], coords[0][1]), ERROR_CURSOR_COLOR, value=coords[2])
+            self.write_to_console(f'HINT: the {coords[2]} in {coords[0]} can be removed because of the {coords[2]} in {coords[1]}')
             return
 
-        # check and see if any cells are incorrect, possibilities or solutions; if so highlight them and say so.
-        #   possibly attempt to explain why it is wrong?
-
-        # grab the next move, see if the user has already figured it, if so, move on to the next move.
-        #   dole out position, then operation, then number with a reason.
-
-        # put a note in the console
-        pass
+        self.moves = self.user_board.get_sudoku_object().solve()[::-1]
+        move = self.moves.pop()
+        # TODO improve reason object to make graphics clearer
+        if move.get_operation() == NUMBER_SOLVE:
+            self.draw_error_cell_highlight(move.get_pos(), ERROR_CURSOR_COLOR)
+            self.write_to_console('HINT: ' + move.get_reason())
+        else:
+            self.draw_error_number_highlight(move.get_pos(), ERROR_CURSOR_COLOR, move.get_number())
+            self.write_to_console('HINT: ' + move.get_reason())
 
     def solve(self):
         self.solve_button['state'] = 'disabled'

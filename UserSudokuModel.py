@@ -42,15 +42,17 @@ class UserBoard:
 
     def remove_possibility(self, x, y, value):
         if type(self.board[x][y]) is list:
-            self.board[x][y].remove(value)
             if len(self.board[x][y]) == 1:
                 self.board[x][y] = self.board[x][y].pop()
+            else:
+                self.board[x][y].remove(value)
+
 
     def set_board(self, board):
         self.board = board
 
     def get_sudoku_object(self):
-        return SudokuBoard(chain.from_iterable(self.board))
+        return SudokuBoard([self.board[x][y] if type(self.board[x][y]) is int else 0 for x, y in product(SudokuBoard.INDEX_RANGE, SudokuBoard.INDEX_RANGE)])
 
     def check_for_blank_cells(self):
         return [(x, y) for x, y in product(SudokuBoard.INDEX_RANGE, SudokuBoard.INDEX_RANGE) if self.board[x][y] == [] or self.board[x][y] == 0]
